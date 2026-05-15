@@ -133,20 +133,6 @@ You won't catch all of these in a pass; flag the obvious ones.
 
 **Propose:** quote the offending sentences with their file paths so the user can decide whether to rewrite.
 
-### Check 7b: schema migration
-
-**How:** grep for legacy section headings that the current schema no longer uses:
-
-```bash
-grep -rn "^## Intuition" wiki/
-```
-
-Any hits mean a page hasn't been migrated to the `## Motivation` schema yet.
-
-**Why:** mixed schemas confuse readers and break the "reference paragraph" promise for the voice.
-
-**Propose:** rewrite the section per the Motivation voice spec (see Quality bar in `CLAUDE.md`). On `ml_concept` / `method` pages, also add the `## Up next` footer if missing and the page is not a stub.
-
 ### Check 8: page size
 
 **How:** wc -l every page. Flag any page over 750 lines.
