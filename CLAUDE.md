@@ -106,7 +106,7 @@ status: draft
 
 ## Page templates
 
-Use these as defaults. Deviate when the content demands it.
+Use these as defaults. Deviate when the content demands it. **Prose body is Russian; section headings, frontmatter `title:`, H1, slugs, and tags stay English. See `## Language` below.**
 
 ### ML concept page
 
@@ -466,30 +466,27 @@ Invoke the matching skill (via the Skill tool) when the user requests one of the
 The reader is a working ML engineer. Calibrate accordingly:
 
 - **No basics.** Don't define `numpy`, `dot product`, or `loss function` from scratch. Link to a concept page if needed.
-- **No filler.** Banned: "in conclusion", "in summary", "it is important to note", "let's dive in", "fascinating", "powerful", and bolded Q&A markers like "**Question.**" / "**First attempt.**" / "**Catch.**" / "**Attempt 1.**". Just state the thing.
-- **No marketing voice.** "Attention is a mechanism that revolutionised…" — no. "Attention scores every key against a query and aggregates values accordingly."
+- **No marketing voice.** «Attention — это революционный механизм, который изменил...» — нет. «Attention оценивает каждый key относительно query и взвешенно агрегирует values».
 - **Definitions first.** Every page opens with a one- or two-sentence blockquote that defines the thing. Someone skimming the index should know what the page is about from that line alone.
 - **Math when it clarifies.** Use LaTeX (`$...$`, `$$...$$`). Don't paraphrase equations into prose unless the prose is genuinely clearer. See "Math notation" below — math notation is **never** in backticks.
 - **Pseudocode over English** for algorithms with non-obvious control flow.
 - **One concept per page.** If a page is doing two things, split it.
-- **Active voice.** "Adam tracks an exponential moving average of gradients" not "an EMA is tracked by Adam".
 - **Cite specifically.** Don't write "as discussed in the source"; link to the source page with the contribution stated inline.
 
 ### Motivation voice
 
 `## Motivation` sections on `ml_concept` and `method` pages, the `## Plain-English statement` body on `math_concept` pages, and the prose body of `topic` primers all share one voice:
 
-- **Direct prose.** No Q&A markers like `**Question.**` / `**First attempt.**` / `**Catch.**`. No numbered "Attempt 1 / Attempt 2" framing.
 - **No metaphors leaning on everyday objects** (fishing, lakes, cooking, archery). The "no marketing voice" rule subsumes these.
 - **Build-up arc.** Each paragraph or paragraph group names what we want → names the naive thing → names why it fails → names the workaround. The reader feels the need before seeing the answer.
 - **Math when it clarifies.** Plain words for the narrative tissue around it; LaTeX for everything mathematical (see "Math notation").
 - **No syllabus tone.** In primers, reading order is woven into prose. The trailing numbered "Reading order (recap)" exists for scanning, not for reading.
 
-Reference paragraph — Motivation for ELBO, the bar to match:
+Reference paragraph — Motivation for ELBO, the bar to match (Russian, since prose body is Russian):
 
-> We have a latent-variable model: $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. The thing we want — maximum likelihood — needs that integral. It has no closed form, so the first instinct is Monte Carlo: sample $z \sim p(z)$, average $p(x \mid z, \theta)$. This fails for a specific reason. For any one $x$, almost every prior sample lands on a $z$ that has nothing to do with it, so $p(x \mid z, \theta) \approx 0$. Out of 1000 samples maybe one contributes; the estimator has near-infinite variance.
+> У нас есть модель с латентной переменной: $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. Чтобы обучить её через максимум правдоподобия, нужен этот интеграл. Закрытой формы у него нет, поэтому первый инстинкт — Монте-Карло: семплируем $z \sim p(z)$ и усредняем $p(x \mid z, \theta)$. Это ломается по конкретной причине: для фиксированного $x$ почти каждый сэмпл из prior попадает в такой $z$, который к $x$ отношения не имеет, и $p(x \mid z, \theta) \approx 0$. Из тысячи сэмплов вклад дают единицы; дисперсия оценки огромна.
 >
-> ELBO is the workaround. Instead of $p(z)$, sample from a smarter $q(z)$ biased toward latents that could explain $x$. The quantity you can estimate this way is a lower bound on $\log p(x \mid \theta)$ — not the thing itself, but tight when $q$ is close to the true posterior, and that gap shrinks the more $q$ improves.
+> ELBO решает эту проблему. Вместо $p(z)$ семплируем из более умного $q(z)$, сосредоточенного на тех латентах, что могут объяснить $x$.
 
 ### Up next footer
 
@@ -543,7 +540,7 @@ No hard cap. Aim for "as long as needed to make the point, no longer". If a page
 
 ### What not to write
 
-- Don't write meta-commentary about the wiki ("this page covers…", "this is part of the X topic"). The frontmatter, taxonomy, and links carry that information.
+- Don't write meta-commentary about the wiki — «эта страница рассказывает о…», «в данной заметке мы рассмотрим…», «здесь мы поговорим о…», "this page covers…", "this is part of the X topic". The frontmatter, taxonomy, and links carry that information.
 - Don't write things you don't know. If a source is unclear on a point, say so in the source page; don't paper over the gap on the concept page.
 - Don't summarise the source instead of integrating it. The wiki is concept-first, not source-first.
 
@@ -551,15 +548,24 @@ No hard cap. Aim for "as long as needed to make the point, no longer". If a page
 
 ## Language
 
-English only, no exceptions. This applies to page content, frontmatter, filenames, log entries, and tags. Consistent with `~/.claude/CLAUDE.md`.
+Narrative wiki pages — everything under `wiki/ml_concepts/`, `wiki/math_concepts/`, `wiki/methods/`, `wiki/topics/`, `wiki/sources/`, `wiki/questions/` — are written in **Russian**. Service files — this `CLAUDE.md`, `wiki/index.md`, `wiki/log.md`, `.claude/skills/**` — stay in English.
 
-The user is a Russian native speaker. Uncommon words and complex grammar slow them down — keep word choice and grammar simple:
+What stays English even inside Russian pages:
 
-- **Common words over fancy ones.** Use "use" not "leverage", "find" not "ascertain", "start" not "commence". ML jargon (gradient, attention, softmax, KL divergence) is fine — these are the same words in Russian-language ML texts.
-- **No idioms.** Drop English idioms like "at the end of the day", "moving the needle", "bite the bullet", "down the road". State the thing literally.
-- **No archaic or fancy phrasing.** Avoid "whereby", "thereof", "henceforth", "albeit", "ergo", "vis-à-vis". Plain connectives ("however", "so", "but", "because") are fine.
-- **Straightforward grammar.** Avoid heavy nested clauses, inverted word order, and uncommon constructions (e.g. "had I known", "were it not for").
-- **Math is universal.** When dense English prose and a clean equation say the same thing, prefer the equation.
+- **Section headings.** `## Motivation`, `## Algorithm`, `## Sources`, `## Up next`, `## Plain-English statement`, `## Step-by-step`, `## Worked example`, `## Where it shows up in ML`, `## Common pitfalls`, `## Problem setting`, `## Why it works`, `## Properties`, `## Variants and successors`, `## Reading queue`, `## Reading order (recap)`, `## Open questions`, `## Pointer back to raw`, `## Key takeaways`, `## Concepts touched`, `## Contradictions and revisions`, `## Questions raised`, `## What we know so far`, `## What would resolve it`, `## Related`, `## The setting`, `## Core ideas`, `## Methods that grow from these ideas`, `## Open threads`. They are structural markers, treated like ML terms.
+- **Frontmatter `title:` field and H1 of the page.** `title: Variational Autoencoder (VAE)`, `# Variational Autoencoder (VAE)`.
+- **Filenames / slugs, tags, internal `[[wiki-links]]`.**
+- **ML and math terms inside Russian prose.** Keep them English: flow matching, attention, score matching, KL divergence, posterior, prior, embedding, latent, ELBO, autoencoder, gradient, softmax, dropout, EMA, etc. Do not transliterate (`флоу-матчинг`, `постериор`) and do not over-translate (`нижняя граница доказательства` for ELBO). Common words with stable Russian equivalents — «градиент», «вероятность», «распределение», «выборка» — pick whichever reads cleaner in context.
+
+Style rules for Russian prose:
+
+- **No bureaucracy.** Avoid clerical fillers: «является», «осуществляется», «представляет собой», «в данной работе», «следует отметить, что», «производится», «имеет место».
+- **No filler openings.** Banned: «в заключение», «подводя итог», «стоит отметить», «важно понимать, что», «давайте разберёмся», «погрузимся в», «как мы знаем», «как известно», «не случайно».
+- **No marketing epithets.** Banned: «мощный», «впечатляющий», «революционный», «передовой», «прорывной», «инновационный».
+- **No Q&A markers.** No bolded «**Вопрос.**», «**Первая попытка.**», «**Подвох.**», «**Попытка 1.**».
+- **Simple grammar.** Avoid long participial / adverbial phrases, deeply nested clauses, inverted word order. Split long sentences into two short ones.
+
+Service text (this `CLAUDE.md`, skills, log entries) stays plain English: common words, no idioms, no archaic phrasing, straightforward grammar.
 
 ---
 
