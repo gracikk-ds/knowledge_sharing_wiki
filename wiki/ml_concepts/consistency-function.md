@@ -10,76 +10,76 @@ status: draft
 
 # Consistency Function
 
-> A consistency function $f(x_t, t) \mapsto x_0$ maps any point on a probability-flow ODE trajectory to its origin at $t = 0$, so that all points on the same trajectory share a single image.
+> Consistency function $f(x_t, t) \mapsto x_0$ отображает любую точку траектории probability-flow ODE в её начало при $t = 0$, так что все точки одной траектории делят один и тот же образ.
 
 ## Motivation
 
-We want to generate an image $x_0$ from noise $x_\sigma$ in as few network calls as possible. A standard diffusion model gives us the [[ml_concepts/probability-flow-ode]] — a deterministic curve linking the two — but turns sampling into solving an ODE, which costs 50–200 evaluations of a vector-field network. The trajectory is determined by the model; the slowness comes entirely from numerical integration of a curved path.
+Хотим сгенерировать изображение $x_0$ из шума $x_\sigma$ за как можно меньшее число вызовов сети. Стандартная diffusion-модель даёт нам [[ml_concepts/probability-flow-ode]] — детерминированную кривую между этими двумя точками — но превращает сэмплирование в решение ODE, что стоит 50–200 вычислений сети поля скоростей. Сама траектория задана моделью; медленность вся в численном интегрировании искривлённого пути.
 
-The first thing to try is to use a coarser solver. This fails because the curve is genuinely non-linear: a few large Euler steps either overshoot or undershoot, and quality degrades fast. The issue is not the solver; it is that a vector field encodes *local* velocity, and one query at $(x_t, t)$ tells you nothing about where the trajectory ends up.
+Первое, что хочется попробовать, — взять более грубый солвер. Это не работает, потому что кривая действительно нелинейна: пара больших Эйлеровских шагов либо перелетает, либо недолетает, и качество падает быстро. Дело не в солвере, а в том, что векторное поле кодирует *локальную* скорость, и один запрос в точке $(x_t, t)$ ничего не говорит о том, куда траектория в итоге придёт.
 
-A consistency function sidesteps this by learning the endpoint directly. Define $f_\theta(x_t, t)$ to send any point on the trajectory to its origin $x_0$. Because the ODE is deterministic, every $(x_t, t)$ lies on exactly one trajectory, so $f_\theta$ is a function — not a relation. With it, sampling is one forward pass: feed in noise, read out an image. It is a [[ml_concepts/flow-map]] with the target time pinned to $s = 0$.
+Consistency function обходит это, обучая сразу конечную точку. Определим $f_\theta(x_t, t)$ так, чтобы он отправлял любую точку траектории в её начало $x_0$. Поскольку ODE детерминирован, каждая $(x_t, t)$ лежит ровно на одной траектории, поэтому $f_\theta$ — функция, а не соответствие. С ним сэмплирование — один forward pass: подаём шум, читаем картинку. Это [[ml_concepts/flow-map]], у которого целевое время фиксировано как $s = 0$.
 
-The training problem becomes: how do you supervise $f_\theta$ without integrating the slow ODE for every example? The trick is to demand that $f_\theta$ be *constant along each trajectory*. If two nearby points $(x_t, t)$ and $(x_s, s)$ sit on the same curve, their predicted origins must match. This self-consistency identity, anchored by a boundary condition at $t \approx 0$, turns "predict the integrated endpoint" into a local matching loss that does not require a full ODE rollout per gradient step.
+Тогда вопрос обучения: как супервизировать $f_\theta$, не интегрируя медленный ODE для каждого примера? Трюк — потребовать, чтобы $f_\theta$ был *постоянен вдоль каждой траектории*. Если две близкие точки $(x_t, t)$ и $(x_s, s)$ лежат на одной кривой, их предсказанные начала должны совпадать. Эта self-consistency identity, закреплённая граничным условием при $t \approx 0$, превращает «предсказать проинтегрированную точку прибытия» в локальный matching loss, не требующий полного ODE rollout на каждый шаг градиента.
 
 ## Formal description
 
-Let $\{x_\tau\}_{\tau \in [0, \sigma]}$ denote a solution trajectory of the probability-flow ODE, with $x_0$ clean and $x_\sigma$ pure noise. A **consistency function** is a map
+Пусть $\{x_\tau\}_{\tau \in [0, \sigma]}$ обозначает траекторию-решение probability-flow ODE, в которой $x_0$ — чистый, а $x_\sigma$ — чистый шум. **Consistency function** — это отображение
 
 $$
 f_\theta: (x_t, t) \mapsto x_0,\qquad \forall x_t \in \{x_\tau\}_{\tau \in [0, \sigma]}.
 $$
 
-It must satisfy the **self-consistency property**: for any two times $s, t \in [0, \sigma]$ on the same trajectory,
+Оно должно удовлетворять **self-consistency**: для любых двух моментов $s, t \in [0, \sigma]$ на одной траектории
 
 $$
 f_\theta(x_t, t) \;=\; f_\theta(x_s, s).
 $$
 
-Equivalently, $f_\theta$ is constant along each trajectory.
+Эквивалентно, $f_\theta$ постоянен вдоль каждой траектории.
 
-A **boundary condition** fixes the value of $f_\theta$ at the trajectory's origin:
+**Boundary condition** фиксирует значение $f_\theta$ в начале траектории:
 
 $$
 f_\theta(x_0, t_0) \;=\; x_0,
 $$
 
-where $t_0$ is the smallest time in the schedule (usually a small $\epsilon > 0$, not exactly zero, for numerical reasons). The boundary rules out the degenerate solution $f_\theta \equiv 0$, which would otherwise satisfy the self-consistency loss trivially.
+где $t_0$ — наименьший момент в расписании (обычно небольшое $\epsilon > 0$, не строгий ноль, из численных соображений). Граничное условие отсекает вырожденное решение $f_\theta \equiv 0$, которое иначе тривиально удовлетворяло бы self-consistency loss.
 
 ## Training objective
 
-Discretise $[0, \sigma]$ into times $t_0 < t_1 < \ldots < t_N$. The self-consistency loss pairs adjacent times on the same trajectory:
+Дискретизируем $[0, \sigma]$ на моменты $t_0 < t_1 < \ldots < t_N$. Self-consistency loss связывает соседние моменты на одной траектории:
 
 $$
 \mathcal{L}(\theta) \;=\; \mathbb{E}_{n}\big\lVert f_\theta(x_{n-1}, t_{n-1}) - f_\theta(x_n, t_n) \big\rVert_2^2,
 $$
 
-where $(x_n, x_{n-1})$ are two adjacent points on the *same* trajectory. This raises the question: where does the pair come from? Two answers split the methods:
+где $(x_n, x_{n-1})$ — две соседние точки на *одной* траектории. Отсюда вопрос: откуда брать пару? Ответы делят методы на две группы:
 
-- [[methods/consistency-distillation]] — $x_n$ is sampled from the forward noising process, and $x_{n-1}$ is produced by one step of a pre-trained diffusion teacher's ODE solver.
-- [[methods/consistency-training]] — no teacher; use a straight reference path $x_\tau = x_0 + \tau\,\epsilon$ with the *same* $\epsilon$ for $x_n$ and $x_{n-1}$.
+- [[methods/consistency-distillation]] — $x_n$ берётся из forward noising-процесса, а $x_{n-1}$ получается одним шагом ODE-солвера предобученного diffusion-учителя.
+- [[methods/consistency-training]] — без учителя; используется прямой reference-путь $x_\tau = x_0 + \tau\,\epsilon$ с *одинаковым* $\epsilon$ для $x_n$ и $x_{n-1}$.
 
-Both also enforce the boundary $f_\theta(x_0, t_0) = x_0$, typically via a skip connection: $f_\theta(x, t) = c_{\text{skip}}(t) \cdot x + c_{\text{out}}(t) \cdot F_\theta(x, t)$ with $c_{\text{skip}}(t_0) = 1$, $c_{\text{out}}(t_0) = 0$.
+Оба способа обеспечивают граничное условие $f_\theta(x_0, t_0) = x_0$, обычно через skip-connection: $f_\theta(x, t) = c_{\text{skip}}(t) \cdot x + c_{\text{out}}(t) \cdot F_\theta(x, t)$ с $c_{\text{skip}}(t_0) = 1$, $c_{\text{out}}(t_0) = 0$.
 
 ## Sampling
 
-A consistency function is not a vector field, so standard ODE solvers do not apply. Two sampling strategies:
+Consistency function — не векторное поле, поэтому стандартные ODE-солверы не работают. Две стратегии сэмплирования:
 
-- **1-step:** $x_0 \approx f_\theta(x_N, t_N)$ with $x_N \sim \mathcal{N}(0, \sigma^2 I)$.
-- **Stochastic multistep (4–5 steps):** repeat
+- **1-step:** $x_0 \approx f_\theta(x_N, t_N)$ с $x_N \sim \mathcal{N}(0, \sigma^2 I)$.
+- **Стохастический multistep (4–5 шагов):** повторяем
   ```
   x_0 ← f_θ(x_n, t_n)
   ε   ∼ N(0, I)
   x_{n-1} ← x_0 + t_{n-1} ε
   ```
-  Each "re-noising" step picks a fresh trajectory at a lower noise level, then projects to its origin. Quality usually beats 1-step at the cost of 4–5× the compute.
+  Каждый шаг «re-noising» выбирает свежую траекторию на меньшем уровне шума, потом проецирует в её начало. Качество обычно лучше, чем у 1-step, ценой 4–5× компьюта.
 
 ## Variations and related concepts
 
-- [[ml_concepts/flow-map]] — consistency function is the $s = 0$ case.
-- [[methods/multistep-consistency-model]] — relaxes the "always project to $t = 0$" rule to "project to the next interval boundary".
-- [[methods/consistency-distillation]] — teacher-based training.
-- [[methods/consistency-training]] — teacher-free training.
+- [[ml_concepts/flow-map]] — consistency function — это частный случай $s = 0$.
+- [[methods/multistep-consistency-model]] — ослабляет «всегда проецируй в $t = 0$» до «проецируй в границу следующего интервала».
+- [[methods/consistency-distillation]] — обучение с учителем.
+- [[methods/consistency-training]] — обучение без учителя.
 
 ## Open questions
 
@@ -88,9 +88,9 @@ A consistency function is not a vector field, so standard ODE solvers do not app
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — definition, self-consistency property, boundary condition, and sampling protocol.
+- [[sources/flow-map-models-lecture]] — определение, self-consistency property, граничное условие и протокол сэмплирования.
 
 ## Up next
 
-- [[methods/consistency-distillation]] — train $f_\theta$ using a pre-trained diffusion teacher to provide adjacent-time trajectory pairs.
-- [[methods/consistency-training]] — train $f_\theta$ from scratch without a teacher, by reading the ODE's local linearisation off the data.
+- [[methods/consistency-distillation]] — обучать $f_\theta$ с помощью предобученного diffusion-учителя, поставляющего пары соседних моментов на траектории.
+- [[methods/consistency-training]] — обучать $f_\theta$ с нуля без учителя, считывая локальную линеаризацию ODE прямо с данных.

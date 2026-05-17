@@ -10,70 +10,70 @@ status: draft
 
 # Multistep Consistency Models (Multi-boundary CMs)
 
-> Generalise a [[ml_concepts/consistency-function]] from "always project to $t = 0$" to "project to the next interval boundary". Split $[0, \sigma]$ into $N$ intervals and learn one consistency function per interval.
+> Обобщить [[ml_concepts/consistency-function]] с «всегда проецируй в $t = 0$» до «проецируй в границу следующего интервала». Разбить $[0, \sigma]$ на $N$ интервалов и обучить по consistency-функции на каждый.
 
 ## Motivation
 
-A single-interval [[ml_concepts/consistency-function]] asks one network to map any $x_t$ on the trajectory back to its clean endpoint $x_0$. That target spans the entire $[0, \sigma]$ interval of the [[ml_concepts/probability-flow-ode]], so the network has to represent the result of integrating a highly non-linear vector field across the whole range. With one inference step this is the maximum that one forward pass can do. The quality cost shows up in practice — single-step CMs underperform their teacher on hard distributions even after careful training.
+Одноинтервальная [[ml_concepts/consistency-function]] просит одну сеть отображать любой $x_t$ на траектории обратно в его чистый endpoint $x_0$. Этот таргет растянут на весь интервал $[0, \sigma]$ [[ml_concepts/probability-flow-ode]], поэтому сеть должна представить результат интегрирования сильно нелинейного векторного поля на всём диапазоне. При одном шаге inference это максимум, на что способен один forward pass. Цена за качество видна на практике: single-step CMs уступают учителю на сложных распределениях даже после аккуратного обучения.
 
-Allowing more inference steps would help, but the standard CM has no notion of "stopping early". The function is built to land at $t = 0$, not at some intermediate time. There is no obvious way to break a long jump into shorter, easier ones using the same network — every step is a jump all the way to the endpoint.
+Разрешить больше шагов inference помогло бы, но у стандартного CM нет понятия «остановиться раньше». Функция построена так, чтобы приземляться в $t = 0$, а не в какой-то промежуточный момент. Очевидного способа разложить длинный прыжок на короткие через ту же сеть нет — каждый шаг это прыжок прямо до endpoint'а.
 
-The fix is to give the consistency function more than one boundary. Split $[0, \sigma]$ into $M$ intervals with endpoints $0 = b_0 < b_1 < \ldots < b_M = \sigma$ and define a multistep consistency function $f_\theta(x_r, r, s)$ where $(r, s)$ must lie in the *same* interval $[b_{m-1}, b_m]$. Within each interval the function obeys the standard within-trajectory invariance, but it projects to the *interval's* left endpoint rather than to zero. The regression target inside each interval is now much smaller and smoother — a piece of the integral instead of the whole thing — and the deterministic boundary-to-boundary sampling loop stitches the pieces back together at inference. With $M = 4$ the lecture reports quality matching a 50-step teacher.
+Решение — дать consistency-функции больше одной границы. Разбиваем $[0, \sigma]$ на $M$ интервалов с концами $0 = b_0 < b_1 < \ldots < b_M = \sigma$ и определяем multistep consistency function $f_\theta(x_r, r, s)$, где $(r, s)$ должны лежать в *одном и том же* интервале $[b_{m-1}, b_m]$. Внутри интервала функция подчиняется обычной within-trajectory инвариантности, но проецирует в *левую границу интервала*, а не в ноль. Регрессионный таргет внутри каждого интервала теперь много меньше и гладче — кусок интеграла, а не весь — а детерминированный boundary-to-boundary sampling-цикл сшивает куски обратно на inference. С $M = 4$ лекция сообщает о качестве, сравнимом с 50-step учителем.
 
 ## Problem setting
 
-A standard CM has to approximate the *entire* ODE trajectory from any noise level back to $t = 0$ with one network. That is a tall order — the target is the result of integrating across the whole $[0, \sigma]$ interval. The lecture flags this as the core issue: "we need to approximate the entire solution interval".
+Стандартный CM должен приблизить *всю* ODE-траекторию из любого уровня шума до $t = 0$ одной сетью. Это амбициозно: таргет — результат интегрирования на всём интервале $[0, \sigma]$. Лекция фиксирует это как ключевую проблему: «we need to approximate the entire solution interval».
 
-The fix: only approximate a *piece* of it at a time.
+Решение — приближать *кусок* за раз.
 
 ## Algorithm
 
-Pick boundaries $0 = b_0 < b_1 < \ldots < b_M = \sigma$. Define a **multistep consistency function**
+Выбираем границы $0 = b_0 < b_1 < \ldots < b_M = \sigma$. Определяем **multistep consistency function**
 
 $$
 f_\theta: (x_r, r, s) \mapsto x_s,\qquad \forall x_r \in \{x_\tau\}_{\tau \in [t, s]},
 $$
 
-with the constraint that $(r, s)$ always lie within the *same* interval $[b_{m-1}, b_m]$. Inside each interval the self-consistency property holds exactly as in a single-interval CM:
+с ограничением, что $(r, s)$ всегда лежат в *одном* интервале $[b_{m-1}, b_m]$. Внутри интервала self-consistency property сохраняется в точности как в одноинтервальном CM:
 
 $$
 f_\theta(x_t, t, b_{m-1}) \;=\; x_{b_{m-1}}\quad \forall\, x_t \in [b_{m-1}, b_m].
 $$
 
-Training: discretise each interval into sub-times $t_0 < t_1 < \ldots < t_N$ and use the CD-style loss restricted to pairs within the same interval:
+Обучение: дискретизируем каждый интервал на под-моменты $t_0 < t_1 < \ldots < t_N$ и используем CD-стиль loss, ограниченный парами внутри одного интервала:
 
 $$
 \mathcal{L}(\theta) \;=\; \mathbb{E}\,\big\lVert f_\theta(\hat{x}_{n-1}, t_{n-1}, t'_n) - f_\theta(x_n, t_n, t'_n) \big\rVert_2^2,
 $$
 
-where $t'_n$ is the right endpoint of the interval containing $t_n$.
+где $t'_n$ — правый конец интервала, содержащего $t_n$.
 
-Sampling at inference: deterministically jump from boundary to boundary. With $M = 4$ boundaries the lecture reports quality comparable to a 50-step teacher.
+Сэмплирование на inference: детерминированно прыгать от границы к границе. С $M = 4$ границами лекция показывает качество, сравнимое с 50-step учителем.
 
 ## Why it works
 
-The flow-map regression problem becomes easier as the target interval shrinks. Across the whole $[0, \sigma]$ the network is fitting an integral of a highly non-linear vector field. Across one short sub-interval the same network is fitting a much smaller, smoother chunk of that integral. The remaining "joints" between intervals are handled by the deterministic multistep sampling loop.
+Задача регрессии flow-map становится проще, когда таргетный интервал уменьшается. На всём $[0, \sigma]$ сеть подгоняет интеграл сильно нелинейного векторного поля. На одном коротком под-интервале та же сеть подгоняет много меньший и гладкий кусок этого интеграла. Оставшиеся «стыки» между интервалами обслуживает детерминированный multistep-цикл сэмплирования.
 
-The boundaries serve the same anti-collapse role here as $t_0$ in a single-interval CM: each interval has its own anchored boundary condition.
+Границы играют ту же anti-collapse роль, что $t_0$ в одноинтервальном CM: у каждого интервала своё якорное граничное условие.
 
 ## Properties
 
-- **Step count at inference:** equal to the number of boundaries, often 4.
-- **Quality:** lecture shows side-by-side that 4-step multistep CM matches 50-step teacher on text-to-image.
-- **Training cost:** same per-step as CD; just with stratified time sampling restricted to within-interval pairs.
-- **Hyperparameter:** the boundary schedule. Lecture does not prescribe; in practice geometric or EDM-style schedules are used.
+- **Число шагов на inference:** равно числу границ, часто 4.
+- **Качество:** лекция показывает side-by-side, что 4-step multistep CM соответствует 50-step учителю на text-to-image.
+- **Стоимость обучения:** та же на шаг, что у CD; только со стратифицированной выборкой времени, ограниченной парами внутри интервала.
+- **Гиперпараметр:** расписание границ. Лекция не предписывает; на практике берут геометрическое или EDM-стиль расписание.
 
 ## Variants and successors
 
-- [[methods/consistency-distillation]] — the $M = 1$ special case.
-- [[methods/shortcut-model]] — different self-consistency principle (interval additivity instead of within-interval invariance).
-- "Multistep Consistency Models" (Heek et al., 2024) — the original paper.
+- [[methods/consistency-distillation]] — частный случай $M = 1$.
+- [[methods/shortcut-model]] — другой принцип self-consistency (interval additivity вместо within-interval инвариантности).
+- «Multistep Consistency Models» (Heek et al., 2024) — оригинальная статья.
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — motivation ("approximate the entire solution interval is too hard"), formal definition with $(x_r, r, s)$, and training objective.
+- [[sources/flow-map-models-lecture]] — мотивация («approximate the entire solution interval is too hard»), формальное определение с $(x_r, r, s)$ и цель обучения.
 
 ## Up next
 
-- [[methods/mean-flow]] — drops the boundary-projection target entirely; trains an arbitrary $F_\theta(x_t, t, s)$ on a differential identity.
-- [[topics/few-step-generative-models]] — broader landscape of how multistep CMs relate to shortcut models, mean flow, and distillation.
+- [[methods/mean-flow]] — отказывается от boundary-projection-таргета вообще; обучает произвольный $F_\theta(x_t, t, s)$ через дифференциальное тождество.
+- [[topics/few-step-generative-models]] — как multistep CMs соотносятся с shortcut models, mean flow и distillation.

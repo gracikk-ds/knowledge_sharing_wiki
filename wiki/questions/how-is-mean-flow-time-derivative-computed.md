@@ -12,24 +12,24 @@ status: stub
 
 ## Why it matters
 
-The [[math_concepts/mean-flow-identity]] uses $\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)$ as its supervision signal. This is a *total* derivative along the trajectory:
+[[math_concepts/mean-flow-identity]] использует $\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)$ как supervision-сигнал. Это *полная* производная вдоль траектории:
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s) \;=\; \partial_t F_\theta \;+\; (\nabla_x F_\theta)\,v(x_t, t).
 $$
 
-To train Mean Flow you need this quantity for every sample at every step. The implementation matters: a naive autograd-over-autograd would be expensive.
+Чтобы обучать Mean Flow, эту величину нужно считать для каждого сэмпла на каждом шаге. Реализация имеет значение: наивный autograd-over-autograd обходится дорого.
 
 ## What we know so far
 
-- The right tool is a **forward-mode Jacobian-vector product (JVP)** through $F_\theta$ in the direction $v(x_t, t)$, with the $t$ argument carrying its own tangent of $1$. One JVP yields both $\partial_t F$ and $(\nabla_x F) \cdot v$ simultaneously.
-- In PyTorch: `torch.func.jvp(lambda x, t: F(x, t, s), (x_t, t), (v, ones))`.
-- Cost: roughly one forward pass through $F_\theta$ (forward-mode AD is cheap when there is only one tangent direction).
+- Правильный инструмент — **forward-mode Jacobian-vector product (JVP)** через $F_\theta$ в направлении $v(x_t, t)$, причём аргумент $t$ несёт собственный tangent $1$. Один JVP сразу даёт и $\partial_t F$, и $(\nabla_x F) \cdot v$.
+- В PyTorch: `torch.func.jvp(lambda x, t: F(x, t, s), (x_t, t), (v, ones))`.
+- Стоимость: примерно один forward pass через $F_\theta$ — forward-mode AD дёшев, когда направление tangent одно.
 
 ## What would resolve it
 
-- A complete training-loop reference implementation showing JVP usage, loss bookkeeping, and stop-gradient placement.
-- Confirmation from the original Mean Flow paper (Geng et al. 2025) that the JVP route is what they use, vs. some surrogate.
+- Полная реализация цикла обучения с использованием JVP, бухгалтерией loss и расстановкой stop-gradient.
+- Подтверждение из оригинальной статьи Mean Flow (Geng et al. 2025), что они используют именно JVP, а не какой-то суррогат.
 
 ## Related
 

@@ -10,57 +10,57 @@ status: draft
 
 # Amortized Variational Inference
 
-> Replace the per-example variational distribution $q(z)$ with a single network $q(z \mid x, \phi)$ that maps any $x$ to the parameters of its variational posterior. One model, one set of parameters $\phi$ — used for all examples.
+> Заменить per-example вариационное распределение $q(z)$ единой сетью $q(z \mid x, \phi)$, отображающей любой $x$ в параметры его variational posterior. Одна модель, один набор параметров $\phi$ — на все примеры.
 
 ## Motivation
 
-We want to train a [[ml_concepts/latent-variable-model]] by maximising the [[ml_concepts/elbo|ELBO]] over both the generative parameters $\theta$ and an approximate posterior $q(z)$. Classical [[ml_concepts/variational-inference]] handles the $q$ side directly: for each observation $x$, fit a separate $q_x(z)$ from scratch. This is correct but unworkable at scale. Every new $x$ triggers a fresh optimisation, and storage of per-example variational parameters grows linearly with the dataset. At test time on unseen data the cost is even worse, because there is no precomputed $q$ to consult — you have to optimise again.
+Хотим обучить [[ml_concepts/latent-variable-model]], максимизируя [[ml_concepts/elbo|ELBO]] одновременно по параметрам генеративной модели $\theta$ и по приближённому posterior $q(z)$. Классический [[ml_concepts/variational-inference]] работает с $q$ напрямую: на каждое наблюдение $x$ — свой $q_x(z)$, обучаемый с нуля. Это корректно, но не масштабируется. Каждый новый $x$ запускает свежую оптимизацию, и хранение per-example вариационных параметров растёт линейно с размером датасета. На тесте всё ещё хуже: предвычисленного $q$ нет, и оптимизировать нужно заново.
 
-The workaround is to stop solving one inference problem per $x$ and instead learn one inference *function* that solves all of them. Pick a single network $q(z \mid x, \phi)$ with shared parameters $\phi$, where the input is $x$ and the output is the parameters of the variational distribution — typically the mean and variance of a diagonal Gaussian. Inference on any $x$, seen or unseen, collapses to one forward pass. The per-example $q$ has been replaced by a function $\phi$ that maps $x$ to $q(z \mid x)$.
+Обходной путь — перестать решать по одной задаче inference на $x$ и вместо этого выучить одну inference-*функцию*, решающую их все. Берём одну сеть $q(z \mid x, \phi)$ с общими параметрами $\phi$, где вход — $x$, а выход — параметры вариационного распределения (обычно среднее и дисперсия диагонального гауссиана). Inference на любом $x$, виденном или нет, схлопывается в один forward pass. Per-example $q$ заменён функцией $\phi$, которая отображает $x$ в $q(z \mid x)$.
 
-This trade is not free. A function of finite capacity cannot match, for every $x$, the optimum that a hand-tuned per-example $q$ could reach. The shortfall is the **amortization gap**, separate from the family-induced [[ml_concepts/variational-inference|variational gap]]. The encoder is solving an average problem across the data distribution, not a tailored problem per example, and that averaging is the price of the speedup. In practice the gap is small relative to the cost saved, which is why amortised inference is the default in [[methods/vae|VAEs]] and related deep latent-variable models.
+Этот обмен не бесплатен. Функция конечной ёмкости не может для каждого $x$ дотянуть до оптимума, доступного per-example $q$. Этот недобор называется **amortization gap** и отделён от **variational gap**, вызванного выбором семейства распределений. Энкодер решает усреднённую задачу по data-распределению, а не настроенную задачу под пример, и это усреднение — цена ускорения. На практике зазор мал относительно сэкономленных вычислений, поэтому amortized inference — стандарт в [[methods/vae|VAE]] и родственных глубоких latent-variable моделях.
 
 ## Formal description
 
-Pick a family parameterised by neural-net outputs. For a diagonal-Gaussian posterior, the encoder produces $(\mu_\phi(x), \sigma_\phi(x))$ and
+Берём семейство, параметризованное выходами нейросети. Для диагонально-гауссовского posterior энкодер выдаёт $(\mu_\phi(x), \sigma_\phi(x))$ и
 
 $$
 q(z \mid x, \phi) \;=\; \mathcal{N}\!\big(\mu_\phi(x),\,\mathrm{diag}(\sigma_\phi^2(x))\big).
 $$
 
-Training maximises the [[ml_concepts/elbo|ELBO]] jointly over the encoder parameters $\phi$ and the generative model parameters $\theta$:
+Обучение максимизирует [[ml_concepts/elbo|ELBO]] совместно по параметрам энкодера $\phi$ и параметрам генеративной модели $\theta$:
 
 $$
 \max_{\theta, \phi}\;\mathbb{E}_{x \sim \pi}\!\big[\mathrm{ELBO}(\phi, \theta; x)\big] \;=\; \max_{\theta, \phi}\;\mathbb{E}_{x \sim \pi}\!\Big[\mathbb{E}_{z \sim q(z \mid x, \phi)}\big[\log p(x \mid z, \theta)\big] - \mathrm{KL}\!\big(q(z \mid x, \phi) \,\|\, p(z)\big)\Big].
 $$
 
-Backprop through $\mathbb{E}_{q}[\cdot]$ uses the [[ml_concepts/reparameterization-trick]]. The KL term is closed-form for Gaussian $q$ and Gaussian $p(z)$, so it does not need Monte Carlo.
+Backprop через $\mathbb{E}_{q}[\cdot]$ использует [[ml_concepts/reparameterization-trick]]. KL-член для гауссовского $q$ и гауссовского $p(z)$ берётся в закрытой форме, поэтому Monte Carlo на него не нужен.
 
 ## Why this is "amortization"
 
-The term comes from cost accounting: instead of paying for a fresh optimisation per example, you pay once during training to learn $\phi$, then amortise that cost over all future examples. The lecture notes also call this **amortised inference network** or simply **encoder** (in the VAE context).
+Термин из бухгалтерии: вместо того чтобы платить за свежую оптимизацию на каждый пример, платим один раз во время обучения, чтобы выучить $\phi$, а потом амортизируем эту стоимость по всем будущим примерам. В заметках лекции это называют **amortised inference network** или просто **encoder** (в контексте VAE).
 
 ## Two failure modes
 
-- **Amortization gap.** Even at the optimal $\phi$, $q(z \mid x, \phi)$ for a specific $x$ may be a worse approximation to the true posterior than a hand-fit $q$ would be. The encoder is solving an average problem, not a per-example problem.
-- **Posterior collapse.** If the decoder $p(x \mid z, \theta)$ is too expressive (e.g. a strong autoregressive decoder), $q(z \mid x, \phi)$ collapses to the prior $p(z)$ — the KL term drops to zero, $z$ carries no information about $x$, and the latent code becomes useless. Standard mitigations: weaken the decoder, use KL annealing, or add information bottlenecks.
+- **Amortization gap.** Даже при оптимальном $\phi$ распределение $q(z \mid x, \phi)$ для конкретного $x$ может быть худшим приближением к истинному posterior, чем подобранный per-example $q$. Энкодер решает среднюю задачу, не задачу для одного примера.
+- **Posterior collapse.** Если декодер $p(x \mid z, \theta)$ слишком выразителен (например, сильный авторегрессивный декодер), $q(z \mid x, \phi)$ схлопывается к prior $p(z)$ — KL-член обнуляется, $z$ не несёт информации об $x$, и latent code становится бесполезным. Стандартные митигации: ослабить декодер, использовать KL annealing, добавить информационные бутылочные горлышки.
 
 ## Variations and related concepts
 
-- [[ml_concepts/variational-inference]] — the parent framework.
-- [[ml_concepts/elbo]] — the training objective.
-- [[ml_concepts/reparameterization-trick]] — required for backprop through $\nabla_\phi$.
-- [[methods/vae]] — the canonical amortised VI model.
+- [[ml_concepts/variational-inference]] — родительский фреймворк.
+- [[ml_concepts/elbo]] — цель обучения.
+- [[ml_concepts/reparameterization-trick]] — нужен для backprop через $\nabla_\phi$.
+- [[methods/vae]] — каноническая amortized VI модель.
 
 ## Open questions
 
-- {none}
+- {нет}
 
 ## Sources
 
-- [[sources/elbo-and-vae-lecture]] — motivates the encoder as a way to replace per-example $q$ with a shared network mapping $x$ to posterior parameters.
+- [[sources/elbo-and-vae-lecture]] — мотивирует энкодер как способ заменить per-example $q$ общей сетью, отображающей $x$ в параметры posterior.
 
 ## Up next
 
-- [[ml_concepts/reparameterization-trick]] — how to backprop through $\nabla_\phi \mathbb{E}_{q(z \mid x, \phi)}[\cdot]$, the gradient amortisation creates.
-- [[methods/vae]] — the canonical model that combines amortised inference with a generative decoder, trained end-to-end.
+- [[ml_concepts/reparameterization-trick]] — как считать $\nabla_\phi \mathbb{E}_{q(z \mid x, \phi)}[\cdot]$, тот самый градиент, который вводит amortization.
+- [[methods/vae]] — каноническая модель, объединяющая amortized inference и генеративный декодер в одном end-to-end графе.

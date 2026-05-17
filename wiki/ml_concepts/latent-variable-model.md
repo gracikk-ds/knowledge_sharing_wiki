@@ -10,63 +10,63 @@ status: draft
 
 # Latent Variable Model
 
-> A generative model that draws each observation $x$ in two stages: first a latent $z \sim p(z)$ from a simple prior, then $x \sim p(x \mid z, \theta)$ from a learned conditional. Marginalising over $z$ turns a simple recipe into a flexible distribution.
+> Генеративная модель, которая рисует каждое наблюдение $x$ в два шага: сначала latent $z \sim p(z)$ из простого prior, затем $x \sim p(x \mid z, \theta)$ из обученного conditional. Маргинализация по $z$ превращает простой рецепт в гибкое распределение.
 
 ## Motivation
 
-We want a generative model for data $x$ — images, text, audio — whose marginal distribution is complex and high-dimensional. Directly parameterising $p(x \mid \theta)$ is a dead end: any expressive functional form for a density on a million-pixel space is intractable to normalise, and any tractable form (a Gaussian, a fully factorised model) is too rigid to fit real data.
+Хотим генеративную модель для данных $x$ — изображений, текста, аудио — чьё маргинальное распределение сложное и высокоразмерное. Прямая параметризация $p(x \mid \theta)$ — тупик: любая выразительная функциональная форма плотности на пространстве в миллион пикселей не нормализуется в разумной форме, а любая трактуемая (гауссиан, полностью факторизованная модель) слишком жёсткая, чтобы лечь на реальные данные.
 
-The trick is to give up on a one-shot density and build it as a two-stage sampling process. Draw a latent $z$ from a simple prior $p(z)$ — typically $\mathcal{N}(0, I)$ — then draw $x$ from a parametric conditional $p(x \mid z, \theta)$, usually a neural network. Each $z$ becomes a low-dimensional summary (style, class, semantic content) and the network maps it to a distribution over observations. Sampling is now a forward pass: sample $z$ from the prior, then sample $x$ given $z$. The marginal $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$ can be arbitrarily complex even when both $p(z)$ and $p(x \mid z)$ are simple. This is the continuous version of the law of total probability: $P(A) = \sum_i P(A \mid B_i)\,P(B_i)$ writes a complex distribution as a mixture indexed by simple conditioning events, with $z$ playing the role of $B_i$.
+Трюк — отказаться от одношагового задания плотности и построить её как двухшаговый процесс сэмплирования. Сначала рисуем latent $z$ из простого prior $p(z)$ — обычно $\mathcal{N}(0, I)$, — затем $x$ из параметрического conditional $p(x \mid z, \theta)$, обычно нейросеть. Каждый $z$ становится низкоразмерным резюме (стилем, классом, семантикой), и сеть отображает его в распределение на наблюдениях. Сэмплирование теперь — один forward pass: сэмпл $z$ из prior, потом $x$ при условии $z$. Маргинал $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$ может быть сколь угодно сложным, даже когда $p(z)$ и $p(x \mid z)$ простые. Это непрерывная версия закона полной вероятности: $P(A) = \sum_i P(A \mid B_i)\,P(B_i)$ пишет сложное распределение как смесь, индексированную простыми условными событиями; роль $B_i$ играет $z$.
 
-The catch shows up the moment we try to train this model. Maximum likelihood needs $\log p(x \mid \theta)$, which requires the integral. There is no closed form, and the naive Monte Carlo estimator — average $p(x \mid z, \theta)$ over $z$ sampled from the prior — fails because the prior is uninformed about the specific $x$ we are conditioning on. Almost every prior sample lands on a $z$ that has nothing to do with $x$, so $p(x \mid z, \theta) \approx 0$ and the estimator has near-infinite variance.
+Подвох обнаруживается при попытке обучить эту модель. Maximum likelihood требует $\log p(x \mid \theta)$, а тот — интеграла. Закрытой формы нет, а наивный Monte Carlo — усреднить $p(x \mid z, \theta)$ по $z$ из prior — ломается, потому что prior ничего не знает о том конкретном $x$, на котором мы условились. Почти каждый prior-сэмпл приземляется на $z$, к $x$ отношения не имеющий, $p(x \mid z, \theta) \approx 0$, и дисперсия оценки почти бесконечна.
 
-This bottleneck is what motivates [[ml_concepts/variational-inference]] and the [[ml_concepts/elbo|ELBO]]. Instead of sampling $z$ blindly, sample from a distribution $q(z)$ biased toward latents that could plausibly have generated $x$. The price of that change of measure is a lower bound on the log-evidence rather than the log-evidence itself — a tractable surrogate that becomes the workhorse of training every modern latent-variable model.
+Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/variational-inference]] и [[ml_concepts/elbo|ELBO]]. Вместо слепого сэмплирования $z$ — берём из распределения $q(z)$, сосредоточенного на latent'ах, которые могли бы породить $x$. Цена смены меры — нижняя граница на log-evidence вместо самого log-evidence: трактуемый суррогат, на котором стоит обучение всех современных latent-variable моделей.
 
 ## Formal description
 
-A latent-variable generative model is specified by a prior and a likelihood:
+Latent-variable генеративная модель задаётся prior и likelihood:
 
 $$
 z \sim p(z), \qquad x \mid z \sim p(x \mid z, \theta).
 $$
 
-The marginal over observations is
+Маргинал по наблюдениям:
 
 $$
 p(x \mid \theta) \;=\; \int p(x \mid z, \theta)\,p(z)\,dz.
 $$
 
-Training maximises $\sum_i \log p(x_i \mid \theta)$ over data, equivalently minimising the forward KL $\mathrm{KL}(\pi(x) \,\|\, p(x \mid \theta))$ between the data distribution $\pi$ and the model.
+Обучение максимизирует $\sum_i \log p(x_i \mid \theta)$ по данным; эквивалентно — минимизирует forward KL $\mathrm{KL}(\pi(x) \,\|\, p(x \mid \theta))$ между распределением данных $\pi$ и моделью.
 
 ## Why naïve Monte Carlo fails
 
-The marginal can be written as a prior expectation, $p(x \mid \theta) = \mathbb{E}_{z \sim p(z)}[p(x \mid z, \theta)]$, suggesting a direct estimator:
+Маргинал можно записать как ожидание по prior, $p(x \mid \theta) = \mathbb{E}_{z \sim p(z)}[p(x \mid z, \theta)]$, что наводит на прямую оценку:
 
 $$
 p(x \mid \theta) \;\approx\; \frac{1}{K} \sum_{k=1}^K p(x \mid z_k, \theta), \qquad z_k \overset{\text{iid}}{\sim} p(z).
 $$
 
-This is hopeless when $p(x \mid z, \theta)$ is sharply peaked in $z$. For any specific $x$, only the few $z$ that explain it contribute meaningfully; everything else is essentially zero. Concrete failure: with $z \sim \mathcal{N}(0, 1)$ and $x \mid z \sim \mathcal{N}(z, \sigma^2)$ for small $\sigma$, the observation $x = 10$ is well-explained only by $z \approx 10$, but $z \sim \mathcal{N}(0, 1)$ essentially never produces such a sample. Required $K$ grows exponentially with the mismatch between prior and posterior.
+Это безнадёжно, когда $p(x \mid z, \theta)$ остро пикован по $z$. Для конкретного $x$ значимый вклад дают только те $z$, что его объясняют; всё остальное практически ноль. Конкретный пример отказа: с $z \sim \mathcal{N}(0, 1)$ и $x \mid z \sim \mathcal{N}(z, \sigma^2)$ при малом $\sigma$ наблюдение $x = 10$ хорошо объясняется только $z \approx 10$, но $z \sim \mathcal{N}(0, 1)$ такие сэмплы практически не выдаёт. Требуемое $K$ растёт экспоненциально с расхождением prior и posterior.
 
-This is the bottleneck that motivates [[ml_concepts/variational-inference]]: instead of sampling $z$ blindly from the prior, sample from a distribution $q(z)$ that concentrates on values explaining $x$. The price of the change of measure is the [[ml_concepts/elbo|ELBO]] bound on the log-evidence.
+Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/variational-inference]]: вместо слепого сэмплирования $z$ из prior берём из распределения $q(z)$, сконцентрированного на значениях, объясняющих $x$. Цена смены меры — оценка [[ml_concepts/elbo|ELBO]] на log-evidence.
 
 ## Variations and related concepts
 
-- [[ml_concepts/elbo]] — the bound that makes optimisation tractable.
-- [[ml_concepts/variational-inference]] — the framework around approximate posteriors.
-- [[ml_concepts/amortized-variational-inference]] — share one network across all $x$.
-- [[methods/vae]] — the canonical latent-variable model with amortised inference.
-- [[methods/variational-em]] — alternating optimisation of the model and the posterior.
+- [[ml_concepts/elbo]] — граница, делающая оптимизацию трактуемой.
+- [[ml_concepts/variational-inference]] — фреймворк вокруг приближённых posterior.
+- [[ml_concepts/amortized-variational-inference]] — общая сеть на все $x$.
+- [[methods/vae]] — каноническая latent-variable модель с amortized inference.
+- [[methods/variational-em]] — чередующая оптимизация модели и posterior.
 
 ## Open questions
 
-- {none}
+- {нет}
 
 ## Sources
 
-- [[sources/elbo-and-vae-lecture]] — setup, motivation, and the naïve Monte Carlo failure mode.
+- [[sources/elbo-and-vae-lecture]] — постановка, мотивация и режим отказа наивного Monte Carlo.
 
 ## Up next
 
-- [[ml_concepts/variational-inference]] — the framework that turns intractable posterior inference into tractable optimisation.
-- [[ml_concepts/elbo]] — the lower bound on $\log p(x \mid \theta)$ that makes maximum-likelihood training of latent-variable models work.
+- [[ml_concepts/variational-inference]] — фреймворк, превращающий нерасчётный posterior inference в трактуемую оптимизацию.
+- [[ml_concepts/elbo]] — нижняя граница на $\log p(x \mid \theta)$, на которой стоит maximum-likelihood обучение latent-variable моделей.

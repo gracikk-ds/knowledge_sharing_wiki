@@ -10,90 +10,90 @@ status: draft
 
 # Evidence Lower Bound (ELBO)
 
-> A tractable lower bound on the marginal log-likelihood $\log p(x \mid \theta)$ of a latent-variable model, obtained by introducing an auxiliary distribution $q(z)$ over latents. ELBO is the central training objective of variational inference and of VAEs.
+> Трактуемая нижняя граница маргинального log-likelihood $\log p(x \mid \theta)$ для latent-variable модели, полученная введением вспомогательного распределения $q(z)$ над латентами. ELBO — центральная цель обучения variational inference и VAE.
 
 ## Motivation
 
-We have a [[ml_concepts/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. The thing we want — maximum likelihood — needs that integral. It has no closed form, so the first instinct is Monte Carlo: sample $z \sim p(z)$, average $p(x \mid z, \theta)$. This fails for a specific reason. For any one $x$, almost every prior sample lands on a $z$ that has nothing to do with it, so $p(x \mid z, \theta) \approx 0$. Out of 1000 samples maybe one contributes; the estimator has near-infinite variance.
+У нас есть [[ml_concepts/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. Чтобы обучить её через максимум правдоподобия, нужен этот интеграл. Закрытой формы у него нет, поэтому первый инстинкт — Монте-Карло: семплируем $z \sim p(z)$ и усредняем $p(x \mid z, \theta)$. Это ломается по конкретной причине: для фиксированного $x$ почти каждый сэмпл из prior попадает в такой $z$, который к $x$ отношения не имеет, и $p(x \mid z, \theta) \approx 0$. Из тысячи сэмплов вклад дают единицы; дисперсия оценки огромна.
 
-ELBO is the workaround. Instead of $p(z)$, sample from a smarter $q(z)$ biased toward latents that could explain $x$. The quantity you can estimate this way is a *lower bound* on $\log p(x \mid \theta)$ — not the thing itself, but tight when $q$ is close to the true posterior, and that gap shrinks the more $q$ improves.
+ELBO решает эту проблему. Вместо $p(z)$ семплируем из более умного $q(z)$, сосредоточенного на тех латентах, что могут объяснить $x$. Величина, которую можно так оценить, — это *нижняя граница* на $\log p(x \mid \theta)$, не сам логарифм, но граница тугая, когда $q$ близок к истинному posterior, и зазор сужается по мере улучшения $q$.
 
-This gives the bound two readings, both load-bearing. As a Jensen's-inequality bound it holds for *any* valid $q$, so you can pick $q$ from a tractable family and still get a usable training signal. As an exact identity, $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q(z) \,\|\, p(z \mid x, \theta))$, the gap between the bound and the true log-evidence equals the KL from $q$ to the true posterior. Equality holds when $q$ is the true posterior. This is why training a VAE jointly in $\theta$ and $q$ does two things at once: it pushes up the model's marginal likelihood and pulls $q$ toward the true posterior.
+Отсюда два прочтения границы, оба содержательные. Как Jensen's-граница она верна для *любого* допустимого $q$, поэтому можно выбрать $q$ из трактуемого семейства и всё равно получить пригодный сигнал обучения. Как точное тождество $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q(z) \,\|\, p(z \mid x, \theta))$ — зазор между границей и истинным log-evidence равен KL от $q$ до истинного posterior. Равенство достигается, когда $q$ — истинный posterior. Поэтому при совместном обучении VAE по $\theta$ и $q$ происходят сразу две вещи: толкается маргинальная правдоподобность модели вверх, а $q$ тянется к истинному posterior.
 
 ## Formal description
 
-**Derivation via Jensen's inequality.** For any $q(z)$ positive wherever $p(x, z \mid \theta) > 0$, multiply and divide by $q(z)$ inside the integral and apply [[math_concepts/jensens-inequality]] with the concave $\log$:
+**Derivation via Jensen's inequality.** Для любого $q(z)$, положительного там, где $p(x, z \mid \theta) > 0$, умножим и поделим на $q(z)$ внутри интеграла и применим [[math_concepts/jensens-inequality]] с вогнутым $\log$:
 
 $$
 \log p(x \mid \theta) = \log \int q(z)\,\frac{p(x, z \mid \theta)}{q(z)}\,dz = \log\,\mathbb{E}_{z \sim q}\!\Big[\frac{p(x, z \mid \theta)}{q(z)}\Big] \ge \mathbb{E}_{z \sim q}\!\Big[\log \frac{p(x, z \mid \theta)}{q(z)}\Big]
 $$
 
-The right-hand side is the **ELBO**:
+Правая часть — **ELBO**:
 
 $$
 \mathrm{ELBO}(q, \theta) \;=\; \mathbb{E}_{z \sim q(z)}\!\Big[\log \frac{p(x, z \mid \theta)}{q(z)}\Big].
 $$
 
-**Exact identity with the posterior gap.** Using Bayes' rule $p(x, z \mid \theta) = p(z \mid x, \theta)\,p(x \mid \theta)$:
+**Exact identity with the posterior gap.** Через правило Байеса $p(x, z \mid \theta) = p(z \mid x, \theta)\,p(x \mid \theta)$:
 
 $$
 \mathrm{ELBO}(q, \theta) = \int q(z)\,\log\frac{p(z \mid x, \theta)\,p(x \mid \theta)}{q(z)}\,dz = \log p(x \mid \theta) - \mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big).
 $$
 
-Equivalently:
+Эквивалентно:
 
 $$
 \boxed{\;\log p(x \mid \theta) \;=\; \mathrm{ELBO}(q, \theta) \;+\; \mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big)\;}
 $$
 
-Since [[math_concepts/kl-divergence]] is non-negative, this recovers $\log p(x \mid \theta) \ge \mathrm{ELBO}(q, \theta)$ — and tells us exactly when equality holds: $q(z) = p(z \mid x, \theta)$.
+Поскольку [[math_concepts/kl-divergence]] неотрицательна, отсюда восстанавливается $\log p(x \mid \theta) \ge \mathrm{ELBO}(q, \theta)$ — и точно видно, когда достигается равенство: $q(z) = p(z \mid x, \theta)$.
 
-**Reconstruction–regularisation decomposition.** Splitting $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$ gives the form used in VAEs:
+**Reconstruction–regularisation decomposition.** Разложение $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$ даёт форму, используемую в VAE:
 
 $$
 \mathrm{ELBO}(q, \theta) \;=\; \underbrace{\mathbb{E}_{z \sim q}\!\big[\log p(x \mid z, \theta)\big]}_{\text{reconstruction}} \;-\; \underbrace{\mathrm{KL}\!\big(q(z) \,\|\, p(z)\big)}_{\text{regularisation}}.
 $$
 
-The first term forces the decoder $p(x \mid z, \theta)$ to assign high probability to $x$ when $z$ is drawn from $q$. For a Gaussian decoder this is (up to constants) an MSE; for a Bernoulli decoder, cross-entropy. The second term keeps $q$ from drifting too far from the prior $p(z)$, which would let the model overfit by hand-picking a specific $z$ per $x$.
+Первый член заставляет декодер $p(x \mid z, \theta)$ ставить высокую вероятность на $x$, когда $z$ берётся из $q$. Для гауссовского декодера это (с точностью до констант) MSE; для бернуллиевского — cross-entropy. Второй член не даёт $q$ слишком уехать от prior $p(z)$ — иначе модель могла бы переобучиться, подбирая под каждый $x$ свой конкретный $z$.
 
 ## Optimisation
 
-Because $\log p(x \mid \theta) \ge \mathrm{ELBO}(q, \theta)$, maximising the bound jointly in $\theta$ and $q$ is a proxy for maximum likelihood:
+Поскольку $\log p(x \mid \theta) \ge \mathrm{ELBO}(q, \theta)$, максимизация границы совместно по $\theta$ и $q$ — это прокси для maximum likelihood:
 
 $$
 \max_\theta \log p(x \mid \theta) \;\Rightarrow\; \max_{\theta, q}\,\mathrm{ELBO}(q, \theta).
 $$
 
-Two paradigms:
+Две парадигмы:
 
-- **[[methods/variational-em]]** — alternate: at fixed $\theta$, set $q$ to maximise ELBO (E-step); at fixed $q$, update $\theta$ (M-step). At fixed $\theta$, $\log p(x \mid \theta)$ doesn't depend on $q$, so maximising ELBO over $q$ is equivalent to minimising $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$ — i.e. fitting $q$ to the true posterior.
-- **VAEs** — parameterise $q$ as $q(z \mid x, \phi)$ via [[ml_concepts/amortized-variational-inference]] (an encoder network) and update $(\phi, \theta)$ jointly by SGD. See [[methods/vae]].
+- **[[methods/variational-em]]** — чередовать: при фиксированном $\theta$ выставить $q$ так, чтобы максимизировать ELBO (E-step); при фиксированном $q$ обновить $\theta$ (M-step). При фиксированном $\theta$ $\log p(x \mid \theta)$ от $q$ не зависит, поэтому максимизация ELBO по $q$ эквивалентна минимизации $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$, то есть подгонке $q$ к истинному posterior.
+- **VAE** — параметризуем $q$ как $q(z \mid x, \phi)$ через [[ml_concepts/amortized-variational-inference]] (encoder network) и обновляем $(\phi, \theta)$ совместно через SGD. См. [[methods/vae]].
 
-The two coordinates of the gradient are handled differently:
+Две координаты градиента обрабатываются по-разному:
 
-- $\nabla_\theta \mathrm{ELBO}$: $q$ does not depend on $\theta$, so the gradient swaps with the expectation and is a plain Monte Carlo estimator.
-- $\nabla_\phi \mathrm{ELBO}$: $q$ depends on $\phi$. The naïve interchange of gradient and expectation is wrong; use the [[ml_concepts/reparameterization-trick]] (or the higher-variance score-function estimator).
+- $\nabla_\theta \mathrm{ELBO}$: $q$ от $\theta$ не зависит, поэтому градиент проходит внутрь ожидания, и оценка тривиально считается Monte Carlo.
+- $\nabla_\phi \mathrm{ELBO}$: $q$ зависит от $\phi$. Наивная перестановка градиента и ожидания неверна; нужен [[ml_concepts/reparameterization-trick]] (или более высоко-дисперсная score-function оценка).
 
 ## Variations and related concepts
 
-- [[ml_concepts/latent-variable-model]] — the setup that motivates ELBO.
-- [[ml_concepts/variational-inference]] — the framework around ELBO.
-- [[ml_concepts/amortized-variational-inference]] — share one network across all $x$ instead of fitting $q$ per example.
-- [[ml_concepts/reparameterization-trick]] — how to backprop through $\nabla_\phi \mathrm{ELBO}$.
-- [[methods/vae]] — ELBO with a Gaussian amortised encoder, trained end-to-end.
-- [[methods/variational-em]] — ELBO maximised by alternating $q$ and $\theta$.
-- [[math_concepts/jensens-inequality]] — provides the inequality direction.
-- [[math_concepts/kl-divergence]] — measures the bound's slack and appears in the regularisation term.
+- [[ml_concepts/latent-variable-model]] — постановка, мотивирующая ELBO.
+- [[ml_concepts/variational-inference]] — фреймворк вокруг ELBO.
+- [[ml_concepts/amortized-variational-inference]] — общая сеть на все $x$ вместо per-example $q$.
+- [[ml_concepts/reparameterization-trick]] — как протолкнуть backprop через $\nabla_\phi \mathrm{ELBO}$.
+- [[methods/vae]] — ELBO с гауссовским амортизованным энкодером, end-to-end обучение.
+- [[methods/variational-em]] — ELBO, максимизированный чередованием $q$ и $\theta$.
+- [[math_concepts/jensens-inequality]] — задаёт направление неравенства.
+- [[math_concepts/kl-divergence]] — измеряет зазор границы и появляется в регуляризационном члене.
 
 ## Open questions
 
-- {none surfaced yet}
+- {пока нет}
 
 ## Sources
 
-- [[sources/elbo-and-vae-lecture]] — Jensen's-inequality derivation, posterior-gap identity, reconstruction–regularisation decomposition, and EM/VAE optimisation paths.
+- [[sources/elbo-and-vae-lecture]] — вывод через Jensen, тождество с зазором posterior, разложение reconstruction–regularisation и пути оптимизации EM/VAE.
 
 ## Up next
 
-- [[ml_concepts/reparameterization-trick]] — how $\nabla_\phi \mathrm{ELBO}$ is computed in models where $q$ depends on a neural network.
-- [[methods/vae]] — the canonical method built on the ELBO.
+- [[ml_concepts/reparameterization-trick]] — как считается $\nabla_\phi \mathrm{ELBO}$ в моделях, где $q$ зависит от нейросети.
+- [[methods/vae]] — канонический метод, построенный на ELBO.

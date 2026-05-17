@@ -26,7 +26,7 @@ The goal is **integration, not summarisation**. A good ingest revises the networ
 
 - Confirm the source lives in `raw/` (papers/, clips/, scratch/, lectures/). If the user dropped a file elsewhere, move it into the right subdirectory before proceeding (or ask).
 - Read the full text. For PDFs, use the Read tool's `pages` parameter for anything over 10 pages.
-- For markdown clips that reference images on disk: read the markdown first, identify which images are load-bearing (figures, diagrams, equations), then read those images individually. Don't read all images by default — only the ones whose context the prose can't carry alone.
+- For markdown clips or lectures that reference images on disk: read the markdown first, identify which images are load-bearing (figures, diagrams, geometric pictures, training-curve plots), then read those images individually. Don't read all images by default — only the ones whose context the prose can't carry alone. The same load-bearing images are candidates for embedding in compiled wiki pages (see "Images from sources" below).
 - Take silent notes as you read. Do not start writing wiki pages yet.
 
 ---
@@ -78,6 +78,7 @@ For each page you're about to touch, decide:
 - **Section impact.** Are you adding to "Motivation", revising "Formal description", adding to "Variations", or flagging in "Open questions"? On topic primers, are you extending "The setting" / "Core ideas" / "Methods that grow from these ideas"?
 - **Contradictions.** If this source disagrees with something already in the wiki, prefer one of: (a) note the disagreement in both the source page and the concept page, with attributions to each source; (b) revise the concept page if the new source is clearly more authoritative — but say so in the log. Do not silently overwrite.
 - **Stub policy.** If the source mentions ten concepts and you can't write all ten properly, write stubs for the ones you can't fill out and a full draft for the central ones. Stubs are fine; missing links are worse.
+- **Image selection.** List the source images you intend to embed and which page each lands on. Apply the policy in "Images from sources" below; if you read an image earlier but it doesn't carry weight on any wiki page, drop it now.
 
 Write the plan as a short list before editing. You can keep this in your working memory; no need to share it with the user unless the user asked to preview changes.
 
@@ -95,6 +96,7 @@ Follow the templates in `CLAUDE.md`. For each page:
 - If updating: bump `updated` to today's date, increment `sources` if you added a new citation, bump `status` if appropriate, then edit the relevant sections.
 - Maintain alphabetical or thematic order within sections (e.g., "Variations and related concepts" usually reads in order of relatedness, not alphabetical).
 - Every claim that came from this source must cite back to it via `[[sources/{slug}]]`.
+- Embed load-bearing images from the source where they illustrate the concept. See "Images from sources" for the policy and format.
 
 ### 5b. Write the source page
 
@@ -148,6 +150,52 @@ Log entry: [YYYY-MM-DD] ingest | {short title}
 ```
 
 Do **not** include a "what I learned" summary at this point — that lives on the source page now, where it belongs.
+
+---
+
+## Images from sources
+
+Raw sources often carry diagrams, geometric pictures, training-curve plots, and architecture sketches that prose cannot replace. Embed them in the compiled wiki pages when they pull weight. The wiki is an Obsidian vault rooted at `ml_notes/`, so `raw/` images are addressable from `wiki/` pages via vault-relative wiki-links.
+
+### When to embed
+
+Embed an image when it carries information the prose cannot economically reconstruct:
+
+- A geometric picture for a rotation, projection, manifold, or flow.
+- An architecture diagram showing how blocks connect.
+- A plot of empirical behaviour (loss curves, ablations, scaling).
+- A schematic of a sampling trajectory, attention pattern, or data flow.
+
+### When not to embed
+
+Skip and re-author instead:
+
+- Screenshots of equations — re-render the math in LaTeX (`$...$`, `$$...$$`). The wiki must stay text-searchable and theme-consistent.
+- Screenshots of code — re-write as a fenced code block.
+- Decorative or marketing imagery, paper title pages, author photos, logos.
+- Images that just restate what an adjacent paragraph already says clearly.
+- Anything illegible (small text, low resolution) — describe it instead, or link the source for the curious reader.
+
+### How to reference
+
+Use Obsidian wiki-link embeds with a **vault-relative path**, not the bare filename. Raw image filenames are often generic (`image.png`, `image 2.png`) and collide across sources; the explicit path keeps the reference unambiguous when the vault grows.
+
+```markdown
+![[raw/lectures/rope/images/image 2.png]]
+*Projection of $X$ onto the $x_1$- and $x_2$-axes.*
+```
+
+A short italicised caption goes on the line directly under the embed when the surrounding prose doesn't already name what the reader is looking at. Caption is in Russian on Russian-prose pages, English on English ones — same rule as the rest of the body.
+
+Place the embed inline at the moment the prose first refers to what it shows, not in a separate "Figures" appendix. If you find yourself wanting an appendix, the page probably needs restructuring instead.
+
+### Source pages and images
+
+The source page (`wiki/sources/...`) may also embed images when a figure is itself one of the takeaways — for example, a flagship diagram the source is known for. Treat it the same way: vault-relative path, short caption, only when it adds something.
+
+### Raw paths are stable, but…
+
+Do not rename, move, or delete files under `raw/` to "tidy up" image references. `raw/` is immutable (see `CLAUDE.md`). If a path is awkward, live with it; if a source is reorganised by the user, fix the wiki references in a follow-up edit.
 
 ---
 

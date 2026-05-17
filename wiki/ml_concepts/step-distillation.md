@@ -10,37 +10,37 @@ status: draft
 
 # Step Distillation
 
-> Train a fast "student" network to reproduce, in one or few forward passes, what a pre-trained slow "teacher" diffusion model produces with a full multi-step ODE solver.
+> Обучить быстрого «student»-а воспроизводить за один-два forward pass то, что медленный предобученный «teacher» (diffusion) выдаёт за полный multi-step ODE-солвер.
 
 ## Motivation
 
-We have a [[ml_concepts/diffusion-model|diffusion teacher]] that produces excellent samples at 50–200 forward passes per image, and we want the same samples at 1–4 passes. Retraining a smaller model from scratch on the original diffusion loss does not help; the loss itself is what forces many steps. The deeper question is why diffusion is slow to begin with.
+Есть [[ml_concepts/diffusion-model|diffusion-учитель]], дающий отличные сэмплы за 50–200 forward pass'ов на изображение, и хочется получать те же сэмплы за 1–4 pass'а. Просто переобучить более компактную модель с нуля на той же diffusion-loss не помогает: сама loss и заставляет делать много шагов. Глубже стоит вопрос — почему diffusion вообще медленный.
 
-The diffusion objective regresses $x_\theta(x_t, t)$ against $x_0$, but the forward noising process is **one-to-many**: a single clean image becomes any of an infinite family of noisy $x_t$ depending on the sampled $\epsilon$, and conversely a single $x_t$ is consistent with many candidate $x_0$. Minimising squared error over this many-to-one regression drives the network toward the conditional mean $\mathbb{E}[x_0 \mid x_t]$ — a blurry global average at high noise. A single forward pass cannot commit to one mode of this average, which is why the standard workaround is to take small steps: as $t$ shrinks the conditional mean concentrates on one mode and the prediction sharpens.
+Diffusion-цель регрессирует $x_\theta(x_t, t)$ к $x_0$, но forward noising-процесс **one-to-many**: одно чистое изображение становится любым из бесконечного семейства зашумлённых $x_t$ в зависимости от выбранного $\epsilon$, и наоборот — один $x_t$ согласован со многими кандидатами в $x_0$. Минимизация квадратичной ошибки в этой many-to-one регрессии толкает сеть к условному среднему $\mathbb{E}[x_0 \mid x_t]$ — размытому глобальному среднему при высокой шумности. Один forward pass не может определиться с одной модой этого среднего, поэтому стандартный обход — делать маленькие шаги: с уменьшением $t$ условное среднее концентрируется на одной моде и предсказание становится чётким.
 
-Step distillation removes the many-to-one structure rather than working around it. The teacher's ODE is deterministic: a given noise input produces exactly one image. Use the teacher to generate labels — for any $x_t$, run its solver to $x_0$ and call that the target — and train a student against these one-to-one pairs. The regression target is now well-defined, so a single forward pass can in principle match it exactly. That is the structural reason distillation accelerates sampling.
+Step distillation убирает many-to-one структуру, а не обходит её. ODE учителя детерминирован: одному шумовому входу соответствует ровно одно изображение. Используем учителя как генератор меток — для любого $x_t$ запускаем его солвер до $x_0$ и берём это как таргет — и обучаем student'а на этих one-to-one парах. Цель регрессии теперь однозначна, поэтому один forward pass может в принципе точно её воспроизвести. Это и есть структурная причина, по которой distillation ускоряет сэмплирование.
 
-What it leaves open is how aggressive the speedup should be. Compress the whole trajectory into one student pass and the gap between "what one forward pass can express" and "what 50 passes compute" is large; quality suffers. Compress trajectories in halves — train the student to do *two* teacher steps in *one* — and iterate, and you reach few-step generation without the abrupt quality drop. This is the [[methods/progressive-distillation]] recipe; [[methods/consistency-distillation]] takes a different route by replacing explicit teacher labels with a self-consistency identity along the same trajectory.
+Открыт вопрос — насколько агрессивным сделать ускорение. Сжать всю траекторию в один pass — и зазор между «что выражает один forward pass» и «что считают 50 forward pass'ов учителя» велик, качество падает. Сжимать траекторию пополам — обучать student'а делать *два* шага учителя за *один* — и итерировать; так доходим до few-step генерации без резкого падения качества. Это рецепт [[methods/progressive-distillation]]; [[methods/consistency-distillation]] идёт другим путём, заменяя явные метки учителя self-consistency identity вдоль той же траектории.
 
 ## Why diffusion is slow but distillation is fast
 
-Diffusion training optimises
+Diffusion-обучение оптимизирует
 
 $$
 \mathcal{L}_{\text{diff}}(\theta) \;=\; \mathbb{E}_{t, x_0, \epsilon}\big\lVert x_\theta(x_t, t) - x_0 \big\rVert_2^2,
 $$
 
-with $x_t = x_0 + t\,\epsilon$. The forward noising process is **one-to-many**: a single $x_0$ can become any of an infinite family of $x_t$ values depending on which $\epsilon$ was sampled. Equivalently, a single $x_t$ is consistent with many $x_0$ candidates. The network minimises a squared error against all of them, so its optimum is the conditional mean $\mathbb{E}[x_0 \mid x_t]$. At high noise, that mean is a blurry "global average" — a single forward pass cannot commit to one mode.
+с $x_t = x_0 + t\,\epsilon$. Forward noising-процесс **one-to-many**: один $x_0$ может стать любым из бесконечного семейства $x_t$ в зависимости от $\epsilon$. Эквивалентно — один $x_t$ согласован со многими кандидатами в $x_0$. Сеть минимизирует квадратичную ошибку против всех них, поэтому её оптимум — условное среднее $\mathbb{E}[x_0 \mid x_t]$. На высокой шумности это среднее — размытое «глобальное усреднение»; один forward pass не может выбрать одну моду.
 
-The standard fix is to take small steps: as $t$ decreases the conditional mean concentrates on one mode and the predictions sharpen. Hence the need for many steps.
+Стандартное лечение — мелкие шаги: с уменьшением $t$ условное среднее концентрируется на одной моде, и предсказания становятся чёткими. Отсюда необходимость многих шагов.
 
-Distillation removes this many-to-one bottleneck. Replace the dataset of $(x_t, x_0)$ pairs from the noising process with $(x_t, \hat{x}_0)$ pairs where $\hat{x}_0 = \Phi(x_t)$ is the teacher's deterministic ODE solution. Now there is exactly one label per input:
+Distillation убирает many-to-one бутылку. Заменяем датасет пар $(x_t, x_0)$ из noising-процесса парами $(x_t, \hat{x}_0)$, где $\hat{x}_0 = \Phi(x_t)$ — детерминированный выход ODE-солвера учителя. Теперь на каждый вход ровно одна метка:
 
 $$
 \mathcal{L}_{\text{KD}}(\theta) \;=\; \mathbb{E}_{x_t}\big\lVert x_\theta(x_t) - \hat{x}_\phi(x_t) \big\rVert_2^2.
 $$
 
-The regression target is well-defined, so a single forward pass can match it exactly in principle.
+Цель регрессии корректно определена, поэтому один forward pass в принципе может её точно повторить.
 
 ## Variants
 
@@ -50,34 +50,34 @@ $$
 \mathcal{L}_{\text{KD}}(\theta) \;=\; \mathbb{E}_{x \sim \mathcal{N}(0, \sigma^2 I)}\big\lVert x_\theta(x) - \hat{x}_\phi(x) \big\rVert_2^2.
 $$
 
-The student maps pure noise directly to the teacher's final sample. Conceptually simple but practically hard: the teacher's output is the result of a long ODE integration, and the gap between "what the student can express in one pass" and "what the teacher computes in 50 passes" is large. Quality typically lags the teacher.
+Student отображает чистый шум напрямую в финальный сэмпл учителя. Концептуально просто, на практике трудно: выход учителя — результат длинного ODE-интегрирования, и зазор между «что выражает student за один pass» и «что учитель считает за 50 pass'ов» велик. Качество обычно отстаёт от учителя.
 
 ### Multi-step KD ([[methods/progressive-distillation]])
 
-Train the student to do *two* teacher steps in *one* student step:
+Обучить student'а делать *два* шага учителя за *один* шаг student'а:
 
 $$
 \mathcal{L}_{\text{KD}_m}(\theta) \;=\; \mathbb{E}_{t, x_0, x_t}\big\lVert x_\theta(x_t, t) - \hat{x}_\phi(x_t, t) \big\rVert_2^2,
 $$
 
-where $\hat{x}_\phi(x_t, t)$ is the teacher's output after two ODE steps from $(x_t, t)$. Iterate: the new student becomes the next teacher, halving the step count each round. Reaches 1- or 2-step generation after several halvings without the abrupt quality drop of one-shot one-step KD.
+где $\hat{x}_\phi(x_t, t)$ — выход учителя после двух ODE-шагов из $(x_t, t)$. Итерируем: новый student становится следующим учителем, число шагов делится пополам каждый раунд. До 1- или 2-step генерации доходим за несколько раундов без резкого падения качества, характерного для one-shot one-step KD.
 
 ## Why this is a flow-map perspective
 
-Step distillation is a recipe for fitting a [[ml_concepts/flow-map]]. The student learns the integrated solution of the teacher's ODE; the teacher provides supervision. Consistency models replace explicit teacher rollouts with a *self-consistency* loss along the same ODE (a structural identity rather than explicit labels), but the goal — fitting the integrated trajectory — is identical.
+Step distillation — рецепт подгонки [[ml_concepts/flow-map]]. Student учит проинтегрированное решение ODE учителя; учитель даёт supervision. Consistency models заменяют явные rollout'ы учителя *self-consistency* loss'ом вдоль того же ODE (структурное тождество вместо явных меток), но цель — выучить проинтегрированную траекторию — та же.
 
 ## Variations and related concepts
 
-- [[methods/progressive-distillation]] — the canonical multi-step KD recipe.
-- [[methods/consistency-distillation]] — distils into a consistency function instead of into a halved-step model.
-- [[ml_concepts/flow-map]] — what is being learnt.
-- [[ml_concepts/diffusion-model]] — the slow teacher.
+- [[methods/progressive-distillation]] — канонический multi-step KD рецепт.
+- [[methods/consistency-distillation]] — distillation в consistency function, а не в halved-step модель.
+- [[ml_concepts/flow-map]] — то, что выучивается.
+- [[ml_concepts/diffusion-model]] — медленный учитель.
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — motivation for KD, one-step vs multi-step KD objectives, and the one-to-many vs one-to-one explanation of why distillation is faster than diffusion training.
+- [[sources/flow-map-models-lecture]] — мотивация KD, цели one-step vs multi-step KD, объяснение one-to-many vs one-to-one — почему distillation быстрее, чем обучение diffusion.
 
 ## Up next
 
-- [[methods/progressive-distillation]] — the canonical recipe: iteratively halve the step count by training a student to do two teacher steps in one.
-- [[methods/consistency-distillation]] — distil into a [[ml_concepts/consistency-function]] instead of a halved-step model, sampling in 1–4 steps directly.
+- [[methods/progressive-distillation]] — канонический рецепт: итеративно делить число шагов пополам, обучая student'а делать два шага учителя за один.
+- [[methods/consistency-distillation]] — distillation в [[ml_concepts/consistency-function]], а не в модель с урезанным числом шагов, и сэмплирование за 1–4 шага напрямую.
