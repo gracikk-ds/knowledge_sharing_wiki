@@ -1,6 +1,6 @@
 # ml_notes
 
-A personal LLM-maintained ML wiki. Raw sources go into `raw/`; Claude reads them and incrementally builds a network of linked markdown pages in `wiki/`. Each new source enriches existing pages instead of being re-derived per query.
+A personal LLM-maintained ML obsidian wiki. Raw sources go into `raw/`; Claude reads them and incrementally builds a network of linked markdown pages in `wiki/`. Each new source enriches existing pages instead of being re-derived per query.
 
 ## Layout
 
@@ -35,14 +35,6 @@ Four operations, each invoked by asking Claude in plain language:
 | `wiki-query`  | "what does the wiki say about X", any ML question | Synthesize an answer from wiki pages with citations       |
 | `wiki-lint`   | "lint the wiki", "audit"                         | Scan for orphans, broken links, contradictions            |
 | `wiki-quiz`   | "quiz me", "interview prep"                      | Generate a test (MCQ, open questions, paper problems)     |
-
-## Conventions
-
-- Pages link via Obsidian-style `[[wiki-links]]`. A link to a missing page is fine — it marks "write this later."
-- Every page carries YAML frontmatter (`type`, `tags`, `status: stub|draft|mature`, `sources`).
-- Prose is **Russian**; frontmatter, headings, slugs, tags, and `wiki/index.md` / `wiki/log.md` / `CLAUDE.md` stay **English**.
-- Math is always in LaTeX (`$...$`, `$$...$$`), never in backticks.
-- Open the vault in Obsidian to get graph view, backlinks, and link previews.
 
 ## Working on this repo
 
