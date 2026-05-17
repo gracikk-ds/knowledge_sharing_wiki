@@ -5,9 +5,10 @@ source_path: raw/lectures/flow-map-models.pdf
 source_kind: lecture
 source_date: 2025-01-01
 ingested: 2026-05-15
+updated: 2026-05-17
 tags: [flow-map, consistency-models, mean-flow, shortcut-models, distillation, diffusion]
 sources: 1
-status: draft
+status: mature
 ---
 
 # Few-step Generative Models — lecture

@@ -3,7 +3,7 @@ title: Few-step Generative Models
 type: topic
 tags: [generative-models, diffusion, flow-matching, distillation, sampling]
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 sources: 1
 status: draft
 ---
@@ -41,6 +41,22 @@ Few-step генеративные модели от этой цены отказ
 [[methods/generative/shortcut-model]] обобщает «все flow map приземляются в ноль». Выучить $F(x_t, t, s)$ для произвольных $t, s$ и наложить interval-additivity: переход $t \to s$ должен совпадать с $t \to u \to s$ для любого промежуточного $u$. Это self-consistency loss, который вместе со stop-gradient на одной стороне равенства даёт одной сети целое семейство $\Psi_{t \to s}$ без учителя.
 
 [[methods/generative/mean-flow]] переосмысливает тот же flow map как *среднюю скорость* на $[t, s]$. Средняя скорость — естественная для обучения величина, но на вид неинтегрируемая: чтобы её усреднить, нужна та самая траектория, от которой мы пытаемся избавиться. [[math_concepts/mean-flow-identity]] выражает среднюю скорость через один вызов мгновенной скорости плюс производную $F$ по времени, делая цель обучения локальной. Модель учится удовлетворять тождеству в каждой тройке $(x_t, t, s)$.
+
+```mermaid
+flowchart TB
+    PFO[Probability-flow ODE]
+    PFO --> SD[Step distillation]
+    PFO --> FM[Flow map F of x t s]
+    SD --> PD[Progressive distillation]
+    FM --> CF[Consistency function s equals zero]
+    CF --> CD[CD with teacher]
+    CF --> CT[CT no teacher]
+    CF --> MCM[Multistep CM many boundaries]
+    FM --> SHC[Shortcut interval additivity]
+    FM --> MF[Mean Flow differential identity]
+```
+
+*Diagram: семейное древо few-step моделей. Левая ветвь — distillation от учителя; правая — flow-map параметризация с разными self-consistency.*
 
 ## Open threads
 
