@@ -103,9 +103,11 @@ Run: `python wiki/static/figures/<page-slug>/<name>.py`
 Caption format on the wiki page:
 
 ```markdown
-![Rotation in 2D](/static/figures/rope/rotation-2d.png)
+![Rotation in 2D](../static/figures/rope/rotation-2d.png)
 *Generated: figures/rope/rotation-2d.py*
 ```
+
+The image path is **file-relative** (`../static/figures/...`), not absolute (`/static/figures/...`). File-relative paths work both in Quartz (which resolves them at build time) and in any standalone viewer (file:// open, Obsidian, GitHub markdown preview). Absolute paths beginning with `/` work only inside Quartz's HTTP server and break in every other context.
 
 ### PNG size
 
@@ -122,7 +124,7 @@ When the original paper has a figure that no reimplementation will beat (e.g., a
 2. Save to `wiki/static/figures/<page-slug>/source-cut-<short-name>.png`.
 3. Caption on the page:
    ```markdown
-   ![Rotation construction](/static/figures/rope/source-cut-fig2.png)
+   ![Rotation construction](../static/figures/rope/source-cut-fig2.png)
    *From Su et al. (2021), Fig. 2.*
    ```
 4. PNG size ≤ 200 KB. Crop tightly; do not screenshot the whole page.

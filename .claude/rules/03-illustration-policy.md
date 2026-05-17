@@ -29,6 +29,7 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
 4. One figures folder per page: `wiki/static/figures/<page-slug>/`. No shared dumping ground.
 5. Mermaid: ≤ 12 nodes. Beyond that, split into two diagrams or switch to matplotlib.
 6. Matplotlib `.py` scripts commit **alongside** the PNG. Reproducibility is mandatory.
+7. Image path in markdown: **file-relative**, never absolute. From a page at `wiki/<kind>/<slug>.md`, the matplotlib PNG lives at `wiki/static/figures/<slug>/<file>.png`, so the markdown reference is `![alt](../static/figures/<slug>/<file>.png)`. Absolute paths starting with `/` work only in Quartz's HTTP server and break under file://, Obsidian, and GitHub preview.
 
 ## Coverage rule
 

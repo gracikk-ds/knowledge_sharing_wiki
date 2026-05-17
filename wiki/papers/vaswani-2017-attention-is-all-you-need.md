@@ -79,7 +79,7 @@ def attention(Q, K, V, mask=None):
 
 Если компоненты $q$ и $k$ — независимые с дисперсией 1 и средним 0, то скалярное произведение $q \cdot k = \sum_{i=1}^{d_k} q_i k_i$ имеет дисперсию $d_k$. На больших $d_k$ распределение скалярных произведений сильно растягивается, в softmax попадают величины с большим разбросом, и распределение схлопывается в почти one-hot: один вес близок к 1, остальные близки к 0. У softmax в такой области градиент почти ноль, и обучение стоит. Делитель $1/\sqrt{d_k}$ возвращает дисперсию к 1.
 
-![Softmax saturation vs d_k](/static/figures/vaswani-2017-attention-is-all-you-need/softmax-saturation.png)
+![Softmax saturation vs d_k](../static/figures/vaswani-2017-attention-is-all-you-need/softmax-saturation.png)
 *Generated: figures/vaswani-2017-attention-is-all-you-need/softmax-saturation.py*
 
 На графике видно две стороны эффекта. Слева — гистограммы $q \cdot k$ для трёх $d_k$: стандартное отклонение растёт как $\sqrt{d_k}$ (примерно 2, 8, 32 при $d_k = 4, 64, 1024$). Справа — энтропия softmax-распределения по 64 ключам в зависимости от $d_k$: без скейлинга при $d_k = 1024$ распределение схлопывается почти в one-hot (около 0.2 бита из теоретических 6), со скейлингом $1/\sqrt{d_k}$ держится около 5.3 бит независимо от $d_k$ — softmax остаётся «мягким» и пропускает градиент.
@@ -109,7 +109,7 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h
 
 Разница между (1) и (2) — это всего лишь маскировка. Один и тот же блок, одни и те же $Q$ и $K$ — разные политики того, какие пары query–key пропустить через softmax:
 
-![Encoder self-attention vs decoder masked self-attention](/static/figures/vaswani-2017-attention-is-all-you-need/attention-mask-pattern.png)
+![Encoder self-attention vs decoder masked self-attention](../static/figures/vaswani-2017-attention-is-all-you-need/attention-mask-pattern.png)
 *Generated: figures/vaswani-2017-attention-is-all-you-need/attention-mask-pattern.py*
 
 Обе матрицы — для одинаковых $Q$ и $K$ (12 токенов, $d_k = 8$). Слева — encoder self-attention: softmax по всей строке, в результате каждый токен берёт сколько-то веса со всех остальных. Справа — то же самое, но в scores выше главной диагонали проставили $-\infty$ перед softmax. После экспоненты эти позиции дают 0, поэтому весь треугольник над диагональю чёрный. Внутри нижнего треугольника softmax нормирует только видимые токены, поэтому для $t_0$ это просто 1.0 (один токен, всё внимание на него), для $t_1$ — распределение между $t_0$ и $t_1$, и так далее.
@@ -131,7 +131,7 @@ $$PE_{(\text{pos},\, 2i)} = \sin\!\left(\frac{\text{pos}}{10000^{2i/d_{\text{mod
 
 Чтобы увидеть, что это за вектор на самом деле, проще всего посмотреть тепловую карту PE для всех позиций и всех измерений сразу:
 
-![Sinusoidal positional encoding: heatmap and per-position vectors](/static/figures/vaswani-2017-attention-is-all-you-need/positional-encoding-pattern.png)
+![Sinusoidal positional encoding: heatmap and per-position vectors](../static/figures/vaswani-2017-attention-is-all-you-need/positional-encoding-pattern.png)
 *Generated: figures/vaswani-2017-attention-is-all-you-need/positional-encoding-pattern.py*
 
 Слева — тепловая карта $\text{PE}[\text{pos}, i]$ для $d_{\text{model}} = 96$ и 96 позиций. Видна структура: в левых колонках ($i$ малый) значения быстро колеблются вдоль позиции (короткая длина волны), в правых ($i$ большой) — почти не меняются (длинная длина волны). Каждая позиция получает уникальную «подпись» из синусоид всех частот сразу. Справа — три конкретных PE-вектора (для позиций 10, 40, 80): по высокочастотным компонентам (левая половина графика) они расходятся, по низкочастотным — почти совпадают. Именно эта структура и даёт линейность относительных сдвигов: близкие позиции дают близкие векторы, далёкие — далёкие.
@@ -166,7 +166,7 @@ Residual connection нужен, чтобы градиент проходил м�
 
 Главное численное сравнение статьи — Table 1: сложность одного слоя, число последовательных операций, и max path length для self-attention, RNN, свёрток и restricted self-attention. Чтобы было нагляднее, чем «log_k n меньше n» в асимптотике — вот эти же значения для длин $n$ от 2 до 4096:
 
-![Длина пути от первого до последнего токена для разных архитектур](/static/figures/vaswani-2017-attention-is-all-you-need/path-length-vs-n.png)
+![Длина пути от первого до последнего токена для разных архитектур](../static/figures/vaswani-2017-attention-is-all-you-need/path-length-vs-n.png)
 *Generated: figures/vaswani-2017-attention-is-all-you-need/path-length-vs-n.py*
 
 На типичной длине предложения для NMT ($n=50$) RNN заставит градиент пройти 50 операций, ConvS2S с ядром 3 — около 17, ByteNet — около 4, а self-attention — 1. При увеличении $n$ до 4096 (длины современных контекстов) разрыв растёт катастрофически: RNN — 4096 шагов, self-attention — всё та же 1.
