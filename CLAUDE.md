@@ -24,12 +24,14 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 │   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, autodoc, _shared/
 ├── raw/                  # source documents (immutable)
 │   ├── papers/  clips/  lectures/  scratch/
-├── wiki/                 # everything you write
-│   ├── index.md  log.md
-│   ├── ml_concepts/      # flat
-│   ├── math_concepts/    # flat
-│   ├── methods/          # flat
-│   ├── topics/  sources/  questions/      # flat
+├── wiki/                 # source breakdowns: one page per paper/lecture/clip/KS
+│   ├── index.md          # recent ingests, alphabetical-by-kind, by-tag
+│   ├── log.md            # chronological event log
+│   ├── papers/           # paper breakdowns
+│   ├── lectures/         # lecture breakdowns
+│   ├── clips/            # blog/article breakdowns
+│   ├── knowledge-sharings/   # internal KS meeting breakdowns
+│   └── static/figures/   # matplotlib .py+.png and source cut-outs per page
 └── publish/              # Quartz site; deploys to Vercel from main
 ```
 
