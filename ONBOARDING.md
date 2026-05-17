@@ -6,7 +6,7 @@ A personal LLM-maintained wiki on machine learning. Sources go in `raw/`, struct
 
 1. Read `CLAUDE.md` (5 min) — repo map and principles.
 2. Read `.claude/role.md` (5 min) — how the LLM writes.
-3. Open `wiki/index.md` and a finished page like `wiki/ml_concepts/attention/self-attention.md` (10 min) — see the output you are working toward.
+3. Open `wiki/index.md` and browse one breakdown under `wiki/papers/` or `wiki/knowledge-sharings/` (10 min) — see the output you are working toward.
 4. Open `.autodoc/index.md` (5 min) — see how session insights look.
 5. Read this file to the end (5 min).
 
@@ -37,15 +37,21 @@ A personal LLM-maintained wiki on machine learning. Sources go in `raw/`, struct
 ## Structure quick map
 
 ```
-wiki/ml_concepts/          # flat: attention, RoPE, ELBO, diffusion, flow matching, ...
-wiki/math_concepts/        # flat: KL divergence, Jensen's inequality, rotation matrix 2D, ...
-wiki/methods/              # flat: transformer, VAE, RoPE, DyPE, mean flow, ...
-wiki/topics/               # flat: narrative primers
-wiki/sources/              # flat: one page per ingested source
-wiki/questions/            # flat: open questions
+wiki/papers/             # paper breakdowns:  su-2021-roformer.md
+wiki/lectures/           # lecture breakdowns: karpathy-makemore-3.md
+wiki/clips/              # blog/article breakdowns: illustrated-transformer-jay-alammar.md
+wiki/knowledge-sharings/ # KS meeting breakdowns: 2026-05-15-attention-deep-dive-by-grigoriy.md
+wiki/index.md            # entry point: recent / by kind / by tag
+wiki/log.md              # append-only chronological event log
 ```
 
-Everything stays flat. One concept = one file in the right type folder.
+One page per source. Concepts live *inside* the breakdown; there are no separate concept pages.
+
+To find «everything about RoPE», open `wiki/index.md`, scroll to «By tag», find the line for `positional-encoding`. It lists every breakdown that touches the concept.
+
+## Worked example
+
+See `docs/superpowers/specs/2026-05-18-wiki-source-breakdowns-design.md` §9 for a full example of a paper breakdown (the RoFormer/RoPE paper). It shows the template on a real source — what each section actually looks like, what kind of mermaid diagram qualifies as «идея в одной картинке», how `где: …` lists work under formulas, how «Связанные разборы» links work.
 
 ## Where to edit the rules
 
