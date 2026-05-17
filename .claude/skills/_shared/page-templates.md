@@ -79,6 +79,16 @@ Not a repeat of TL;DR — by now the reader understands *why*.}
 ### Optional sections (insert between «Как это работает» and «Вывод»)
 
 ```markdown
+## Данные
+
+{Insert when the source documents its data — corpus composition, sources,
+preprocessing, filtering rules, deduplication, augmentation, balance
+across categories. Include exact numbers (token counts, image counts,
+category percentages). Use a table whenever the source presents data
+as a breakdown across categories. Skip this section if the source
+doesn't discuss data (most pure-theory papers, lectures on existing
+methods).}
+
 ## Результаты
 
 {Papers with empirics only. 3-7 bullets with concrete numbers and benchmark
@@ -218,6 +228,30 @@ Rules:
 - Pseudocode is fine when full Python distracts from the idea.
 - Variable names in English, comments in Russian (`rules/01` and `write-russian` §9.3).
 - Code blocks ≤ 10 lines by default.
+
+### Tables for source comparisons
+
+If the source presents a comparison — benchmark scores across methods, ablation results, configuration grids, dataset statistics across categories — the breakdown **must** render it as a markdown table, not as bullets. Tables preserve the structure of «N rows × M columns» that the comparison actually has; bullets flatten it into prose and lose information.
+
+Rules:
+
+- Reproduce the source's table verbatim when small (≤ 8 rows × ≤ 6 columns). For larger tables, summarise to the rows / columns that load-bear for the breakdown's argument and note the omission.
+- Cite the source under the table: `*Source: <First Author> et al. (<year>), Table <N>.*`
+- Round numbers consistently — match the source's precision unless rounding adds clarity (e.g., 28.43 → 28.4 BLEU is fine; 0.823 → 0.82 only if the source already does this).
+- The «Сравнение с альтернативами» section is the default home for the main benchmark / comparison table. «Результаты» can also carry a table when numbers form a grid (e.g., scores across multiple benchmarks).
+- **Don't invent comparisons**. If the source compares to methods A and B, the table has A, B, and the source's method. Don't add C just because you remember it.
+
+Example (reproducing Table 1 from Vaswani et al., 2017):
+
+```markdown
+| Слой | Сложность на слой | Sequential ops | Max path length |
+|---|---|---|---|
+| Self-attention | $O(n^2 \cdot d)$ | $O(1)$ | $O(1)$ |
+| Recurrent (LSTM/GRU) | $O(n \cdot d^2)$ | $O(n)$ | $O(n)$ |
+| Convolutional (kernel $k$) | $O(k \cdot n \cdot d^2)$ | $O(1)$ | $O(\log_k n)$ |
+
+*Source: Vaswani et al. (2017), Table 1.*
+```
 
 ### Other conventions
 

@@ -122,7 +122,9 @@ Figures planned (≥ minimum from rules/03 — paper 3, lecture 2, clip 1, KS 1)
 2. <type> — <one-line description>
 3. <type> — <one-line description>
 
-Optional sections to include: <list, e.g., "Результаты, Сравнение, Ограничения"; or "none">
+Optional sections to include: <list, e.g., "Данные, Результаты, Сравнение, Ограничения"; or "none">
+Comparison tables to reproduce: <list of source tables with column headers, e.g., "Table 1 (complexity vs RNN/Conv), Table 3 (PE ablation)"; or "none">
+Data section needed: <yes if source documents corpus/preprocessing in detail; no for pure-theory/method papers>
 
 Related breakdowns to link:
 - [[<kind>/<slug>]] — <one-line>
@@ -140,7 +142,8 @@ If the user has explicitly asked for autonomous mode, still emit the plan, then 
 - [ ] Russian prose body, English headings/slugs/tags/frontmatter (`rules/01`).
 - [ ] Frontmatter exactly per `rules/04-frontmatter-schema.md`.
 - [ ] Required sections in order: TL;DR (as blockquote under H1) → Мотивация → Идея в одной картинке → Как это работает → Вывод → Источник.
-- [ ] Optional sections inserted between «Как это работает» and «Вывод» when content justifies them.
+- [ ] Optional sections inserted between «Как это работает» and «Вывод» when content justifies them. «Данные» belongs here when the source documents corpus composition / preprocessing / filtering in detail (skip for pure-theory papers).
+- [ ] **Comparison tables.** Every comparison the source presents — benchmark grid, ablation, config matrix, dataset breakdown — gets rendered as a markdown table in the breakdown (typically inside «Сравнение с альтернативами» or «Результаты»), not flattened into bullets. Cite under the table: `*Source: ..., Table N.*`
 - [ ] Math in LaTeX, every non-trivial formula followed by `где: ...`.
 - [ ] Term introduction discipline on every new term (bold + definition + analogy on first mention).
 - [ ] Stub links to non-existing related pages are fine — they mark future ingests.
