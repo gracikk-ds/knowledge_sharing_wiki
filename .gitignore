@@ -13,3 +13,8 @@ raw/**
 !raw/knowledge-sharings/
 !raw/scratch/
 !raw/**/.gitkeep
+
+# Planning artefacts (writing-plans / brainstorming output) stay local.
+# Specs and plans are working memory, not deliverables; they accumulate
+# fast and would dilute the wiki's commit history.
+docs/
