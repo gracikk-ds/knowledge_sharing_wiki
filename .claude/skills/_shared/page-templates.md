@@ -22,8 +22,13 @@ status: stub | draft | mature
 
 # {Plain title}
 
-> {TL;DR — 1-3 sentences in Russian. What the source shows, in plain language.
-> The reader knows in 5 seconds: relevant to me or not.}
+> {TL;DR — 4-7 sentences in Russian. Five things, in this order:
+> 1. Задача, которую решает источник, в одной фразе.
+> 2. Что предлагает источник как ответ.
+> 3. Один-два конкретных численных результата (BLEU, FID, скорость, FLOPs).
+> 4. Контекст: почему до сих пор актуально, или чем уже заменено.
+> 5. Что найдёшь в этом разборе (одна короткая фраза).
+> Пишется плотно, без воды: за 20-30 секунд читатель решает, нужен ему весь разбор или нет.}
 
 ## Мотивация
 
@@ -35,9 +40,12 @@ status: stub | draft | mature
 
 ## Идея в одной картинке
 
-{One figure — mermaid diagram or matplotlib PNG. The single most important
-visualisation. Under it: caption + one paragraph of commentary explaining
-what the figure shows and why it is the key.}
+{The single most important visualisation — mermaid diagram or matplotlib PNG.
+Under it: caption + one paragraph explaining what the figure shows and why
+it is the key. This is the **first** figure on the page, not the only one —
+see `rules/03-illustration-policy.md` for the minimum count per source kind
+(paper ≥ 3, lecture ≥ 2, clip ≥ 1, KS ≥ 1). Additional figures live inside
+«Как это работает» subsections, attached to the concepts they illustrate.}
 
 ## Как это работает
 
@@ -138,21 +146,24 @@ Everything else (required sections, cross-cutting rules) is identical to Templat
 
 ### Term introduction (first mention)
 
-Every technical term gets a **one-line definition + everyday analogy** on its first mention. After that, the term is used plainly.
+Every technical term gets a **one-line definition + everyday analogy** on its first mention. Load-bearing English-origin terms additionally get the English form in parentheses for traceability — see `rules/01-language-policy.md` «Term glossing» for when. After first mention, use plain.
 
 Format:
 
-> **`<термин>`** (`<English original>`, if relevant) — это `<plain Russian definition>`. Можно представить как `<everyday-life analogy>`: `<one or two strokes of concrete detail>`.
+> **<термин>** (`<English original>`) — это <plain Russian definition>. Можно представить как <everyday-life analogy>: <one or two strokes of concrete detail>.
 
 Rules:
 
 - **Bold** the term at first mention.
+- English gloss in parens when the term is a translation that the reader will need to recognise in source papers (sequence length, path length, residual connection). Skip gloss for pure English (attention, softmax) and for plain Russian without an obvious English original (вероятность, выборка).
 - One short sentence of plain-Russian definition right after the bold.
 - One analogy from everyday adult life (post office, library, customs, train timetable, electric kettle). Avoid analogies that themselves need analogies (don't say «это как middleware» if the reader doesn't know middleware).
 - After first mention, use plain. No re-definition further down the page.
 - Applies to ML terms, math objects, dataset names (Telco Churn, MNIST), magic numbers in code (`random_state=42`, `test_size=0.2`) on first appearance.
 
-Example:
+Examples:
+
+> **Длина пути** (`max path length`) — это сколько последовательных операций нужно градиенту, чтобы дойти от выхода до самого дальнего входного токена. Можно представить как **число пересадок** между двумя станциями метро: чем больше пересадок, тем больше шансов потеряться и тем дольше едет сигнал. Для self-attention оно равно 1: любой токен виден из любого за один шаг.
 
 > **Attention sink** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех heads. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
 
