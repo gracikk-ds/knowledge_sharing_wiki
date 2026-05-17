@@ -2,56 +2,95 @@
 
 This rule auto-loads. `wiki-lint` enforces it. Every wiki page starts with YAML frontmatter matching the schema below.
 
-## Common fields (every page)
+## Base fields (paper / lecture / clip)
 
 ```yaml
 ---
-title: <Human-readable, English, capitalised>
-type: <one of: ml_concept | math_concept | method | topic | source | question>
-tags: [<lowercase>, <kebab-case>, <plural-where-natural>]
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-sources: <integer; count of distinct raw sources cited>
-status: <one of: stub | draft | mature>
----
-```
-
-### Field rules
-
-- `title`: English, capitalised. The filename is the slug (kebab-case).
-- `type`: matches the directory the file lives in.
-- `tags`: lowercase, kebab-case. Plural where natural (`transformers`, not `transformer`).
-- `created` / `updated`: ISO date. Update `updated` on substantive changes; do not bump for typo fixes.
-- `sources`: integer count of distinct raw sources cited. Bump on new citation; do not double-count.
-- `status`:
-  - `stub` — exists because someone linked to it; minimal content.
-  - `draft` — substantive content from at least one source.
-  - `mature` — cross-referenced, multi-source, synthesis stable.
-## Source pages — additional fields
-
-```yaml
----
-title: "<First Author> — <short title>"
-type: source
+title: <Plain title in English>
+source_kind: paper | lecture | clip
 source_path: raw/<kind>/<file>
-source_kind: <one of: paper | clip | scratch | lecture | other>
 source_date: YYYY-MM-DD
 ingested: YYYY-MM-DD
-tags: [...]
-status: <stub | draft | mature>
+authors: [<First Last>, <First Last>]
+tags: [<tag1>, <tag2>, ...]
+status: stub | draft | mature
 ---
 ```
 
-- `source_path`: relative to repo root. Validate the file exists.
-- `source_date`: when the source was published (not when ingested).
-- `ingested`: when this source page was created.
+## Knowledge-sharing fields
+
+```yaml
+---
+title: <KS topic>
+source_kind: knowledge-sharing
+source_path: raw/knowledge-sharings/<file>
+source_date: YYYY-MM-DD
+ingested: YYYY-MM-DD
+presenter: <First Last>
+audience: <team | internal | public>
+slides: <URL or relative path>
+tags: [<tag1>, ...]
+status: stub | draft | mature
+---
+```
+
+`slides` and `audience` are optional. `presenter` replaces `authors` for KS.
+
+## Field rules
+
+- `title` — English, plain. No prefixes like «Paper:».
+- `source_kind` — one of: `paper`, `lecture`, `clip`, `knowledge-sharing`. New kinds require an explicit spec change.
+- `source_path` — relative to repo root. Must point at an existing file under `raw/`.
+- `source_date` — date the source was published (arxiv submission, lecture recording, blog publication, KS meeting).
+- `ingested` — when the breakdown was written. Bumped on substantive edits, not typo fixes.
+- `authors` — array. For lectures and clips too (`[Andrej Karpathy]`, `[Jay Alammar]`).
+- `tags` — lowercase kebab-case, plural where natural (`transformers`, not `transformer`). 3-7 tags per page. All tags must be in the whitelist below.
+- `status`:
+  - `stub` — TL;DR and Мотивация only, the rest is empty or missing.
+  - `draft` — all required sections filled.
+  - `mature` — user reviewed and approved.
+
+## Tag whitelist
+
+Starter set. Authors extend this list in the same commit that introduces the first page using a new tag.
+
+```
+attention
+positional-encoding
+normalization
+optimization
+regularization
+generative-models
+diffusion
+flow-matching
+variational-inference
+distillation
+tokenization
+inference-economics
+training-dynamics
+```
+
+`wiki-lint` rejects unknown tags.
+
+## Slug rules
+
+| `source_kind` | Pattern | Example |
+|---|---|---|
+| paper | `<first-author>-<year>-<short-title>.md` | `su-2021-roformer.md` |
+| lecture | `<lecturer>-<short-title>.md` | `karpathy-makemore-3.md` |
+| clip | `<short-title>-<author>.md` | `illustrated-transformer-jay-alammar.md` |
+| knowledge-sharing | `YYYY-MM-DD-<topic>-by-<presenter>.md` | `2026-05-15-attention-deep-dive-by-grigoriy.md` |
+
+Lowercase, kebab-case, no spaces.
 
 ## Validation rules (enforced by `wiki-lint`)
 
-1. Every file under `wiki/` starts with `---` on line 1.
-2. All common fields present and non-empty.
-3. `type` matches enclosing directory (e.g., `wiki/ml_concepts/*.md` has `type: ml_concept`).
-4. `created` ≤ `updated`.
-5. `tags` is non-empty.
-6. Source pages have all source-specific fields.
-7. `status` is one of the three values.
+1. Every file under `wiki/{papers,lectures,clips,knowledge-sharings}/` starts with `---` on line 1.
+2. All base fields present and non-empty.
+3. `source_kind` matches the enclosing directory (`wiki/papers/*.md` has `source_kind: paper`).
+4. `source_path` exists under `raw/`.
+5. `source_date` ≤ `ingested`.
+6. `tags` non-empty, all in the whitelist.
+7. `status` is one of: `stub`, `draft`, `mature`.
+8. `authors` is non-empty for paper/lecture/clip; `presenter` is present for knowledge-sharing.
+9. Slug matches the pattern for the file's `source_kind`.
