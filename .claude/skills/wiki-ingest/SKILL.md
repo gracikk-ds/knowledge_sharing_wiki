@@ -94,10 +94,12 @@ Run the illustration checklist in `_shared/illustration-policy.md` for each page
 
 ## Phase 7 — Self-check (Russian style + content)
 
-- [ ] Re-read `_shared/russian-style.md`.
-- [ ] For each page, run the checklist at the end of that file (banned constructions, AI-speak, marketing epithets, calque anglicisms).
-- [ ] Verify every claim is sourced or marked as an open question.
-- [ ] Verify illustrations are attached to text (no floating images).
+- [ ] Invoke `/write-russian` on every page just produced. The skill has the full anti-AI ruleset, term-introduction discipline, anglicism replacement table, punctuation rules, and an §10 editing checklist + §11 fast grep. Apply all findings inline.
+- [ ] If `/write-russian` is unavailable for some reason, fall back to reading `_shared/russian-style.md` and applying its checklist (a leaner version of the same rules).
+- [ ] Verify every factual claim is sourced (`[[sources/<page>]]` link or inline paper attribution) or marked as an open question.
+- [ ] Verify illustrations are attached to text — no «вот картинка, разбирайся». Every figure has a one-sentence lead-in and one-sentence walk-out.
+- [ ] Verify term-introduction discipline from `_shared/page-templates.md`: every new term has bold + one-line definition + everyday analogy on first mention.
+- [ ] Verify formula-symbol annotation: every non-trivial formula has a `где: …` list.
 - [ ] Fix all findings inline.
 
 ## Phase 8 — Bookkeeping and commit proposal

@@ -274,3 +274,74 @@ When to use: an open question that hasn't been resolved. The page belongs in `wi
 - Math in LaTeX, never in backticks (this carries over from existing CLAUDE.md guidance).
 - `[[wiki-link]]` syntax for internal references.
 - Page length: as long as needed, no longer. Soft target 200-1000 lines body; hard split at ~750 if a natural sub-concept emerges.
+
+---
+
+## Term introduction (every page)
+
+Every technical term gets a **one-line definition + everyday analogy** on its first mention. After that, use the term plainly.
+
+**Format:**
+
+> **`<термин>`** (`<English original>`, if relevant) — это `<plain Russian definition>`. Можно представить как `<everyday-life analogy>`: `<one or two strokes of concrete detail>`.
+
+**Rules:**
+
+- **Bold** on the term at first mention.
+- One short sentence of plain-Russian definition right after the bold.
+- One analogy from everyday adult life (post office, library, customs, train timetable, lab notebook, electric kettle, restaurant ticket). Avoid analogies that themselves need analogies ("это как middleware" — fails if reader doesn't know middleware).
+- After first mention, use plain. No re-definition further down the page.
+- Applies to: ML terms, math objects, dataset names (Telco Churn, MNIST), magic numbers in code (`random_state=42`, `test_size=0.2`) on first appearance.
+
+**Example:**
+
+> **Attention sink** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех headах. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
+
+---
+
+## Formula symbol annotation (math pages and any prose with math)
+
+Every formula is followed by a **`где: …` list** explaining each symbol. No exceptions.
+
+**Format:**
+
+> $\hat{y} = w_1 x_1 + w_2 x_2 + \ldots + w_n x_n + b$
+>
+> где:
+> - $\hat{y}$ — предсказание модели
+> - $x_1, x_2, \ldots, x_n$ — значения признаков объекта
+> - $w_1, w_2, \ldots, w_n$ — веса модели, которые подбираются при обучении
+> - $b$ — свободный член (intercept), смещение по вертикали
+> - $n$ — количество признаков
+
+**Rules:**
+
+- Applies to LaTeX block formulas (`$$…$$`) and to inline formulas with non-trivial symbols (Σ, ∫, σ, α, β, ∇, indexed sums).
+- Naked arithmetic (`x = 5 + 3`) — no `где` needed.
+- If a Greek letter is used, name it once on first appearance: «$\alpha$ — альфа, темп обучения».
+- For indexed sums, state the index range: «$i$ пробегает от $1$ до $n$».
+
+---
+
+## Code-formula bridge (non-trivial math gets a snippet)
+
+Any non-trivial math concept gets a short Python or pseudocode snippet (3-6 lines) that turns the formula into runnable code. Applies to loss functions, gradient computation, sigmoid / softmax, entropy / Gini, metric definitions.
+
+**Example:**
+
+```python
+# MSE — средний квадрат ошибки
+def mse(y_true, y_pred):
+    return ((y_true - y_pred) ** 2).mean()
+
+# Sigmoid
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+```
+
+**Rules:**
+
+- One concept = one snippet. Don't stuff loss + gradient + update into one block.
+- Pseudocode is allowed when full Python distracts from the idea.
+- Variable names in English, comments in Russian (`rules/01` and `write-russian` §9.3).
+- Code blocks ≤ 10 lines by default. Longer only when the structure itself is the point.
