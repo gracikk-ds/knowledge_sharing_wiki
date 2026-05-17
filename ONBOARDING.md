@@ -81,7 +81,7 @@ Vercel watches `main`. **Push to `main` = publication.** Run `/wiki-lint` before
 
 ## Where to write open questions
 
-`wiki/questions/<slug>.md`. Use the question template from `.claude/skills/_shared/page-templates.md`.
+Inline on the breakdown page in the «Открытые вопросы» section (optional, between «Как это работает» and «Вывод»). There is no separate questions folder — open threads live attached to the source that raised them.
 
 ## Open this repo as its own workspace
 

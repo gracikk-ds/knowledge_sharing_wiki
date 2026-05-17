@@ -47,7 +47,7 @@ claim by linking back to a source. If sources disagree, state both positions.>
 
 ## Suggested wiki impact
 - <which existing wiki pages this affects, if any>
-- <whether a new stub should be filed in wiki/questions/>
+- <whether to add an "Открытые вопросы" bullet to the breakdown page>
 ```
 
 ## Rules

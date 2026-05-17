@@ -5,7 +5,7 @@ description: Rules for writing clear human Russian prose on the ML wiki. Covers 
 
 # write-russian — How to write clear Russian prose on the wiki
 
-This is a self-contained style guide. Apply every time you produce Russian text for a wiki page (under `wiki/{ml_concepts,math_concepts,methods,topics,sources,questions}/`). It does **not** apply to code, identifiers, commit messages, headings, slugs, or frontmatter — those stay English per `.claude/rules/01-language-policy.md`.
+This is a self-contained style guide. Apply every time you produce Russian text for a wiki page (under `wiki/{papers,lectures,clips,knowledge-sharings}/`). It does **not** apply to code, identifiers, commit messages, headings, slugs, or frontmatter — those stay English per `.claude/rules/01-language-policy.md`.
 
 The rules are written for AI assistants and human authors. Each rule states the principle, gives a banned example, and shows the replacement.
 
@@ -504,9 +504,9 @@ Each match → manual review. Sometimes a banned phrase has legitimate context; 
 
 These rules optimise for **explanatory Russian prose meant to be read once and understood** on the wiki. A few wiki-specific carve-outs:
 
-- **Math derivations** in `math_concepts/` may use slightly more formal phrasing — «при условии», «пусть $x \in \mathbb{R}^d$» — to keep precision. Even so, prefer plain Russian where it preserves meaning.
-- **Source pages** (under `wiki/sources/`) summarise findings, not opinions — drop §4.6 humanisation moves entirely on source pages; stay strictly objective.
-- **Question pages** (under `wiki/questions/`) can ask open questions directly without setup — that's their entire purpose.
+- **Math derivations inside «Как это работает»** may use slightly more formal phrasing — «при условии», «пусть $x \in \mathbb{R}^d$» — to keep precision. Even so, prefer plain Russian where it preserves meaning.
+- **Heavy-empirics paper breakdowns** (e.g., benchmark tables in «Результаты») summarise findings, not opinions — drop §4.6 humanisation moves in that section; stay strictly objective.
+- **Open-question bullets** under «Открытые вопросы» can phrase the question directly without setup — that's their entire purpose.
 - **Quoting from a source** — verbatim quote stays as written, even if the source uses banned constructions. Wrap in blockquote and attribute. Don't rewrite the source's words.
 
 §2.2 (no trailing period at paragraph end) is **advisory** for wiki — existing pages use standard punctuation with periods. Apply §2.2 to new content if you want a consistent stylistic choice across a page; otherwise standard punctuation is acceptable.

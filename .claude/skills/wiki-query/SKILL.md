@@ -113,11 +113,14 @@ If filing:
 Ask the user once before filing:
 
 ```
-This answer feels reusable. Want me to file it as [[topic/x-vs-y]] (new) /
-extend [[ml_concepts/x]] / leave as chat? (default: file as new topic page)
+This answer feels reusable. Want me to append it as an inline note to an
+existing breakdown page (extends [[<kind>/<slug>]]) / leave as chat?
+(default: leave as chat — wiki content is source-grounded)
 ```
 
-If the user has asked you to work without stopping for clarifying questions, default to filing reusable answers and announce what you filed.
+The new model has no central concept/topic pages, so we do not create standalone synthesis pages from query answers. Reusable synthesis goes either into a breakdown of a real source (next `/wiki-ingest`) or remains in the conversation log.
+
+If the user has asked you to work without stopping for clarifying questions, default to leaving the answer in chat and announce that.
 
 If a previous resolution applies the same way again (e.g., you re-derive a result already on a page), don't re-file — just cite.
 

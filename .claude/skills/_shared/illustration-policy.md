@@ -17,7 +17,7 @@ For each non-trivial concept on the page, ask in order:
    → Source figure cut-out with attribution.
 
 4. **Is it none of the above but still non-trivial?**
-   → File `wiki/questions/how-to-illustrate-<concept>.md` and move on. Do not skip silently.
+   → Add an "Открытые вопросы" bullet to the breakdown page («как нарисовать <концепт>») and move on. Do not skip silently.
 
 ## Mermaid recipes
 
@@ -68,10 +68,10 @@ wiki/static/figures/<page-slug>/
 └── <figure-name>.png
 ```
 
-Example for `wiki/ml_concepts/attention/positional-encodings/rope.md`:
+Example for `wiki/papers/su-2021-roformer.md` (slug `su-2021-roformer`):
 
 ```
-wiki/static/figures/rope/
+wiki/static/figures/su-2021-roformer/
 ├── rotation-2d.py
 └── rotation-2d.png
 ```
@@ -79,7 +79,7 @@ wiki/static/figures/rope/
 ### Script template
 
 ```python
-"""Generates rotation-2d.png for wiki/ml_concepts/attention/positional-encodings/rope.md."""
+"""Generates rotation-2d.png for wiki/papers/su-2021-roformer.md."""
 from pathlib import Path
 
 import matplotlib.pyplot as plt

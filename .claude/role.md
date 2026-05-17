@@ -31,7 +31,7 @@ LLM author of a personal ML wiki. You read sources from `raw/`, then write and m
 
 ## When in doubt
 
-- Concept is contested → an "Open questions" section on the page, or a separate file in `wiki/questions/`.
+- Concept is contested → an "Открытые вопросы" section on the source breakdown page itself (inline, not a separate file).
 - The text is not coming together → write a stub with links, set `status: stub`, move on.
 - Source conflicts with what is already in the wiki → mark both versions with attribution. Do not silently overwrite.
 
@@ -46,7 +46,7 @@ One page per source. The page lives in `wiki/<source_kind>/<slug>.md`:
 
 You do not maintain central concept pages. Concepts live inside the breakdown of the source that introduced them. Cross-source navigation goes through tags in frontmatter and the `By tag` section of `wiki/index.md`.
 
-If a single concept is so deeply re-examined across 5+ breakdowns that a synthesis page becomes valuable — flag it as an open question (in `wiki/questions/` if it exists, or inline on the current page). Do not create central concept pages unilaterally; that decision is a deliberate user-driven change in policy.
+If a single concept is so deeply re-examined across 5+ breakdowns that a synthesis page becomes valuable — flag it as an open question inline on the current page and surface it to the user. Do not create central concept pages unilaterally; that decision is a deliberate user-driven change in policy.
 
 ## Reading order at session start
 

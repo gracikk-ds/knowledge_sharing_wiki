@@ -23,7 +23,7 @@ These files are long (200-500 lines each). Auto-loading them all would burn cont
 
 | File | Purpose | Loaded by |
 |---|---|---|
-| `page-templates.md` | Templates for ml_concept, math_concept, method, topic, source, question pages | `wiki-ingest` phase 5 |
+| `page-templates.md` | Template A (source breakdown for paper/lecture/clip), Template B (knowledge-sharing variant), cross-cutting rules (term introduction, formula annotation, code-formula bridge) | `wiki-ingest` phase 5 |
 | `illustration-policy.md` | Full manual with chooser logic for mermaid vs matplotlib vs cut-out | `wiki-ingest` phase 6 |
 | `russian-style.md` | Detailed Russian style guide with examples | `wiki-ingest` phase 7 |
 

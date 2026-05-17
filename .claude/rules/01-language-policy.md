@@ -6,7 +6,7 @@ This rule auto-loads. It applies to all wiki content and skill output.
 
 | Surface | Language |
 |---|---|
-| Prose body of pages under `wiki/{ml_concepts,math_concepts,methods,topics,sources,questions}` | Russian |
+| Prose body of pages under `wiki/{papers,lectures,clips,knowledge-sharings}` | Russian |
 | Frontmatter `title:`, H1 of every wiki page | English |
 | Filenames, slugs, tags, `[[wiki-links]]` | English (kebab-case) |
 | Service files: `CLAUDE.md`, `AGENTS.md`, `wiki/index.md`, `wiki/log.md`, `.claude/skills/**`, `.claude/rules/**`, `.claude/role.md`, `ONBOARDING.md` | English |

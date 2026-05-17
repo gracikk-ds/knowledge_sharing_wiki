@@ -32,4 +32,4 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
 
 ## Coverage rule
 
-Every non-trivial concept on a wiki page must have at least one illustration. If a concept is genuinely impossible to illustrate, file a question page (`wiki/questions/how-to-illustrate-<concept>.md`) instead of skipping silently.
+Every non-trivial concept on a wiki page must have at least one illustration. If a concept is genuinely impossible to illustrate, add an "Открытые вопросы" bullet on the breakdown page ("как нарисовать <концепт>") instead of skipping silently.
