@@ -7,6 +7,7 @@ description: Health-check the wiki — scan for orphan pages, broken links, fron
 
 - [ ] Read `.claude/role.md`
 - [ ] Read `.claude/rules/04-frontmatter-schema.md`
+- [ ] Read `wiki/tags.md` — the live tag registry; used to validate page tags
 
 # wiki-lint
 
@@ -64,13 +65,14 @@ Frontmatter rules are in `.claude/rules/04-frontmatter-schema.md`. Enforce all 9
 3. **`source_kind` matches directory** — `wiki/papers/*.md` has `source_kind: paper`, etc.
 4. **`source_path` exists** — referenced file under `raw/` resolves.
 5. **`source_date` ≤ `ingested`** — chronological sanity.
-6. **`tags` non-empty and all in whitelist** — read whitelist from `rules/04`, flag unknown tags.
+6. **`tags` non-empty and all registered** — every page tag has a matching H2 entry in `wiki/tags.md` (the `**Slug:**` line value). Flag unknown tags with a proposed fix: either add the tag to `wiki/tags.md` with a definition, or change it to an existing tag.
 7. **`status` is one of: `stub`, `draft`, `mature`**.
 8. **For KS pages: `presenter` is present**, `authors` is absent.
 9. **Slug pattern matches `source_kind`** — see `rules/04` slug table.
 10. **No broken `[[wiki-links]]`** — link target file exists under `wiki/`.
 11. **No orphan pages** — every page is reachable from `wiki/index.md`.
 12. **Tag-index consistency** — every page's tags appear in the `By tag` section of `wiki/index.md`.
+13. **Tag-registry consistency** — every H2 in `wiki/tags.md` has a `**Slug:**` line and a `[Все разборы →](/tags/<slug>)` link. No orphan registry entries (tag defined but never used on any page) older than one ingest cycle — flag them so the user can either drop the entry or schedule an ingest that uses the tag.
 
 ### Check 10 detail: broken `[[wiki-links]]`
 
@@ -160,7 +162,7 @@ Log entries: N
 
 ### Frontmatter issues (N)
 - `papers/su-2021-roformer.md` — missing `source_date` field.
-- `lectures/karpathy-makemore-3.md` — unknown tag `rnn` (not in whitelist).
+- `lectures/karpathy-makemore-3.md` — unknown tag `rnn` (no entry in wiki/tags.md).
 
 ### Broken links (N)
 - [[papers/foo]] in `lectures/bar.md` → target missing. Propose: stub ingest.
