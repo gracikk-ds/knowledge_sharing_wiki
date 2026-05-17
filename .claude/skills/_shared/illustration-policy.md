@@ -23,6 +23,7 @@ For each non-trivial concept on the page, ask in order:
 
 ### Architecture (named blocks, data flow)
 
+
 ```mermaid
 flowchart LR
     X[Input x] --> Q[Q projection]
@@ -62,30 +63,28 @@ sequenceDiagram
 
 ### File layout
 
-```
-wiki/static/figures/<page-slug>/
-├── <figure-name>.py
-└── <figure-name>.png
-```
-
-Example for `wiki/papers/su-2021-roformer.md` (slug `su-2021-roformer`):
+Flat directory. Every figure named `<page-slug>-<figure-name>.png`:
 
 ```
-wiki/static/figures/su-2021-roformer/
-├── rotation-2d.py
-└── rotation-2d.png
+wiki/static/figures/
+├── su-2021-roformer-rotation-2d.png
+├── su-2021-roformer-frequency-spectrum.png
+├── vaswani-2017-attention-is-all-you-need-softmax-saturation.png
+└── ...
 ```
+
+No per-page subfolders. The slug prefix in the filename prevents collisions between papers (two papers can both have a figure called `architecture` — the slug distinguishes them).
 
 ### Script template
 
 ```python
-"""Generates rotation-2d.png for wiki/papers/su-2021-roformer.md."""
+"""Generates su-2021-roformer-rotation-2d.png for wiki/papers/su-2021-roformer.md."""
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-OUT = Path(__file__).parent / "rotation-2d.png"
+OUT = Path(__file__).parent / "su-2021-roformer-rotation-2d.png"
 
 def main() -> None:
     fig, ax = plt.subplots(figsize=(4, 4), dpi=120)
@@ -98,14 +97,15 @@ if __name__ == "__main__":
     main()
 ```
 
-Run: `python wiki/static/figures/<page-slug>/<name>.py`
+Write the script to a scratch location (e.g., `/tmp/<slug>-<name>.py` or alongside `OUT`), run it, then delete the `.py` once the `.png` is verified — only PNGs are committed. The script is one-shot; the recipe lives in the wiki-ingest conversation that produced it, not in the repo.
 
 Caption format on the wiki page:
 
 ```markdown
-![Rotation in 2D](../static/figures/rope/rotation-2d.png)
-*Generated: figures/rope/rotation-2d.py*
+![Rotation in 2D](../static/figures/su-2021-roformer-rotation-2d.png)
 ```
+
+No «*Generated: ...*» italic line — the script is gone. The alt text plus the lead-in / walk-out prose around the figure carry the context.
 
 The image path is **file-relative** (`../static/figures/...`), not absolute (`/static/figures/...`). File-relative paths work both in Quartz (which resolves them at build time) and in any standalone viewer (file:// open, Obsidian, GitHub markdown preview). Absolute paths beginning with `/` work only inside Quartz's HTTP server and break in every other context.
 
@@ -120,14 +120,14 @@ Target ≤ 200 KB. Strategies if exceeded:
 
 When the original paper has a figure that no reimplementation will beat (e.g., a geometric construction):
 
-1. Take a screenshot of the figure (macOS: Cmd+Shift+4, save as PNG).
-2. Save to `wiki/static/figures/<page-slug>/source-cut-<short-name>.png`.
-3. Caption on the page:
+1. Prefer the **extracted source images** from wiki-ingest Phase 2.5 (PDFs via `pdfimages`, DOCX via `word/media/` unzip, HTML via `<img>` href fetch). Manual screenshot is the fallback.
+2. Save to `wiki/static/figures/<page-slug>-fig<N>-cutout.png` (or `<page-slug>-source-<n>.png`).
+3. Caption on the page (attribution **mandatory**):
    ```markdown
-   ![Rotation construction](../static/figures/rope/source-cut-fig2.png)
+   ![Rotation construction](../static/figures/su-2021-roformer-fig2-cutout.png)
    *From Su et al. (2021), Fig. 2.*
    ```
-4. PNG size ≤ 200 KB. Crop tightly; do not screenshot the whole page.
+4. PNG size ≤ 200 KB. Crop tightly; do not include the whole page.
 
 **Attribution is mandatory.** A cut-out without attribution is a copyright violation and a quality regression — readers cannot trace the claim.
 
@@ -136,11 +136,12 @@ When the original paper has a figure that no reimplementation will beat (e.g., a
 ```
 For each non-trivial concept on the page:
   [ ] Tool chosen (mermaid / matplotlib / cut-out / question filed)
-  [ ] Figure produced and saved at the right path
-  [ ] Caption written under the figure with the right format
+  [ ] Figure produced and saved at wiki/static/figures/<slug>-<name>.png
   [ ] PNG ≤ 200 KB
-  [ ] Matplotlib script committed alongside the PNG
+  [ ] Matplotlib .py executed and then deleted (no .py left in figures/)
   [ ] Cut-out has full attribution (author, year, figure number)
   [ ] Mermaid ≤ 12 nodes
   [ ] No AI-generated images anywhere
+  [ ] Image referenced from markdown via file-relative path (../static/figures/...)
+  [ ] Lead-in + walk-out sentences in the prose around the image
 ```

@@ -7,9 +7,9 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
 | Tool | When to use |
 |---|---|
 | Mermaid | Architectures, data flows, relationships between concepts. Inline in markdown. |
-| Matplotlib (Python) | Plots, function visualisations, numerical examples. `.py` + `.png` under `wiki/static/figures/<page-slug>/`. |
+| Matplotlib (Python) | Plots, function visualisations, numerical examples. PNG at `wiki/static/figures/<page-slug>-<figure-name>.png`. |
 | Numpy/Torch + matplotlib | Numerical examples with small concrete values. Same location. |
-| Source figure cut-out | Complex schemes that are better in original form than a reimplementation. `wiki/static/figures/<page-slug>/source-cut-*.png`. Attribution mandatory. |
+| Source figure cut-out | Complex schemes that are better in original form than a reimplementation. `wiki/static/figures/<page-slug>-source-<n>.png` or `<page-slug>-fig<N>-cutout.png`. Attribution mandatory. |
 
 ## Forbidden
 
@@ -25,11 +25,11 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
    - Matplotlib: `*Generated: figures/<slug>/<file>.py*`
    - Cut-out: `*From <First Author> et al. (<year>), Fig. <N>.*`
 2. PNG size ≤ 200 KB. If exceeded, lower DPI or simplify.
-3. Filename: kebab-case, no spaces. `rope-rotation-2d.png`, not `RoPE rotation (2D).png`.
-4. One figures folder per page: `wiki/static/figures/<page-slug>/`. No shared dumping ground.
+3. Filename: kebab-case, **slug-prefixed**. `vaswani-2017-attention-is-all-you-need-softmax-saturation.png`, not `softmax-saturation.png`. Prevents collisions between papers.
+4. One flat folder: `wiki/static/figures/`. No per-page subfolders.
 5. Mermaid: ≤ 12 nodes. Beyond that, split into two diagrams or switch to matplotlib.
 6. Matplotlib `.py` scripts commit **alongside** the PNG. Reproducibility is mandatory.
-7. Image path in markdown: **file-relative**, never absolute. From a page at `wiki/<kind>/<slug>.md`, the matplotlib PNG lives at `wiki/static/figures/<slug>/<file>.png`, so the markdown reference is `![alt](../static/figures/<slug>/<file>.png)`. Absolute paths starting with `/` work only in Quartz's HTTP server and break under file://, Obsidian, and GitHub preview.
+7. Image path in markdown: **file-relative**, never absolute. From a page at `wiki/<kind>/<slug>.md`, the matplotlib PNG lives at `wiki/static/figures/<slug>-<figure-name>.png`, so the markdown reference is `![alt](../static/figures/<slug>-<figure-name>.png)`. Absolute paths starting with `/` work only in Quartz's HTTP server and break under file://, Obsidian, and GitHub preview.
 
 ## Coverage rule
 
