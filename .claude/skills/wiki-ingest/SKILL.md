@@ -26,7 +26,7 @@ Then create a TodoWrite list with one item per remaining phase (2-8).
 - [ ] Read the file fully. For PDFs over 10 pages, use the Read tool's `pages` parameter to page through in ranges.
 - [ ] For markdown clips with referenced images: read the markdown, identify load-bearing images (figures, plots), read those individually. Do not read all images by default.
 - [ ] Take silent notes. Do not write any wiki page yet.
-- [ ] Scan `wiki/index.md` and the relevant `wiki/ml_concepts/<top>/` or `wiki/methods/<top>/` subfolders to identify pages this source touches.
+- [ ] Scan `wiki/index.md` and the relevant `wiki/ml_concepts/` or `wiki/methods/` files to identify pages this source touches.
 
 ## Phase 3 — Research a gap (optional)
 

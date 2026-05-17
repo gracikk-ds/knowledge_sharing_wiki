@@ -37,29 +37,15 @@ A personal LLM-maintained wiki on machine learning. Sources go in `raw/`, struct
 ## Structure quick map
 
 ```
-wiki/ml_concepts/
-├── attention/            # self-attention, multi-head, kv-cache, attention-sink, masking
-│   ├── positional-encodings/   # rotary, sinusoidal index
-│   ├── variants/               # cross-, gated-, ...
-│   └── efficiency/             # GQA, MQA, linear, sliding-window, multi-latent
-├── probabilistic/        # ELBO, variational inference, score function, latent var models
-└── generative/           # diffusion, flow matching, flow map, probability flow ODE
-
-wiki/methods/
-├── architectures/        # transformer, VAE
-├── attention/            # (reserved for FlashAttention, etc.)
-├── distillation/         # progressive, consistency, multistep
-├── generative/           # mean flow, shortcut model
-├── inference/            # variational EM
-└── positional/           # RoPE, YARN, DyPE, NTK, position interpolation, sinusoidal, learned
-
-wiki/math_concepts/        # flat: KL divergence, Jensen's inequality, rotation matrix 2D, mean flow identity
-wiki/topics/               # flat: narrative primers (transformers, attention variants, etc.)
+wiki/ml_concepts/          # flat: attention, RoPE, ELBO, diffusion, flow matching, ...
+wiki/math_concepts/        # flat: KL divergence, Jensen's inequality, rotation matrix 2D, ...
+wiki/methods/              # flat: transformer, VAE, RoPE, DyPE, mean flow, ...
+wiki/topics/               # flat: narrative primers
 wiki/sources/              # flat: one page per ingested source
 wiki/questions/            # flat: open questions
 ```
 
-Max hierarchy depth in `ml_concepts/` and `methods/` is **2 levels**. Add a new subfolder when an existing one accumulates ~5 pages of one sub-topic.
+Everything stays flat. One concept = one file in the right type folder.
 
 ## Where to edit the rules
 

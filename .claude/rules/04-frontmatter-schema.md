@@ -13,7 +13,6 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 sources: <integer; count of distinct raw sources cited>
 status: <one of: stub | draft | mature>
-needs_rewrite: <optional, bool; true when migrated without rewrite>
 ---
 ```
 
@@ -28,8 +27,6 @@ needs_rewrite: <optional, bool; true when migrated without rewrite>
   - `stub` — exists because someone linked to it; minimal content.
   - `draft` — substantive content from at least one source.
   - `mature` — cross-referenced, multi-source, synthesis stable.
-- `needs_rewrite: true` — set during migration when the page was moved but text not yet rewritten. Removed by the next `/wiki-ingest` that revises the page.
-
 ## Source pages — additional fields
 
 ```yaml
@@ -53,7 +50,7 @@ status: <stub | draft | mature>
 
 1. Every file under `wiki/` starts with `---` on line 1.
 2. All common fields present and non-empty.
-3. `type` matches enclosing directory (e.g., `wiki/ml_concepts/.../*.md` has `type: ml_concept`).
+3. `type` matches enclosing directory (e.g., `wiki/ml_concepts/*.md` has `type: ml_concept`).
 4. `created` ≤ `updated`.
 5. `tags` is non-empty.
 6. Source pages have all source-specific fields.

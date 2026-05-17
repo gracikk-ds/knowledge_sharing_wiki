@@ -26,9 +26,9 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 │   ├── papers/  clips/  lectures/  scratch/
 ├── wiki/                 # everything you write
 │   ├── index.md  log.md
-│   ├── ml_concepts/{attention,probabilistic,generative}/...
+│   ├── ml_concepts/      # flat
 │   ├── math_concepts/    # flat
-│   ├── methods/{architectures,attention,distillation,generative,inference,positional}/...
+│   ├── methods/          # flat
 │   ├── topics/  sources/  questions/      # flat
 └── publish/              # Quartz site; deploys to Vercel from main
 ```

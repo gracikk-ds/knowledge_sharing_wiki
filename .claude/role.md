@@ -35,11 +35,17 @@ LLM author of a personal ML wiki. You read sources from `raw/`, then write and m
 - The text is not coming together → write a stub with links, set `status: stub`, move on.
 - Source conflicts with what is already in the wiki → mark both versions with attribution. Do not silently overwrite.
 
-## When to add a new subfolder
+## Where new pages live
 
-In `wiki/ml_concepts/<top>/<sub>/` — when an existing subfolder accumulates ~5 pages of one sub-topic and a natural boundary appears (e.g., `attention/` accumulates several positional-encoding pages → split off `attention/positional-encodings/`).
+Flat structure. Every page lives directly under `wiki/<type>/<slug>.md`:
+- `wiki/ml_concepts/<slug>.md`
+- `wiki/math_concepts/<slug>.md`
+- `wiki/methods/<slug>.md`
+- `wiki/topics/<slug>.md`
+- `wiki/sources/<slug>.md`
+- `wiki/questions/<slug>.md`
 
-Hierarchy max depth: 2 levels inside `ml_concepts/` and `methods/`. Beyond that is over-engineering.
+No sub-categorisation by topic. Navigation happens through `wiki/index.md`, `[[wiki-links]]`, and the topic primers in `wiki/topics/`.
 
 ## Reading order at session start
 

@@ -4,7 +4,7 @@ Read this in `wiki-ingest` phase 5. Pick the template matching the page `type:`.
 
 ## ML concept page (`type: ml_concept`)
 
-When to use: an ML idea that exists independently of any single algorithm — attention, dropout, residual connection. The page belongs in `wiki/ml_concepts/<top>/<sub>/<slug>.md`.
+When to use: an ML idea that exists independently of any single algorithm — attention, dropout, residual connection. The page belongs in `wiki/ml_concepts/<slug>.md`.
 
 ```markdown
 ---
@@ -99,7 +99,7 @@ reader can verify by hand. For multi-dim objects, show the shapes at each step.}
 
 ## Method page (`type: method`)
 
-When to use: a specific algorithm or technique — AdamW, FlashAttention, LoRA. The page belongs in `wiki/methods/<top>/<slug>.md`.
+When to use: a specific algorithm or technique — AdamW, FlashAttention, LoRA. The page belongs in `wiki/methods/<slug>.md`.
 
 ```markdown
 ---
