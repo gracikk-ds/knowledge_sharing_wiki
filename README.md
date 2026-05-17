@@ -1,51 +1,76 @@
-# ml_notes
+# ML Notes Wiki
 
-A personal LLM-maintained ML obsidian wiki. Raw sources go into `raw/`; Claude reads them and incrementally builds a network of linked markdown pages in `wiki/`. Each new source enriches existing pages instead of being re-derived per query.
+Личный LLM-поддерживаемый wiki по машинному обучению. Сюда складываются papers, лекции, статьи и записи внутренних knowledge sharings; Claude читает их, разбирает по единому шаблону, иллюстрирует, и складывает в навигируемую сеть страниц. Сайт собирается Quartz и деплоится на Vercel из ветки `main`.
 
-## Layout
+## Что внутри
 
 ```
-raw/                # source documents (immutable)
-  papers/           # arXiv PDFs
-  clips/            # web articles
-  lectures/         # slides, transcripts
-  scratch/          # own notes
-wiki/               # everything the LLM writes
-  ml_concepts/      # ML ideas (attention, dropout)
-  math_concepts/    # math objects with step-by-step walkthroughs
-  methods/          # specific algorithms (AdamW, LoRA)
-  topics/           # narrative primers across an area — entry point for a reader
-  sources/          # one page per ingested document
-  questions/        # open questions
-  index.md          # flat catalog of all pages
-  log.md            # chronological event log
-CLAUDE.md           # schema, taxonomy, style rules
-.claude/skills/     # ingest / query / lint / quiz workflows
+.
+├── AGENTS.md             # указатель на .claude/CLAUDE.md
+├── README.md             # этот файл
+├── ONBOARDING.md         # текстовая шпаргалка; /onboard для интерактивного гида
+├── .claude/              # всё, что нужно Claude
+│   ├── CLAUDE.md         # главные инструкции
+│   ├── role.md           # роль и стиль
+│   ├── rules/            # язык, коммиты, иллюстрации, frontmatter
+│   ├── agents/           # wiki-source-researcher
+│   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, onboard, autodoc
+├── raw/                  # исходники (неизменяемые)
+│   └── papers/  lectures/  clips/  knowledge-sharings/  scratch/
+├── wiki/                 # разборы, один источник = одна страница
+│   ├── index.md          # лендинг + Recent / by-kind / by-tag
+│   ├── tags.md           # реестр тегов
+│   ├── log.md            # chronological event log
+│   ├── papers/  lectures/  clips/  knowledge-sharings/
+│   └── static/figures/   # PNG: <slug>-<figure>.png
+├── publish/              # Quartz, деплоится на Vercel
+└── .autodoc/             # сессионная память для LLM
 ```
 
-You own `raw/` and `CLAUDE.md`. Claude owns `wiki/`.
+`raw/` — read-only для Claude и для человека после коммита. `wiki/` — пишет Claude через скиллы. `.claude/` — конфигурация.
 
-## Setup
+## С чего начать
 
-Open the repository as a vault in Obsidian — `[[wiki-links]]`, backlinks, and the graph view all depend on it.
+Если ты впервые в репо — запусти `/onboard`. Это интерактивный гид, который проведёт по шагам: что лежит в `raw/`, как сделать первый разбор, как закоммитить, как опубликовать. Текстовая версия тех же шагов — в [`ONBOARDING.md`](ONBOARDING.md).
 
-## Workflow
+Полные правила и описание шаблонов — в [`.claude/CLAUDE.md`](.claude/CLAUDE.md).
 
-Four operations, each invoked by asking Claude in plain language:
+## Основные команды
 
-| Skill         | Trigger                                          | What it does                                              |
-| ------------- | ------------------------------------------------ | --------------------------------------------------------- |
-| `wiki-ingest` | "ingest this", "add this source"                 | Read a raw source, update concept/method pages, log it    |
-| `wiki-query`  | "what does the wiki say about X", any ML question | Synthesize an answer from wiki pages with citations       |
-| `wiki-lint`   | "lint the wiki", "audit"                         | Scan for orphans, broken links, contradictions            |
-| `wiki-quiz`   | "quiz me", "interview prep"                      | Generate a test (MCQ, open questions, paper problems)     |
+| Что хочешь | Команда |
+|---|---|
+| Разобрать один источник | `/wiki-ingest raw/<path>` |
+| Спросить wiki по теме | `/wiki-query "<вопрос>"` |
+| Проверить wiki перед коммитом | `/wiki-lint` |
+| Прогнать себя по теме | `/wiki-quiz <topic>` |
+| Записать сессионные инсайты | `/autodoc` |
+| Пройти онбординг | `/onboard` |
 
-## Working on this repo
+## Как работает разбор
 
-- Read the wiki: start from `wiki/topics/` — these are narrative primers that walk through an area and link into the concept, method, and source pages.
-- Add a source: drop the file under the right `raw/` subdirectory, then ask Claude to ingest it.
-- Ask a question: phrase it directly — Claude reads `wiki/index.md` first, then drills into relevant pages.
-- Health-check: run `wiki-lint` every 10–20 ingests.
-- Never edit anything under `raw/` after committing it — corrections live in `wiki/` pages that link back to the source.
+Один источник → одна страница. Никаких отдельных страниц-концептов: `attention` объясняется внутри разбора Vaswani-2017, `RoPE` — внутри Su-2021. Если по концепту нужно собрать несколько углов — навигация идёт через теги (`wiki/tags.md` + auto-generated `/tags/<slug>`).
 
-See `CLAUDE.md` for the full schema, page templates, and style rules.
+Каждая страница следует одному шаблону: TL;DR (4-7 предложений), мотивация с разгоном, идея в одной картинке, разбор по подсекциям с формулами и code-сниппетами, опциональные секции (результаты, сравнение, ограничения), вывод, источник. Минимум картинок: 3 для paper, 2 для лекции, 1 для clip / KS.
+
+## Локальный просмотр
+
+```bash
+cd publish
+npx quartz build --serve
+```
+
+Открой `http://localhost:8080`. Если редактируешь `wiki/`, серверу не нужен ребилд — он подхватит изменения.
+
+## Деплой
+
+Vercel смотрит на ветку `main`. Push в `main` = публикация. Перед push прогоняй `/wiki-lint`.
+
+**Claude никогда не делает `git push` сам.** Push — только ручное действие пользователя.
+
+## Принципы
+
+1. **Integrate, not summarise.** Каждый новый источник встраивается в существующую сеть через теги и `Связанные разборы`, а не лежит изолированно.
+2. **Illustrate non-trivial ideas.** Mermaid, matplotlib, или вырезки из исходника с обязательной атрибуцией. AI-генерация картинок запрещена.
+3. **Russian prose, English structure.** Текст на русском, заголовки/slug/теги/frontmatter — английские. Подробности — `.claude/rules/01-language-policy.md`.
+4. **Atomic commits ≤ 300 lines.** Conventional commits с scope. Подробности — `.claude/rules/02-commit-policy.md`.
+5. **No `git push` без явного действия пользователя.** Никогда.
