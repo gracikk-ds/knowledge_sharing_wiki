@@ -3,6 +3,11 @@ name: wiki-lint
 description: Health-check the wiki — scan for orphan pages, broken links, missing concept pages, contradictions between pages, stale claims, and frontmatter inconsistencies. Report findings and let the user pick what to act on. Use when the user says "lint the wiki", "audit the wiki", "health check", or asks for a wiki cleanup. Run periodically (every 10–20 ingests is a reasonable cadence).
 ---
 
+## Pre-flight
+
+- [ ] Read `.claude/role.md`
+- [ ] Read `.claude/rules/04-frontmatter-schema.md`
+
 # wiki-lint
 
 Workflow for auditing the wiki's health. The goal is to **surface problems clearly, propose concrete fixes, and let the user decide what to act on**. Don't silently fix structural problems; report them first.
@@ -28,7 +33,7 @@ Use the Bash tool to count and list:
 
 ```bash
 # from wiki/
-ls ml_concepts/ math_concepts/ methods/ topics/ sources/ questions/ 2>/dev/null
+find ml_concepts/ math_concepts/ methods/ topics/ sources/ questions/ -name "*.md" 2>/dev/null | sort
 wc -l index.md log.md
 grep -c "^## \[" log.md   # number of log entries
 ```
@@ -106,14 +111,7 @@ You won't catch all of these in a pass; flag the obvious ones.
 
 ### Check 6: frontmatter hygiene
 
-**How:** for every wiki page, verify:
-
-- Frontmatter present and valid YAML.
-- `type` matches the directory.
-- `title`, `created`, `updated`, `tags`, `status` present.
-- `sources` is a non-negative integer.
-- `status` ∈ {stub, draft, mature}.
-- Tags are lowercase kebab-case.
+Frontmatter rules are in `.claude/rules/04-frontmatter-schema.md`. Enforce all rules from that file.
 
 **Why:** Dataview queries (and future tooling) depend on this being uniform.
 
