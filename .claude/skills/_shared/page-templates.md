@@ -146,16 +146,23 @@ Everything else (required sections, cross-cutting rules) is identical to Templat
 
 ### Term introduction (first mention)
 
-Every technical term gets a **one-line definition + everyday analogy** on its first mention. Load-bearing English-origin terms additionally get the English form in parentheses for traceability — see `rules/01-language-policy.md` «Term glossing» for when. After first mention, use plain.
+Every technical term gets a **one-line definition + everyday analogy** on its first mention. The term itself is rendered per the 3-tier hierarchy in `rules/01-language-policy.md`:
 
-Format:
+- **Bucket 1 — stable anglicism** (default for ML). Term stays English. Bold the English form, follow with Russian definition + analogy. Don't dress it in Russian and don't gloss with English in parens — it already is English.
+- **Bucket 2 — translatable with traceability gloss.** Bold the Russian form, English in parens, then definition + analogy.
+- **Bucket 3 — everyday math/ML vocab.** Bold either form, definition + analogy.
 
-> **<термин>** (`<English original>`) — это <plain Russian definition>. Можно представить как <everyday-life analogy>: <one or two strokes of concrete detail>.
+Format (bucket 1, default):
+
+> **`<English term>`** — это <plain Russian definition>. Можно представить как <everyday-life analogy>: <one or two strokes of concrete detail>.
+
+Format (bucket 2):
+
+> **<Russian term>** (`<English original>`) — это <plain Russian definition>. <analogy>
 
 Rules:
 
-- **Bold** the term at first mention.
-- English gloss in parens when the term is a translation that the reader will need to recognise in source papers (sequence length, path length, residual connection). Skip gloss for pure English (attention, softmax) and for plain Russian without an obvious English original (вероятность, выборка).
+- **Bold** the term at first mention regardless of bucket.
 - One short sentence of plain-Russian definition right after the bold.
 - One analogy from everyday adult life (post office, library, customs, train timetable, electric kettle). Avoid analogies that themselves need analogies (don't say «это как middleware» if the reader doesn't know middleware).
 - After first mention, use plain. No re-definition further down the page.
@@ -163,9 +170,9 @@ Rules:
 
 Examples:
 
-> **Длина пути** (`max path length`) — это сколько последовательных операций нужно градиенту, чтобы дойти от выхода до самого дальнего входного токена. Можно представить как **число пересадок** между двумя станциями метро: чем больше пересадок, тем больше шансов потеряться и тем дольше едет сигнал. Для self-attention оно равно 1: любой токен виден из любого за один шаг.
+> **`max path length`** — это сколько последовательных операций нужно градиенту, чтобы дойти от выхода до самого дальнего входного токена. Можно представить как **число пересадок** между двумя станциями метро: чем больше пересадок, тем больше шансов потеряться и тем дольше едет сигнал. Для self-attention оно равно 1: любой токен виден из любого за один шаг.
 
-> **Attention sink** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех heads. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
+> **`attention sink`** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех heads. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
 
 ### Formula symbol annotation (`где: ...`)
 

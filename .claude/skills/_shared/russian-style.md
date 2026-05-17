@@ -64,41 +64,59 @@ Good: «От позиционного кодирования хочется од
 | прелёрненный | предобученный |
 | инференс на проде | инференс в проде, либо «inference в продакшене» (выбрать одно и придерживаться) |
 
-### What stays English inside Russian prose
+### How to render an ML term: 3-tier hierarchy
 
-ML/math terms with stable English form, no good Russian equivalent:
-- flow matching, score matching, attention, KL divergence
-- posterior, prior, embedding, latent, ELBO, autoencoder
-- gradient, softmax, dropout, EMA, RoPE, FlashAttention
+Short version of the rule, full text in `rules/01-language-policy.md`. Every technical term goes through this decision tree.
 
-Do **not** transliterate (`флоу-матчинг`, `постериор`). Do **not** over-translate (`нижняя граница доказательства` for ELBO).
+**Bucket 1 — stable anglicism. Keep pure English, no translation, no gloss.**
 
-### Term glossing: when to show English in parens
+If Russian ML discourse already uses the English form (papers, courses, Telegram/Slack ML-чаты), keep it that way. The reader has met the term in that form and will continue to do so. Translation would be a regression. **Bold** the English form on first mention, give a one-line Russian definition + analogy — but never wrap the term itself in Russian.
 
-Russian translations of English-origin concepts can be ambiguous on their own. «Длина последовательности» — длина в чём, в токенах, в символах, в секундах звука? «Длина пути» — путь чего, между чем и чем? The fix is to gloss the term with its English original on first mention.
+| Pure English (default) | Don't write |
+|---|---|
+| sequence length | длина последовательности (sequence length) |
+| max path length | длина пути (max path length) |
+| residual connection | остаточная связь (residual connection) |
+| positional encoding (PE) | позиционное кодирование (positional encoding) |
+| feed-forward network (FFN) | сеть прямого распространения |
+| multi-head attention | многоголовое внимание (multi-head attention) |
+| masked self-attention | маскированный self-attention |
+| layer norm | слой нормализации |
+| learning rate, batch size | темп обучения, размер батча |
+
+Starter list of bucket-1 terms (extend as needed):
+
+```
+attention, softmax, embedding, layer norm, batch norm, dropout, gradient,
+residual connection, positional encoding (PE), sequence length, path length,
+max path length, scaled dot-product, multi-head attention, encoder, decoder,
+cross-attention, masked self-attention, KV-cache, feed-forward network (FFN),
+MLP, tokenization, fine-tuning, scaling laws, learning rate, batch size,
+warmup, gradient clipping, label smoothing, weight decay,
+flow matching, score matching, diffusion, KL divergence, ELBO,
+posterior, prior, latent, autoencoder, EMA, RoPE, ALiBi, FlashAttention
+```
+
+**Bucket 2 — translatable but with traceability. Russian + English in parens on first mention only.**
+
+For terms where Russian is the dominant form in discourse **и** показать английский исходник имеет смысл для сверки с папером или кодом. Gloss once, then drop the gloss.
 
 | First mention | After |
 |---|---|
-| длина последовательности (sequence length) | длина последовательности |
-| длина пути (max path length) | длина пути |
-| остаточная связь (residual connection) | остаточная связь, либо просто residual |
-| коэффициент масштабирования (scaling factor) | коэффициент масштабирования |
-| свёрточный слой с ядром $k$ (convolutional layer, kernel $k$) | свёртка с ядром $k$ |
+| матрица смежности (`adjacency matrix`) | матрица смежности |
+| доверительный интервал (`confidence interval`) | доверительный интервал |
 
-When **to** gloss:
+If you find yourself in bucket 2 more than 2-3 times per page, you are probably mistranslating bucket-1 terms.
 
-- Reader will need the English form to grep papers, code, or other wiki breakdowns.
-- The Russian translation is load-bearing for the explanation and could be misread.
-- The term reappears further down — glossing once locks the mapping.
+**Bucket 3 — everyday math/ML vocab. Pick one form and stay there.**
 
-When **not** to gloss:
+Examples: градиент / gradient, выборка / sample, вероятность / probability, нейросеть / neural network, обучение / training, функция потерь / loss function.
 
-- Term has no stable Russian translation in use — keep it pure English: «attention», «softmax», «embedding», «KV-cache». Glossing «внимание (attention)» reads like Wikipedia.
-- Term is shared everyday math vocabulary — «градиент», «вероятность», «производная». Both forms are equally readable; pick one.
-- Mid-paragraph repetitions of an already-glossed term. Once is enough.
-- Pure mathematical objects defined right under a formula. The `где: ...` list does the job.
+**Default to bucket 1 for ML paper breakdowns.**
 
-Glossing is a **first-introduction tool**. If three consecutive sentences each carry a gloss, you are mistranslating English in Cyrillic — switch to the pure English form for some of them.
+### Calque anglicisms still banned
+
+Bucket 1 keeps the term in **Latin script form**: `attention`, `residual connection`, `multi-head attention`. A Cyrillic transliteration of an English word («бэкпропагейтить», «энкодить», «зафайнтюнить») — это calque, оно остаётся в баннах ниже. Difference: bucket 1 — `fine-tuning`. Calque — `зафайнтюнить`. Same root, different fate.
 
 ## Phase 7 checklist (per page)
 
