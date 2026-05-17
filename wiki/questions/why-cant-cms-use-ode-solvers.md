@@ -16,7 +16,7 @@ ODE-солверы (Heun, DPM-Solver, RK4) — зрелый инструмент
 
 ## What we know so far
 
-- [[ml_concepts/generative/consistency-function]] — это [[ml_concepts/generative/flow-map]]: на выходе уже *проинтегрированное* решение $\Psi_{t \to 0}(x_t)$, а не velocity.
+- [[ml_concepts/consistency-function]] — это [[ml_concepts/flow-map]]: на выходе уже *проинтегрированное* решение $\Psi_{t \to 0}(x_t)$, а не velocity.
 - ODE-солверы предназначены интегрировать *производную*. Подать им уже проинтегрированную величину — категориальная ошибка: нет $f'$-сигнала, чтобы сделать шаг.
 - Это и есть практическая причина, по которой в лекции вводится стохастический multistep-сэмплер.
 
@@ -27,6 +27,6 @@ ODE-солверы (Heun, DPM-Solver, RK4) — зрелый инструмент
 
 ## Related
 
-- [[ml_concepts/generative/flow-map]]
-- [[ml_concepts/generative/consistency-function]]
+- [[ml_concepts/flow-map]]
+- [[ml_concepts/consistency-function]]
 - [[sources/flow-map-models-lecture]]

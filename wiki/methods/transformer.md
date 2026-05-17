@@ -6,7 +6,6 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Transformer
@@ -19,7 +18,7 @@ needs_rewrite: true
 
 Конволюционные альтернативы (ByteNet, ConvS2S) частично решали первое, но имели ограниченное receptive field: чтобы соединить далёкие токены, нужно много слоёв.
 
-Vaswani et al. предложили выкинуть и рекуррентность, и свёртку и строить модель только из [[ml_concepts/attention/self-attention|self-attention]] и feed-forward слоёв. Self-attention соединяет любые две позиции за одну операцию ($O(1)$ путь между ними) и параллелится по позициям внутри слоя ($O(L^2)$ работы, но всё это — две матричные операции). Feed-forward даёт нелинейную трансформацию каждой позиции независимо. Чтобы attention видел порядок, добавляется [[ml_concepts/attention/positional-encodings/index|positional encoding]]; чтобы стэк глубиной 6+ слоёв обучался — residual-связки и LayerNorm; чтобы один слой умел представлять разные типы отношений — [[ml_concepts/attention/multi-head-attention|multi-head attention]]; чтобы декодер был авторегрессионным — [[ml_concepts/attention/causal-masking|causal masking]]; чтобы декодер видел вход — [[ml_concepts/attention/variants/cross-attention|cross-attention]] между ним и энкодером.
+Vaswani et al. предложили выкинуть и рекуррентность, и свёртку и строить модель только из [[ml_concepts/self-attention|self-attention]] и feed-forward слоёв. Self-attention соединяет любые две позиции за одну операцию ($O(1)$ путь между ними) и параллелится по позициям внутри слоя ($O(L^2)$ работы, но всё это — две матричные операции). Feed-forward даёт нелинейную трансформацию каждой позиции независимо. Чтобы attention видел порядок, добавляется [[ml_concepts/positional-encoding|positional encoding]]; чтобы стэк глубиной 6+ слоёв обучался — residual-связки и LayerNorm; чтобы один слой умел представлять разные типы отношений — [[ml_concepts/multi-head-attention|multi-head attention]]; чтобы декодер был авторегрессионным — [[ml_concepts/causal-masking|causal masking]]; чтобы декодер видел вход — [[ml_concepts/cross-attention|cross-attention]] между ним и энкодером.
 
 В сумме получается архитектура, которая обучается заметно быстрее RNN-баз, выигрывает у Google NMT на WMT, и (что окажется важнее) служит фундаментом BERT, GPT, T5, ViT, Whisper, и почти всех современных LLM.
 
@@ -31,7 +30,7 @@ Vaswani et al. предложили выкинуть и рекуррентнос
 
 ## Architecture
 
-**Вход.** Токенный эмбеддинг $E \in \mathbb{R}^{L \times d}$ ($d = 512$ в оригинале), к нему прибавляется [[methods/positional/sinusoidal-position-encoding|sinusoidal PE]] той же формы. Один и тот же эмбеддинг используется на входе энкодера и декодера (часто шарится с финальной проекцией в логиты).
+**Вход.** Токенный эмбеддинг $E \in \mathbb{R}^{L \times d}$ ($d = 512$ в оригинале), к нему прибавляется [[methods/sinusoidal-position-encoding|sinusoidal PE]] той же формы. Один и тот же эмбеддинг используется на входе энкодера и декодера (часто шарится с финальной проекцией в логиты).
 
 **Encoder.** $N = 6$ идентичных по структуре блоков (веса не разделяются). Каждый блок — два подслоя:
 
@@ -42,8 +41,8 @@ Vaswani et al. предложили выкинуть и рекуррентнос
 
 **Decoder.** $N = 6$ идентичных блоков. Каждый — три подслоя:
 
-1. Masked multi-head self-attention (нижне-треугольная маска — см. [[ml_concepts/attention/causal-masking]]).
-2. Multi-head [[ml_concepts/attention/variants/cross-attention|cross-attention]]: $Q$ из предыдущего подслоя декодера, $K, V$ из выхода *верхнего* слоя энкодера (один и тот же $K, V$ для всех блоков декодера).
+1. Masked multi-head self-attention (нижне-треугольная маска — см. [[ml_concepts/causal-masking]]).
+2. Multi-head [[ml_concepts/cross-attention|cross-attention]]: $Q$ из предыдущего подслоя декодера, $K, V$ из выхода *верхнего* слоя энкодера (один и тот же $K, V$ для всех блоков декодера).
 3. Position-wise feed-forward.
 
 Каждый подслой обёрнут в residual + LayerNorm.
@@ -75,7 +74,7 @@ Vaswani et al. предложили выкинуть и рекуррентнос
 - **Encoder-only (BERT, RoBERTa, DeBERTa).** Только энкодерный стек, без cross-attention и без causal masking. Обучается на masked language modelling. Используется для классификации, retrieval, представлений.
 - **Decoder-only (GPT, LLaMA, Mistral).** Только декодерный стек, без cross-attention. Все слои с causal masking, обучение — next-token prediction. Текущий стандарт для LLM.
 - **Encoder-decoder с улучшениями (T5, BART).** Та же структура, что у оригинала, но другие задачи претренинга и часто шаринг параметров.
-- **Vision Transformer (ViT).** Тот же encoder, токены — патчи изображения; [[methods/positional/rope|RoPE]]-варианты для 2D позиций.
+- **Vision Transformer (ViT).** Тот же encoder, токены — патчи изображения; [[methods/rope|RoPE]]-варианты для 2D позиций.
 - **Современные attention-замены.** Linear attention, FlashAttention, Mamba (selective state-space) — атакуют именно $O(L^2)$ узкое место.
 
 ## Sources
@@ -85,4 +84,4 @@ Vaswani et al. предложили выкинуть и рекуррентнос
 ## Up next
 
 - [[topics/transformers]] — narrative-вход в область: от мотивации до архитектуры и её современных потомков.
-- [[ml_concepts/attention/self-attention]] — главный механизм, без которого трансформер не работает.
+- [[ml_concepts/self-attention]] — главный механизм, без которого трансформер не работает.

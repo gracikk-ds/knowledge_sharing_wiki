@@ -12,12 +12,12 @@ status: stub
 
 ## Why it matters
 
-[[methods/distillation/consistency-training]] утверждает, что [[ml_concepts/generative/consistency-function]] можно обучить, не запуская ни одного шага diffusion-солвера. Звучит почти слишком дёшево. Понимание, *почему* это работает, проясняет, что именно представляет полученная модель и когда CT-сэмплы расходятся с CD-сэмплами.
+[[methods/consistency-training]] утверждает, что [[ml_concepts/consistency-function]] можно обучить, не запуская ни одного шага diffusion-солвера. Звучит почти слишком дёшево. Понимание, *почему* это работает, проясняет, что именно представляет полученная модель и когда CT-сэмплы расходятся с CD-сэмплами.
 
 ## What we know so far
 
 - Трюк: пара $(x_n, x_{n-1})$ строится из **одного и того же** noise-вектора $\epsilon$: $x_n = x_0 + t_n\,\epsilon$, $x_{n-1} = x_0 + t_{n-1}\,\epsilon$.
-- Эта пара лежит на **прямой** в $(x, t)$. Лекция выводит это из приближения условного score'а $\nabla_x \log p_t(x) \approx -(x - x_0)/t^2$, которое сворачивает [[ml_concepts/generative/probability-flow-ode]] к $\mathrm{d}x = (x - x_0)/t\,\mathrm{d}t$.
+- Эта пара лежит на **прямой** в $(x, t)$. Лекция выводит это из приближения условного score'а $\nabla_x \log p_t(x) \approx -(x - x_0)/t^2$, которое сворачивает [[ml_concepts/probability-flow-ode]] к $\mathrm{d}x = (x - x_0)/t\,\mathrm{d}t$.
 - То есть CT учит flow-map для **спрямлённого** ODE, а не для исходного diffusion ODE.
 
 ## Open sub-questions
@@ -28,7 +28,7 @@ status: stub
 
 ## Related
 
-- [[methods/distillation/consistency-training]]
-- [[methods/distillation/consistency-distillation]]
-- [[ml_concepts/generative/consistency-function]]
+- [[methods/consistency-training]]
+- [[methods/consistency-distillation]]
+- [[ml_concepts/consistency-function]]
 - [[sources/flow-map-models-lecture]]

@@ -6,12 +6,11 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Sliding Window Attention (SWA)
 
-> Модификация [[ml_concepts/attention/causal-masking|causal mask]], в которой каждая позиция $m$ видит не весь префикс $1, \ldots, m$, а только окно фиксированной ширины $p$ предыдущих позиций: $\max(1, m-p+1), \ldots, m$. Снижает стоимость с $O(L^2)$ до $O(L \cdot p)$, ограничивая контекст локально; обычно перемежается с полным attention в части слоёв, чтобы сохранить дальние зависимости.
+> Модификация [[ml_concepts/causal-masking|causal mask]], в которой каждая позиция $m$ видит не весь префикс $1, \ldots, m$, а только окно фиксированной ширины $p$ предыдущих позиций: $\max(1, m-p+1), \ldots, m$. Снижает стоимость с $O(L^2)$ до $O(L \cdot p)$, ограничивая контекст локально; обычно перемежается с полным attention в части слоёв, чтобы сохранить дальние зависимости.
 
 ## Motivation
 
@@ -61,10 +60,10 @@ SWA редко применяют ко всем слоям сразу — мод
 
 ## Variations and related concepts
 
-- [[ml_concepts/attention/causal-masking]] — базовая маска, которую SWA сужает до окна.
-- [[ml_concepts/attention/self-attention]] — операция, к которой применяется маска.
-- [[ml_concepts/attention/document-masking]] — другая модификация маски: не локальное окно, а границы документов в pack'нутой последовательности.
-- [[ml_concepts/attention/efficiency/linear-attention]] — альтернативная стратегия удешевить attention на длинном контексте: вместо ограничения окна — отказ от softmax.
+- [[ml_concepts/causal-masking]] — базовая маска, которую SWA сужает до окна.
+- [[ml_concepts/self-attention]] — операция, к которой применяется маска.
+- [[ml_concepts/document-masking]] — другая модификация маски: не локальное окно, а границы документов в pack'нутой последовательности.
+- [[ml_concepts/linear-attention]] — альтернативная стратегия удешевить attention на длинном контексте: вместо ограничения окна — отказ от softmax.
 - Dual Chunk Attention (Qwen-2.5) — расширение SWA: иерархическая маска с разными окнами на разных расстояниях, поддерживает контексты до 1M токенов (отдельной страницы пока нет).
 
 ## Open questions
@@ -78,5 +77,5 @@ SWA редко применяют ко всем слоям сразу — мод
 
 ## Up next
 
-- [[ml_concepts/attention/document-masking]] — другая важная маска при длинных pack'нутых последовательностях.
+- [[ml_concepts/document-masking]] — другая важная маска при длинных pack'нутых последовательностях.
 - [[topics/attention-variants]] — где SWA встаёт в общую картину long-context-патчей.

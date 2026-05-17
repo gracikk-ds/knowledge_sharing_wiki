@@ -33,6 +33,6 @@ $$
 
 ## Related
 
-- [[methods/generative/mean-flow]]
+- [[methods/mean-flow]]
 - [[math_concepts/mean-flow-identity]]
 - [[sources/flow-map-models-lecture]]

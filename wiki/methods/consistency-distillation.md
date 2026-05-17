@@ -3,19 +3,18 @@ title: Consistency Distillation (CD)
 type: method
 tags: [consistency-models, distillation, diffusion, few-step-generation]
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Consistency Distillation (CD)
 
-> Обучить [[ml_concepts/generative/consistency-function]], используя предобученного diffusion-учителя для построения пар на траектории, и наложить self-consistency loss на эти пары.
+> Обучить [[ml_concepts/consistency-function]], используя предобученного diffusion-учителя для построения пар на траектории, и наложить self-consistency loss на эти пары.
 
 ## Motivation
 
-Есть [[ml_concepts/generative/diffusion-model]], которая хорошо сэмплирует, но требует 30–80 шагов [[ml_concepts/generative/probability-flow-ode]] на изображение. Цель — student, делающий один шаг или максимум несколько. Форма student'а, которая нам нужна, — это [[ml_concepts/generative/consistency-function]] $f_\theta(x_t, t)$, отображающий любую зашумлённую точку на траектории в её чистый endpoint $x_0$. Определяющее свойство — инвариантность вдоль траектории: $f_\theta(x_t, t) = f_\theta(x_s, s)$ для любых двух моментов $t, s$ на одной траектории. Обучить такое — и сэмплировать в один шаг.
+Есть [[ml_concepts/diffusion-model]], которая хорошо сэмплирует, но требует 30–80 шагов [[ml_concepts/probability-flow-ode]] на изображение. Цель — student, делающий один шаг или максимум несколько. Форма student'а, которая нам нужна, — это [[ml_concepts/consistency-function]] $f_\theta(x_t, t)$, отображающий любую зашумлённую точку на траектории в её чистый endpoint $x_0$. Определяющее свойство — инвариантность вдоль траектории: $f_\theta(x_t, t) = f_\theta(x_s, s)$ для любых двух моментов $t, s$ на одной траектории. Обучить такое — и сэмплировать в один шаг.
 
 Наивный способ это обеспечить — выбрать уровень шума $t$, попросить сеть выдать $f_\theta(x_t, t)$ и супервизировать ground-truth значением $x_0$. В принципе работает, но выбрасывает структуру, которая делает consistency models дешёвыми. Loss связывает только $x_t$ с $x_0$ — он никогда не просит сеть быть инвариантной *между двумя близкими зашумлёнными точками на одной траектории*. Без этого спаривания сеть делает one-shot регрессию из произвольного шума в чистые данные — а это ровно то, под что diffusion-учителям и понадобилось много шагов.
 
@@ -39,6 +38,18 @@ needs_rewrite: true
 
 На ветви $\hat{x}_{n-1}$ обычно ставят target-сеть (EMA $\theta$) для стабильности обучения — по образцу BYOL/TD-learning.
 
+```mermaid
+flowchart LR
+    X0[clean x zero] -->|forward noise| XN[x at t n]
+    XN -->|teacher one step| XN1[x hat at t n minus 1]
+    XN -->|student f theta| OUT1[f theta of x t n]
+    XN1 -->|student EMA| OUT2[f theta of x hat t n minus 1]
+    OUT1 -.-> LOSS[L CD squared]
+    OUT2 -.-> LOSS
+```
+
+*Diagram: CD строит пару $(x_n, \hat{x}_{n-1})$ через forward noise + один шаг солвера учителя; student должен дать совпадающие предсказания на обоих концах.*
+
 ## Why it works
 
 Детерминированный ODE учителя даёт единственный недостающий ингредиент — соседние точки на *одной* траектории. Без них «self-consistency вдоль траектории» нельзя обеспечить, потому что нет способа подобрать к точке в момент $t_n$ соответствующую точку в момент $t_{n-1}$. Forward noising даёт $x_n$; один шаг солвера учителя — $\hat{x}_{n-1}$. Вместе они образуют корректную пару на траектории (с точностью до truncation-ошибки солвера).
@@ -54,8 +65,8 @@ needs_rewrite: true
 
 ## Variants and successors
 
-- [[methods/distillation/consistency-training]] — выкинуть учителя; использовать прямой reference-путь.
-- [[methods/distillation/multistep-consistency-model]] — ослабить «всегда проецируй в 0» до «проецируй в следующую границу».
+- [[methods/consistency-training]] — выкинуть учителя; использовать прямой reference-путь.
+- [[methods/multistep-consistency-model]] — ослабить «всегда проецируй в 0» до «проецируй в следующую границу».
 - «Improved Techniques for Training Consistency Models» — variance-reduction и трюки с расписанием (не в этом источнике).
 
 ## Sources
@@ -64,5 +75,5 @@ needs_rewrite: true
 
 ## Up next
 
-- [[methods/distillation/multistep-consistency-model]] — ослабить «всегда проецируй в $t=0$» до «проецируй в следующую границу»; возвращает большую часть качества учителя при 4 шагах inference.
+- [[methods/multistep-consistency-model]] — ослабить «всегда проецируй в $t=0$» до «проецируй в следующую границу»; возвращает большую часть качества учителя при 4 шагах inference.
 - [[topics/few-step-generative-models]] — более широкая область: flow map, shortcut models, mean flow и место CD среди них.

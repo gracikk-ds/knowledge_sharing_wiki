@@ -3,21 +3,20 @@ title: Shortcut Models
 type: method
 tags: [flow-map, generative-models, flow-matching, few-step-generation]
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Shortcut Models
 
-> [[ml_concepts/generative/flow-map]] $F_\theta(x_t, t, s)$, обученный со **interval-additivity** self-consistency: один прыжок из $t$ в $s$ должен совпадать с двумя меньшими $t \to r \to s$ (stop-gradient на правой части).
+> [[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$, обученный со **interval-additivity** self-consistency: один прыжок из $t$ в $s$ должен совпадать с двумя меньшими $t \to r \to s$ (stop-gradient на правой части).
 
 ## Motivation
 
-Consistency models дают one-step генерацию, но фиксируют целевой момент в $t = 0$. Чтобы выбирать число шагов inference на этапе сэмплирования — 1 шаг сегодня, 4 шага завтра, когда важнее качество — сеть должна принимать *оба* конца в качестве входов: [[ml_concepts/generative/flow-map]] $F_\theta(x_t, t, s)$, способный прыгать с любого $t$ в любой $s$. Вопрос обучения — как супервизировать эту функцию двух аргументов без отдельного учителя, поставляющего пары на траектории для каждого $(t, s)$.
+Consistency models дают one-step генерацию, но фиксируют целевой момент в $t = 0$. Чтобы выбирать число шагов inference на этапе сэмплирования — 1 шаг сегодня, 4 шага завтра, когда важнее качество — сеть должна принимать *оба* конца в качестве входов: [[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$, способный прыгать с любого $t$ в любой $s$. Вопрос обучения — как супервизировать эту функцию двух аргументов без отдельного учителя, поставляющего пары на траектории для каждого $(t, s)$.
 
-[[ml_concepts/generative/flow-matching]] уже даёт чистый локальный сигнал: при $s = t$ flow map должен совпадать с мгновенной скоростью $v(x_t, t)$. Это фиксирует диагональ $F_\theta$, но ничего не говорит про off-diagonal — случай, когда $s$ далеко от $t$, а именно в этом режиме живёт one-step сэмплирование. Нужно ограничение, связывающее короткие интервалы (где FM обучает напрямую) с длинными (где one-step сэмплирование требует ответа).
+[[ml_concepts/flow-matching]] уже даёт чистый локальный сигнал: при $s = t$ flow map должен совпадать с мгновенной скоростью $v(x_t, t)$. Это фиксирует диагональ $F_\theta$, но ничего не говорит про off-diagonal — случай, когда $s$ далеко от $t$, а именно в этом режиме живёт one-step сэмплирование. Нужно ограничение, связывающее короткие интервалы (где FM обучает напрямую) с длинными (где one-step сэмплирование требует ответа).
 
 Истинный ODE-flow обладает свойством, специально подходящим для этой задачи, — interval additivity. Интегрирование скорости от $t$ до $s$ равно интегрированию от $t$ до $r$ и потом от $r$ до $s$. В терминах flow map: $F(t \to s) = F\big(F(x_t, t, r),\, r, s\big)$. Используем это как stop-gradient регрессионный таргет: слева — предсказание сети на длинном интервале, справа — собственная композиция сети через промежуточную точку $r$, замороженная. Stop-gradient отсекает тривиальное $F \equiv 0$ и превращает FM-якорные предсказания на коротких интервалах в supervision для длинных. Два loss'а вместе — FM на диагонали, interval additivity вне её — обучают одну сеть, способную сэмплировать на любом числе шагов.
 
@@ -48,6 +47,17 @@ $$
 
    Stop-gradient $\operatorname{sg}(\cdot)$ на правой части отсекает тривиальное $F \equiv 0$ и стабилизирует обучение (правая часть — таргет, левая — предсказание).
 
+```mermaid
+flowchart LR
+    XT[x at t] -->|F theta of t to s direct| XS1[x at s prediction]
+    XT -->|F theta of t to r| XR[x at r intermediate]
+    XR -->|F theta of r to s| XS2[x at s composed stop grad]
+    XS1 -.-> LOSS[L SC squared]
+    XS2 -.-> LOSS
+```
+
+*Diagram: shortcut loss связывает прямой прыжок $t \to s$ с композицией $t \to r \to s$; stop-gradient на правой ветви отсекает коллапс к нулю.*
+
 На inference берём расписание $t_N > \ldots > t_0$ и шагаем: $x_{n-1} = x_n + (t_{n-1} - t_n)\,F_\theta(x_n, t_n, t_{n-1})$. Один и тот же $F_\theta$ работает для любого числа шагов.
 
 ## Why it works
@@ -64,8 +74,8 @@ Stop-gradient — ключевая деталь реализации. Без н�
 
 ## Variants and successors
 
-- [[methods/generative/mean-flow]] — близкий родственник: та же параметризация flow map, но использует *дифференциальное* тождество (Mean Flow Identity) вместо *интегрального* (interval additivity).
-- [[methods/distillation/consistency-distillation]] — фиксированное целевое время $s = 0$; нет свободного time-of-arrival аргумента.
+- [[methods/mean-flow]] — близкий родственник: та же параметризация flow map, но использует *дифференциальное* тождество (Mean Flow Identity) вместо *интегрального* (interval additivity).
+- [[methods/consistency-distillation]] — фиксированное целевое время $s = 0$; нет свободного time-of-arrival аргумента.
 
 ## Sources
 
@@ -73,5 +83,5 @@ Stop-gradient — ключевая деталь реализации. Без н�
 
 ## Up next
 
-- [[methods/generative/mean-flow]] — та же параметризация, но дифференциальное тождество вместо interval additivity; supervision дешевле на шаг.
+- [[methods/mean-flow]] — та же параметризация, но дифференциальное тождество вместо interval additivity; supervision дешевле на шаг.
 - [[topics/few-step-generative-models]] — место shortcut models среди consistency методов, mean flow и progressive distillation.

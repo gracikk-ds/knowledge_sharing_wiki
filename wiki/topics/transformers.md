@@ -22,19 +22,19 @@ Vaswani et al. (2017) предложили выкинуть рекуррентн
 
 ## Core ideas
 
-[[ml_concepts/attention/self-attention]] — главный механизм. Каждый токен формирует три проекции эмбеддинга — query, key, value. Скор пары $(m, n)$ — скалярное произведение $q_m^\top k_n / \sqrt{d_k}$, softmax по строке даёт распределение веса, выход — взвешенная сумма value-векторов. Слой видит весь контекст за одну операцию, параллелится по позициям и имеет фиксированное число параметров независимо от длины. Без позиционного сигнала self-attention — функция от множества, а не от последовательности.
+[[ml_concepts/self-attention]] — главный механизм. Каждый токен формирует три проекции эмбеддинга — query, key, value. Скор пары $(m, n)$ — скалярное произведение $q_m^\top k_n / \sqrt{d_k}$, softmax по строке даёт распределение веса, выход — взвешенная сумма value-векторов. Слой видит весь контекст за одну операцию, параллелится по позициям и имеет фиксированное число параметров независимо от длины. Без позиционного сигнала self-attention — функция от множества, а не от последовательности.
 
-[[ml_concepts/attention/positional-encodings/index]] — отдельный сигнал, который ломает permutation equivariance. В оригинальном трансформере используется [[methods/positional/sinusoidal-position-encoding|sinusoidal PE]]: синусы и косинусы от позиции с геометрически разнесёнными частотами, прибавляются к токенному эмбеддингу до проекций. Современные модели чаще используют [[ml_concepts/attention/positional-encodings/rotary-position-embedding|RoPE]] — мультипликативную схему, в которой относительная зависимость встроена в геометрию attention; см. [[topics/positional-encoding]] для полной картины.
+[[ml_concepts/positional-encoding]] — отдельный сигнал, который ломает permutation equivariance. В оригинальном трансформере используется [[methods/sinusoidal-position-encoding|sinusoidal PE]]: синусы и косинусы от позиции с геометрически разнесёнными частотами, прибавляются к токенному эмбеддингу до проекций. Современные модели чаще используют [[ml_concepts/rotary-position-embedding|RoPE]] — мультипликативную схему, в которой относительная зависимость встроена в геометрию attention; см. [[topics/positional-encoding]] для полной картины.
 
-[[ml_concepts/attention/multi-head-attention]] — параллельный запуск $h$ независимых self-attention блоков с уменьшенной внутренней размерностью $d_k = d / h$. Без него одно distribution attention'а часто доминируется самотокеном и не может одновременно представлять разные типы зависимостей (антецедент, модификатор, синтаксис). С multi-head heads специализируются и объединяются проекцией $W^O$.
+[[ml_concepts/multi-head-attention]] — параллельный запуск $h$ независимых self-attention блоков с уменьшенной внутренней размерностью $d_k = d / h$. Без него одно distribution attention'а часто доминируется самотокеном и не может одновременно представлять разные типы зависимостей (антецедент, модификатор, синтаксис). С multi-head heads специализируются и объединяются проекцией $W^O$.
 
-[[ml_concepts/attention/causal-masking]] — модификация self-attention, в которой скоры для будущих позиций обнуляются заменой на $-\infty$ до softmax. Нужна, чтобы при параллельном обучении декодер сохранял авторегрессионное свойство: позиция $m$ видит только $1, \ldots, m$.
+[[ml_concepts/causal-masking]] — модификация self-attention, в которой скоры для будущих позиций обнуляются заменой на $-\infty$ до softmax. Нужна, чтобы при параллельном обучении декодер сохранял авторегрессионное свойство: позиция $m$ видит только $1, \ldots, m$.
 
-[[ml_concepts/attention/variants/cross-attention]] — обобщение self-attention на два потока: $Q$ из одной последовательности, $K, V$ из другой. В трансформере — мост между декодером и энкодером: декодер на каждом блоке прямо «спрашивает» энкодер о входе.
+[[ml_concepts/cross-attention]] — обобщение self-attention на два потока: $Q$ из одной последовательности, $K, V$ из другой. В трансформере — мост между декодером и энкодером: декодер на каждом блоке прямо «спрашивает» энкодер о входе.
 
 ## Methods that grow from these ideas
 
-[[methods/architectures/transformer]] — оригинальная архитектура (Vaswani et al., 2017). Стэк из 6 идентичных энкодерных блоков (self-attention + FFN) и 6 идентичных декодерных блоков (masked self-attention + cross-attention + FFN), residual + LayerNorm вокруг каждого подслоя, sinusoidal PE на входе. Финальный линейный слой проецирует в логиты по словарю; softmax даёт распределение. Параллелизм по позициям внутри слоя — главное практическое преимущество.
+[[methods/transformer]] — оригинальная архитектура (Vaswani et al., 2017). Стэк из 6 идентичных энкодерных блоков (self-attention + FFN) и 6 идентичных декодерных блоков (masked self-attention + cross-attention + FFN), residual + LayerNorm вокруг каждого подслоя, sinusoidal PE на входе. Финальный линейный слой проецирует в логиты по словарю; softmax даёт распределение. Параллелизм по позициям внутри слоя — главное практическое преимущество.
 
 С 2018 года из этой сборки вырастают три семейства:
 
@@ -42,21 +42,21 @@ Vaswani et al. (2017) предложили выкинуть рекуррентн
 - **Decoder-only (GPT, LLaMA, Mistral, Claude, Gemini).** Только декодерный стек, без cross-attention. Все слои с causal masking, обучение — next-token prediction. Стандарт для современных LLM.
 - **Encoder-decoder с улучшениями (T5, BART, mT5).** Та же структура, что у оригинала, но другие задачи претренинга и часто шаринг параметров.
 
-Параллельно идут две линии оптимизаций. Первая — масштабирование контекста через позиционные схемы: [[topics/positional-encoding]] описывает переход от sinusoidal PE к RoPE и его расширениям (PI, NTK-Aware, YaRN, DyPE). Вторая — атака на $O(L^2)$ узкое место self-attention и на [[ml_concepts/attention/kv-cache|KV-кэш]]: целое семейство attention-вариантов разбирается в отдельном primer'е [[topics/attention-variants]]. Коротко: MQA/GQA/MLA жмут множитель «heads» в кэше, [[ml_concepts/attention/efficiency/sliding-window-attention|SWA]] и dual chunk attention режут квадратику по длине, [[ml_concepts/attention/efficiency/linear-attention|linear attention]] и SSM (Mamba-2, DeltaNet) меняют softmax на рекуррентное состояние, FlashAttention переписывает scoring через IO-aware tile-кернел, [[ml_concepts/attention/variants/gated-attention|gated attention]] подавляет attention sinks, [[ml_concepts/attention/document-masking|document masking]] чистит границы между документами на длинных контекстах.
+Параллельно идут две линии оптимизаций. Первая — масштабирование контекста через позиционные схемы: [[topics/positional-encoding]] описывает переход от sinusoidal PE к RoPE и его расширениям (PI, NTK-Aware, YaRN, DyPE). Вторая — атака на $O(L^2)$ узкое место self-attention и на [[ml_concepts/kv-cache|KV-кэш]]: целое семейство attention-вариантов разбирается в отдельном primer'е [[topics/attention-variants]]. Коротко: MQA/GQA/MLA жмут множитель «heads» в кэше, [[ml_concepts/sliding-window-attention|SWA]] и dual chunk attention режут квадратику по длине, [[ml_concepts/linear-attention|linear attention]] и SSM (Mamba-2, DeltaNet) меняют softmax на рекуррентное состояние, FlashAttention переписывает scoring через IO-aware tile-кернел, [[ml_concepts/gated-attention|gated attention]] подавляет attention sinks, [[ml_concepts/document-masking|document masking]] чистит границы между документами на длинных контекстах.
 
 ## Open threads
 
 - Pre-LN vs Post-LN: оригинал использует Post-LN ($\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))$); современные модели переходят на Pre-LN ради стабильности на больших глубинах. Что именно ломается в Post-LN при $N \gg 6$?
-- Почему [[ml_concepts/attention/efficiency/grouped-query-attention|GQA]] с малыми группами не только догоняет MHA, но *обгоняет* её на HellaSwag/MMLU/ARC? Это эмпирическое наблюдение без механистического объяснения. (Сама поверхностная формулировка «MQA/GQA теряют немного качества» оказалась неточной — GQA выигрывает.)
+- Почему [[ml_concepts/grouped-query-attention|GQA]] с малыми группами не только догоняет MHA, но *обгоняет* её на HellaSwag/MMLU/ARC? Это эмпирическое наблюдение без механистического объяснения. (Сама поверхностная формулировка «MQA/GQA теряют немного качества» оказалась неточной — GQA выигрывает.)
 - Линейные attention-приближения теоретически решают $O(L^2)$, но плохо догоняют softmax-attention по точному retrieval. Что именно теряется в выразительности при замене softmax на ядро, и какое соотношение softmax/линейных слоёв в гибридных стэках (Nemotron-H, Falcon H1, Qwen3-Next) оптимально?
 
 ## Reading order (recap)
 
-1. [[ml_concepts/attention/self-attention]]
-2. [[ml_concepts/attention/positional-encodings/index]]
-3. [[ml_concepts/attention/multi-head-attention]]
-4. [[ml_concepts/attention/causal-masking]] → [[ml_concepts/attention/variants/cross-attention]]
-5. [[methods/architectures/transformer]]
+1. [[ml_concepts/self-attention]]
+2. [[ml_concepts/positional-encoding]]
+3. [[ml_concepts/multi-head-attention]]
+4. [[ml_concepts/causal-masking]] → [[ml_concepts/cross-attention]]
+5. [[methods/transformer]]
 6. Далее — варианты (BERT/GPT/T5; стабы пока не созданы), современные attention-схемы ([[topics/attention-variants]]) и позиционные ([[topics/positional-encoding]]).
 
 ## Reading queue

@@ -107,8 +107,8 @@ $$
 
 ## Where it shows up in ML
 
-- [[ml_concepts/attention/positional-encodings/rotary-position-embedding]] — RoPE поворачивает $q_m$ и $k_n$ на углы, пропорциональные позиции; свойства композиции и транспонирования и обеспечивают переход $m\theta, n\theta \to (n-m)\theta$ в скалярном произведении.
-- [[methods/positional/rope]] — блочно-диагональная матрица из $d/2$ независимых 2D-поворотов; норма $q$ и $k$ сохраняется per-пара и значит per-вектор.
+- [[ml_concepts/rotary-position-embedding]] — RoPE поворачивает $q_m$ и $k_n$ на углы, пропорциональные позиции; свойства композиции и транспонирования и обеспечивают переход $m\theta, n\theta \to (n-m)\theta$ в скалярном произведении.
+- [[methods/rope]] — блочно-диагональная матрица из $d/2$ независимых 2D-поворотов; норма $q$ и $k$ сохраняется per-пара и значит per-вектор.
 
 ## Common pitfalls
 

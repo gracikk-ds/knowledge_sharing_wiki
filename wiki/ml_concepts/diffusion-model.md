@@ -3,10 +3,9 @@ title: Diffusion Model
 type: ml_concept
 tags: [generative-models, diffusion, score-based-models]
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 sources: 1
 status: stub
-needs_rewrite: true
 ---
 
 # Diffusion Model
@@ -17,9 +16,9 @@ needs_rewrite: true
 
 ## What is touched on in the current wiki
 
-- Обратный процесс интегрирует [[ml_concepts/generative/probability-flow-ode]] $\mathrm{d}x = -t\,\nabla_x \log p_t(x)\,\mathrm{d}t$.
+- Обратный процесс интегрирует [[ml_concepts/probability-flow-ode]] $\mathrm{d}x = -t\,\nabla_x \log p_t(x)\,\mathrm{d}t$.
 - Training loss: $\mathcal{L}_{\text{diff}}(x_\phi) = \mathbb{E}_{t, x_0, \epsilon}\,\lVert x_\phi(x_t, t) - x_0 \rVert_2^2$.
-- Forward noising — **one-to-many** ([[ml_concepts/generative/step-distillation]] объясняет, почему это делает single-step inference принципиально трудным).
+- Forward noising — **one-to-many** ([[ml_concepts/step-distillation]] объясняет, почему это делает single-step inference принципиально трудным).
 
 ## Sources
 

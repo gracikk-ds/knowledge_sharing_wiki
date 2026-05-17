@@ -26,40 +26,40 @@ status: draft
 
 ## Concepts touched
 
-- [[ml_concepts/attention/kv-cache]] — **новая страница, главный вклад источника.** Формула размера кэша, четыре множителя, спектр вариантов как способы давить на каждый.
-- [[ml_concepts/attention/multi-head-attention]] — добавлен раздел про KV-cache cost; обновлены variations (ссылки на MQA/GQA/MLA/KV-cache); зачищен open question про MQA/GQA (источник его *закрывает*) — теперь там вопрос «почему GQA обгоняет MHA».
-- [[ml_concepts/attention/efficiency/multi-query-attention]] — новая страница. Формулы, точка крайнего сжатия, ablation Hugging Face.
-- [[ml_concepts/attention/efficiency/grouped-query-attention]] — новая страница. Спектр MHA ↔ MQA, диаграмма, формула кэша, ablation'ы, список frontier-моделей.
-- [[ml_concepts/attention/efficiency/multi-latent-attention]] — новая страница. Down/up-проекции, формула кэша $d_c \cdot n_{\text{layers}} \cdot L$, trade-off памяти и compute, DeepSeek и Kimi-K2.
-- [[ml_concepts/attention/variants/gated-attention]] — новая страница. Формула $\tilde{o} = o \odot \sigma(W^G x)$, мотивация через attention sinks.
-- [[ml_concepts/attention/efficiency/linear-attention]] — новая страница. Алгебраическое выведение, рекуррентная форма, GLA с forget-гейтом, гибридные стэки.
-- [[ml_concepts/attention/efficiency/sliding-window-attention]] — новая страница. Маска SWA, формула $O(L \cdot p)$, interleaving с full-attention, Gemma 3.
-- [[ml_concepts/attention/document-masking]] — новая страница. Блочно-диагональная маска, эффект на 4k vs 64k, необходимость для long-context-сетапа.
-- [[ml_concepts/attention/attention-sink]] — новый стаб. Феномен, на который реагирует gated attention.
+- [[ml_concepts/kv-cache]] — **новая страница, главный вклад источника.** Формула размера кэша, четыре множителя, спектр вариантов как способы давить на каждый.
+- [[ml_concepts/multi-head-attention]] — добавлен раздел про KV-cache cost; обновлены variations (ссылки на MQA/GQA/MLA/KV-cache); зачищен open question про MQA/GQA (источник его *закрывает*) — теперь там вопрос «почему GQA обгоняет MHA».
+- [[ml_concepts/multi-query-attention]] — новая страница. Формулы, точка крайнего сжатия, ablation Hugging Face.
+- [[ml_concepts/grouped-query-attention]] — новая страница. Спектр MHA ↔ MQA, диаграмма, формула кэша, ablation'ы, список frontier-моделей.
+- [[ml_concepts/multi-latent-attention]] — новая страница. Down/up-проекции, формула кэша $d_c \cdot n_{\text{layers}} \cdot L$, trade-off памяти и compute, DeepSeek и Kimi-K2.
+- [[ml_concepts/gated-attention]] — новая страница. Формула $\tilde{o} = o \odot \sigma(W^G x)$, мотивация через attention sinks.
+- [[ml_concepts/linear-attention]] — новая страница. Алгебраическое выведение, рекуррентная форма, GLA с forget-гейтом, гибридные стэки.
+- [[ml_concepts/sliding-window-attention]] — новая страница. Маска SWA, формула $O(L \cdot p)$, interleaving с full-attention, Gemma 3.
+- [[ml_concepts/document-masking]] — новая страница. Блочно-диагональная маска, эффект на 4k vs 64k, необходимость для long-context-сетапа.
+- [[ml_concepts/attention-sink]] — новый стаб. Феномен, на который реагирует gated attention.
 - [[topics/attention-variants]] — **новая страница, narrative-вход в всю картину.** KV-кэш как организующий концепт, разбор core ideas в reading order, рекомендации по умолчанию, reading queue с primary sources.
 - [[topics/transformers]] — обновлены «Methods that grow from these ideas» (ссылка на новый primer и краткий обзор семейств вариантов), open threads (MQA/GQA-вопрос *закрыт* с поворотом «GQA обгоняет MHA»; добавлены гибридные стэки), reading order и sources.
 
 ## Contradictions and revisions
 
 - **Resolved (не контрадикция, но смена позиции).** Open thread в [[topics/transformers]] до этого источника был сформулирован как «MQA/GQA урезают KV и теряют немного качества — почему так мало?». Лекция показывает, что в случае GQA с малыми группами модель *выигрывает* у MHA, а не теряет. Open thread переписан с учётом этого.
-- **Resolved open question в [[ml_concepts/attention/multi-head-attention]].** Тот же вопрос про MQA/GQA на странице MHA — заменён на «почему GQA обгоняет MHA». Прежняя формулировка снята.
+- **Resolved open question в [[ml_concepts/multi-head-attention]].** Тот же вопрос про MQA/GQA на странице MHA — заменён на «почему GQA обгоняет MHA». Прежняя формулировка снята.
 - Прямых контрадикций с другими страницами вики (positional-encoding, RoPE, transformer и т.п.) нет — лекция расширяет, не пересматривает.
 
 ## Questions raised
 
 Лекция не формулирует исследовательских открытых вопросов явно, но рождает несколько естественных, размещённых на соответствующих страницах:
 
-- Почему GQA-малой-группы обгоняет MHA? ([[ml_concepts/attention/multi-head-attention]], [[ml_concepts/attention/efficiency/grouped-query-attention]], [[topics/transformers]], [[topics/attention-variants]]) — самый интересный.
-- Как корректно сравнивать MLA и GQA с учётом цены декомпрессии? ([[ml_concepts/attention/efficiency/multi-latent-attention]], [[topics/attention-variants]]).
-- Что именно теряется у GLA относительно softmax-attention по retrieval, и какое соотношение softmax/линейных слоёв оптимально в гибридах? ([[ml_concepts/attention/efficiency/linear-attention]], [[topics/transformers]], [[topics/attention-variants]]).
-- Почему document masking резко важен при переходе 4k → 64k? ([[ml_concepts/attention/document-masking]], [[topics/attention-variants]]).
-- Какие позиции отключает гейт у обученных моделей — совпадают ли они с attention sinks? ([[ml_concepts/attention/variants/gated-attention]], [[topics/attention-variants]]).
+- Почему GQA-малой-группы обгоняет MHA? ([[ml_concepts/multi-head-attention]], [[ml_concepts/grouped-query-attention]], [[topics/transformers]], [[topics/attention-variants]]) — самый интересный.
+- Как корректно сравнивать MLA и GQA с учётом цены декомпрессии? ([[ml_concepts/multi-latent-attention]], [[topics/attention-variants]]).
+- Что именно теряется у GLA относительно softmax-attention по retrieval, и какое соотношение softmax/линейных слоёв оптимально в гибридах? ([[ml_concepts/linear-attention]], [[topics/transformers]], [[topics/attention-variants]]).
+- Почему document masking резко важен при переходе 4k → 64k? ([[ml_concepts/document-masking]], [[topics/attention-variants]]).
+- Какие позиции отключает гейт у обученных моделей — совпадают ли они с attention sinks? ([[ml_concepts/gated-attention]], [[topics/attention-variants]]).
 
 Решено не заводить отдельных `questions/` страниц — вопросы естественно живут в Open questions соответствующих концепт-страниц. Могут быть промоутированы при появлении сфокусированного источника.
 
 ## Notes
 
-- Лекция содержит ASCII-диаграммы внутри fenced-блоков (KV-spectrum для MHA/GQA/MQA, sliding-window vs causal full, document mask vs causal). Все три скопированы дословно в [[ml_concepts/attention/efficiency/grouped-query-attention]], [[ml_concepts/attention/efficiency/sliding-window-attention]] и [[ml_concepts/attention/document-masking]] соответственно — это лучший способ донести структуру масок/шаринга, и они полностью внутри markdown'а (внешних изображений нет).
+- Лекция содержит ASCII-диаграммы внутри fenced-блоков (KV-spectrum для MHA/GQA/MQA, sliding-window vs causal full, document mask vs causal). Все три скопированы дословно в [[ml_concepts/grouped-query-attention]], [[ml_concepts/sliding-window-attention]] и [[ml_concepts/document-masking]] соответственно — это лучший способ донести структуру масок/шаринга, и они полностью внутри markdown'а (внешних изображений нет).
 - Список конкретных frontier-моделей (Kimi-K2, Trinity Large, gpt-oss-120b, SmolLM3, OLMo 3, DeepSeek, Gemma 3, Qwen-2.5, Nemotron-H, Falcon H1, Qwen3-Next) — сильная сторона источника; перенесены на соответствующие страницы вики для возможности обратного поиска «какие модели используют X».
 - В оригинале одна опечатка в LaTeX (`$mathbf{q}_t$` вместо `$\mathbf{q}_t$` в формуле MHA и в формуле размерности латента MLA) — на вики переписано корректно.
 - Реальная глубина каждой темы в лекции — обзорная: на каждом варианте достаточно для понимания и сравнения, но без полной деривации и без ablation-чисел. Primary sources перечислены в reading queue [[topics/attention-variants]] для углубления.

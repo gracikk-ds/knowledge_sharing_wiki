@@ -6,7 +6,6 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # KV-Cache
@@ -15,7 +14,7 @@ needs_rewrite: true
 
 ## Motivation
 
-Авторегрессионная генерация — это последовательный процесс: на шаге $t$ модель видит токены $1, \ldots, t-1$ и предсказывает $t$-й. Если каждый раз пересчитывать [[ml_concepts/attention/self-attention|self-attention]] с нуля, на шаге $t$ нужно сформировать все $K_{1..t-1}$ и $V_{1..t-1}$ заново — а они уже были посчитаны на предыдущем шаге. Это лишний $O(t)$ работы на каждый новый токен, итого $O(L^2)$ на всю последовательность.
+Авторегрессионная генерация — это последовательный процесс: на шаге $t$ модель видит токены $1, \ldots, t-1$ и предсказывает $t$-й. Если каждый раз пересчитывать [[ml_concepts/self-attention|self-attention]] с нуля, на шаге $t$ нужно сформировать все $K_{1..t-1}$ и $V_{1..t-1}$ заново — а они уже были посчитаны на предыдущем шаге. Это лишний $O(t)$ работы на каждый новый токен, итого $O(L^2)$ на всю последовательность.
 
 Заметим, что $K_n$ и $V_n$ зависят только от эмбеддинга токена на позиции $n$ и от обучаемых $W_K, W_V$. На авторегрессионной генерации содержимое позиций $1, \ldots, t-1$ уже зафиксировано: их $K$ и $V$ не изменятся ни на одном будущем шаге. Значит можно посчитать их один раз и сохранить — это и есть KV-кэш. На шаге $t$ остаётся посчитать новые $K_t, V_t$, дописать их в кэш, и сделать одно attention-обновление: $q_t$ против всех закэшированных $K_{1..t}$, softmax, взвешенная сумма по $V_{1..t}$. Работа на шаге — $O(t)$, не $O(t^2)$.
 
@@ -43,19 +42,19 @@ $$
 
 Формула выше делает явными четыре множителя, по которым можно «давить» на кэш. Каждый вариант attention выбирает свою комбинацию:
 
-- **Число heads.** Уменьшить дублирование $K, V$ между heads — основа [[ml_concepts/attention/efficiency/multi-query-attention|MQA]] и [[ml_concepts/attention/efficiency/grouped-query-attention|GQA]]. MQA делит кэш на $n_{\text{heads}}$, GQA — на размер группы.
-- **Размерность кэша.** Хранить не полные $K, V$, а низкоразмерное латентное представление, восстанавливая полные тензоры на лету — путь [[ml_concepts/attention/efficiency/multi-latent-attention|MLA]] (DeepSeek, Kimi-K2). Сжатие в 4–8 раз без потери выразительности уровня MHA.
-- **Длина $L$.** Ограничить, на сколько токенов смотрит каждая позиция — основа [[ml_concepts/attention/efficiency/sliding-window-attention|sliding window attention]] и dual chunk attention. На уровне маски, не на уровне хранения, но в итоге сокращает и активную часть кэша.
+- **Число heads.** Уменьшить дублирование $K, V$ между heads — основа [[ml_concepts/multi-query-attention|MQA]] и [[ml_concepts/grouped-query-attention|GQA]]. MQA делит кэш на $n_{\text{heads}}$, GQA — на размер группы.
+- **Размерность кэша.** Хранить не полные $K, V$, а низкоразмерное латентное представление, восстанавливая полные тензоры на лету — путь [[ml_concepts/multi-latent-attention|MLA]] (DeepSeek, Kimi-K2). Сжатие в 4–8 раз без потери выразительности уровня MHA.
+- **Длина $L$.** Ограничить, на сколько токенов смотрит каждая позиция — основа [[ml_concepts/sliding-window-attention|sliding window attention]] и dual chunk attention. На уровне маски, не на уровне хранения, но в итоге сокращает и активную часть кэша.
 - **Число слоёв.** Cross-layer sharing (одни $K, V$ на несколько слоёв) — отдельная линия, в этой лекции не разбирается, но логически той же природы.
 
 ## Variations and related concepts
 
-- [[ml_concepts/attention/self-attention]] — операция, для которой нужен кэш.
-- [[ml_concepts/attention/multi-head-attention]] — каноническая схема: один кэш на каждую head.
-- [[ml_concepts/attention/efficiency/multi-query-attention]] — все heads делят один $K, V$; самое сильное сжатие, наибольшая потеря выразительности.
-- [[ml_concepts/attention/efficiency/grouped-query-attention]] — компромисс: heads в группах делят $K, V$. Современный default.
-- [[ml_concepts/attention/efficiency/multi-latent-attention]] — кэш в латентном пространстве, на attention восстанавливаются полные $K, V$.
-- [[ml_concepts/attention/causal-masking]] — кэш возможен именно потому, что causal mask гарантирует: прошлые $K, V$ не изменятся.
+- [[ml_concepts/self-attention]] — операция, для которой нужен кэш.
+- [[ml_concepts/multi-head-attention]] — каноническая схема: один кэш на каждую head.
+- [[ml_concepts/multi-query-attention]] — все heads делят один $K, V$; самое сильное сжатие, наибольшая потеря выразительности.
+- [[ml_concepts/grouped-query-attention]] — компромисс: heads в группах делят $K, V$. Современный default.
+- [[ml_concepts/multi-latent-attention]] — кэш в латентном пространстве, на attention восстанавливаются полные $K, V$.
+- [[ml_concepts/causal-masking]] — кэш возможен именно потому, что causal mask гарантирует: прошлые $K, V$ не изменятся.
 
 ## Open questions
 
@@ -68,5 +67,5 @@ $$
 
 ## Up next
 
-- [[ml_concepts/attention/efficiency/grouped-query-attention]] — современный стандартный способ уменьшить KV-кэш.
-- [[ml_concepts/attention/efficiency/multi-latent-attention]] — более агрессивное сжатие через латентное представление.
+- [[ml_concepts/grouped-query-attention]] — современный стандартный способ уменьшить KV-кэш.
+- [[ml_concepts/multi-latent-attention]] — более агрессивное сжатие через латентное представление.

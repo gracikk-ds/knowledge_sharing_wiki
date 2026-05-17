@@ -6,7 +6,6 @@ created: 2026-05-15
 updated: 2026-05-15
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Amortized Variational Inference
@@ -15,11 +14,11 @@ needs_rewrite: true
 
 ## Motivation
 
-Хотим обучить [[ml_concepts/probabilistic/latent-variable-model]], максимизируя [[ml_concepts/probabilistic/elbo|ELBO]] одновременно по параметрам генеративной модели $\theta$ и по приближённому posterior $q(z)$. Классический [[ml_concepts/probabilistic/variational-inference]] работает с $q$ напрямую: на каждое наблюдение $x$ — свой $q_x(z)$, обучаемый с нуля. Это корректно, но не масштабируется. Каждый новый $x$ запускает свежую оптимизацию, и хранение per-example вариационных параметров растёт линейно с размером датасета. На тесте всё ещё хуже: предвычисленного $q$ нет, и оптимизировать нужно заново.
+Хотим обучить [[ml_concepts/latent-variable-model]], максимизируя [[ml_concepts/elbo|ELBO]] одновременно по параметрам генеративной модели $\theta$ и по приближённому posterior $q(z)$. Классический [[ml_concepts/variational-inference]] работает с $q$ напрямую: на каждое наблюдение $x$ — свой $q_x(z)$, обучаемый с нуля. Это корректно, но не масштабируется. Каждый новый $x$ запускает свежую оптимизацию, и хранение per-example вариационных параметров растёт линейно с размером датасета. На тесте всё ещё хуже: предвычисленного $q$ нет, и оптимизировать нужно заново.
 
 Обходной путь — перестать решать по одной задаче inference на $x$ и вместо этого выучить одну inference-*функцию*, решающую их все. Берём одну сеть $q(z \mid x, \phi)$ с общими параметрами $\phi$, где вход — $x$, а выход — параметры вариационного распределения (обычно среднее и дисперсия диагонального гауссиана). Inference на любом $x$, виденном или нет, схлопывается в один forward pass. Per-example $q$ заменён функцией $\phi$, которая отображает $x$ в $q(z \mid x)$.
 
-Этот обмен не бесплатен. Функция конечной ёмкости не может для каждого $x$ дотянуть до оптимума, доступного per-example $q$. Этот недобор называется **amortization gap** и отделён от **variational gap**, вызванного выбором семейства распределений. Энкодер решает усреднённую задачу по data-распределению, а не настроенную задачу под пример, и это усреднение — цена ускорения. На практике зазор мал относительно сэкономленных вычислений, поэтому amortized inference — стандарт в [[methods/architectures/vae|VAE]] и родственных глубоких latent-variable моделях.
+Этот обмен не бесплатен. Функция конечной ёмкости не может для каждого $x$ дотянуть до оптимума, доступного per-example $q$. Этот недобор называется **amortization gap** и отделён от **variational gap**, вызванного выбором семейства распределений. Энкодер решает усреднённую задачу по data-распределению, а не настроенную задачу под пример, и это усреднение — цена ускорения. На практике зазор мал относительно сэкономленных вычислений, поэтому amortized inference — стандарт в [[methods/vae|VAE]] и родственных глубоких latent-variable моделях.
 
 ## Formal description
 
@@ -29,13 +28,13 @@ $$
 q(z \mid x, \phi) \;=\; \mathcal{N}\!\big(\mu_\phi(x),\,\mathrm{diag}(\sigma_\phi^2(x))\big).
 $$
 
-Обучение максимизирует [[ml_concepts/probabilistic/elbo|ELBO]] совместно по параметрам энкодера $\phi$ и параметрам генеративной модели $\theta$:
+Обучение максимизирует [[ml_concepts/elbo|ELBO]] совместно по параметрам энкодера $\phi$ и параметрам генеративной модели $\theta$:
 
 $$
 \max_{\theta, \phi}\;\mathbb{E}_{x \sim \pi}\!\big[\mathrm{ELBO}(\phi, \theta; x)\big] \;=\; \max_{\theta, \phi}\;\mathbb{E}_{x \sim \pi}\!\Big[\mathbb{E}_{z \sim q(z \mid x, \phi)}\big[\log p(x \mid z, \theta)\big] - \mathrm{KL}\!\big(q(z \mid x, \phi) \,\|\, p(z)\big)\Big].
 $$
 
-Backprop через $\mathbb{E}_{q}[\cdot]$ использует [[ml_concepts/probabilistic/reparameterization-trick]]. KL-член для гауссовского $q$ и гауссовского $p(z)$ берётся в закрытой форме, поэтому Monte Carlo на него не нужен.
+Backprop через $\mathbb{E}_{q}[\cdot]$ использует [[ml_concepts/reparameterization-trick]]. KL-член для гауссовского $q$ и гауссовского $p(z)$ берётся в закрытой форме, поэтому Monte Carlo на него не нужен.
 
 ## Why this is "amortization"
 
@@ -48,10 +47,10 @@ Backprop через $\mathbb{E}_{q}[\cdot]$ использует [[ml_concepts/p
 
 ## Variations and related concepts
 
-- [[ml_concepts/probabilistic/variational-inference]] — родительский фреймворк.
-- [[ml_concepts/probabilistic/elbo]] — цель обучения.
-- [[ml_concepts/probabilistic/reparameterization-trick]] — нужен для backprop через $\nabla_\phi$.
-- [[methods/architectures/vae]] — каноническая amortized VI модель.
+- [[ml_concepts/variational-inference]] — родительский фреймворк.
+- [[ml_concepts/elbo]] — цель обучения.
+- [[ml_concepts/reparameterization-trick]] — нужен для backprop через $\nabla_\phi$.
+- [[methods/vae]] — каноническая amortized VI модель.
 
 ## Open questions
 
@@ -63,5 +62,5 @@ Backprop через $\mathbb{E}_{q}[\cdot]$ использует [[ml_concepts/p
 
 ## Up next
 
-- [[ml_concepts/probabilistic/reparameterization-trick]] — как считать $\nabla_\phi \mathbb{E}_{q(z \mid x, \phi)}[\cdot]$, тот самый градиент, который вводит amortization.
-- [[methods/architectures/vae]] — каноническая модель, объединяющая amortized inference и генеративный декодер в одном end-to-end графе.
+- [[ml_concepts/reparameterization-trick]] — как считать $\nabla_\phi \mathbb{E}_{q(z \mid x, \phi)}[\cdot]$, тот самый градиент, который вводит amortization.
+- [[methods/vae]] — каноническая модель, объединяющая amortized inference и генеративный декодер в одном end-to-end графе.

@@ -6,24 +6,23 @@ created: 2026-05-15
 updated: 2026-05-15
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Variational Autoencoder (VAE)
 
-> Глубокая latent-variable генеративная модель, обучаемая максимизацией [[ml_concepts/probabilistic/elbo|ELBO]] с [[ml_concepts/probabilistic/amortized-variational-inference|amortized]] гауссовским энкодером и [[ml_concepts/probabilistic/reparameterization-trick]] для end-to-end SGD. Энкодер отображает $x$ в параметры $q(z \mid x)$; декодер отображает $z$ в распределение на $x$.
+> Глубокая latent-variable генеративная модель, обучаемая максимизацией [[ml_concepts/elbo|ELBO]] с [[ml_concepts/amortized-variational-inference|amortized]] гауссовским энкодером и [[ml_concepts/reparameterization-trick]] для end-to-end SGD. Энкодер отображает $x$ в параметры $q(z \mid x)$; декодер отображает $z$ в распределение на $x$.
 
 ## Motivation
 
-Постановка — [[ml_concepts/probabilistic/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\, p(z)\, dz$ с нейросетевым декодером. Хотим обучить её по maximum likelihood на большом датасете немеченых $x$. Интеграл нерасчётен, поэтому в качестве цели обучения берём [[ml_concepts/probabilistic/elbo|ELBO]] — а ему нужно вспомогательное распределение $q(z)$ над латентами.
+Постановка — [[ml_concepts/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\, p(z)\, dz$ с нейросетевым декодером. Хотим обучить её по maximum likelihood на большом датасете немеченых $x$. Интеграл нерасчётен, поэтому в качестве цели обучения берём [[ml_concepts/elbo|ELBO]] — а ему нужно вспомогательное распределение $q(z)$ над латентами.
 
-Взгляд [[methods/inference/variational-em|variational EM]] говорит: чередовать. При фиксированном $\theta$ подогнать $q$ под текущий posterior (E-step); при фиксированном $q$ обновить $\theta$ (M-step). Каждый E-step — отдельная внутренняя задача оптимизации, которую надо решать для *каждого* примера и переделывать всякий раз, когда $\theta$ сдвинется. С глубокими декодерами и миллионами обучающих точек это неподъёмно — per-example posterior не имеют закрытой формы, и нет способа амортизировать стоимость по примерам или шагам обучения.
+Взгляд [[methods/variational-em|variational EM]] говорит: чередовать. При фиксированном $\theta$ подогнать $q$ под текущий posterior (E-step); при фиксированном $q$ обновить $\theta$ (M-step). Каждый E-step — отдельная внутренняя задача оптимизации, которую надо решать для *каждого* примера и переделывать всякий раз, когда $\theta$ сдвинется. С глубокими декодерами и миллионами обучающих точек это неподъёмно — per-example posterior не имеют закрытой формы, и нет способа амортизировать стоимость по примерам или шагам обучения.
 
-VAE заменяет per-example оптимизацию [[ml_concepts/probabilistic/amortized-variational-inference|амортизацией]]: одна encoder-сеть $q(z \mid x, \phi)$ предсказывает параметры $q$ как функцию $x$. Стоимость inference на новом примере теперь — один forward pass через энкодер, а параметры энкодера $\phi$ обучаются совместно с параметрами декодера $\theta$ на одном и том же ELBO. Остаётся техническая проблема: $q$ зависит от $\phi$ под ожиданием, поэтому $\nabla_\phi \mathrm{ELBO}$ не проходит через шаг сэмплирования очевидным образом. [[ml_concepts/probabilistic/reparameterization-trick]] решает её: пишем $z = \mu_\phi(x) + \sigma_\phi(x) \odot \varepsilon$ с $\varepsilon \sim \mathcal{N}(0, I)$, и градиенты текут через $\mu_\phi, \sigma_\phi$ как через любое детерминированное вычисление. С этими двумя ингредиентами — амортизованный энкодер и reparameterized сэмплирование — ELBO становится одной дифференцируемой loss, минимизируемой одним оптимизатором end-to-end.
+VAE заменяет per-example оптимизацию [[ml_concepts/amortized-variational-inference|амортизацией]]: одна encoder-сеть $q(z \mid x, \phi)$ предсказывает параметры $q$ как функцию $x$. Стоимость inference на новом примере теперь — один forward pass через энкодер, а параметры энкодера $\phi$ обучаются совместно с параметрами декодера $\theta$ на одном и том же ELBO. Остаётся техническая проблема: $q$ зависит от $\phi$ под ожиданием, поэтому $\nabla_\phi \mathrm{ELBO}$ не проходит через шаг сэмплирования очевидным образом. [[ml_concepts/reparameterization-trick]] решает её: пишем $z = \mu_\phi(x) + \sigma_\phi(x) \odot \varepsilon$ с $\varepsilon \sim \mathcal{N}(0, I)$, и градиенты текут через $\mu_\phi, \sigma_\phi$ как через любое детерминированное вычисление. С этими двумя ингредиентами — амортизованный энкодер и reparameterized сэмплирование — ELBO становится одной дифференцируемой loss, минимизируемой одним оптимизатором end-to-end.
 
 ## Problem setting
 
-Дано iid-данные $\{x_i\}$ из неизвестного $\pi(x)$. Нужно подогнать [[ml_concepts/probabilistic/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta) p(z)\,dz$ так, чтобы
+Дано iid-данные $\{x_i\}$ из неизвестного $\pi(x)$. Нужно подогнать [[ml_concepts/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta) p(z)\,dz$ так, чтобы
 
 - из $p(x \mid \theta)$ можно было рисовать новые сэмплы,
 - $\log p(x \mid \theta)$ можно было (приближённо) оценивать на новых данных.
@@ -34,7 +33,7 @@ Maximum likelihood нерасчётен — у маргинального инт
 
 Две сети с общим loss, но раздельными параметрами:
 
-- **Encoder $q(z \mid x, \phi)$**: вход $x$, выход — параметры диагонального гауссиана над $z$, $(\mu_\phi(x), \sigma_\phi(x))$. Реализует [[ml_concepts/probabilistic/amortized-variational-inference]].
+- **Encoder $q(z \mid x, \phi)$**: вход $x$, выход — параметры диагонального гауссиана над $z$, $(\mu_\phi(x), \sigma_\phi(x))$. Реализует [[ml_concepts/amortized-variational-inference]].
 - **Decoder $p(x \mid z, \theta)$**: вход $z$, выход — параметры распределения на $x$ — обычно гауссиан (для непрерывных данных, со средним, предсказываемым сетью) или Bernoulli/categorical (для бинарных или дискретных).
 - **Prior $p(z) = \mathcal{N}(0, I)$**: фиксированный стандартный нормальный.
 
@@ -76,7 +75,7 @@ $$
 
 ## Why one optimiser, not EM
 
-Взгляд [[methods/inference/variational-em|variational EM]] говорит: при фиксированном $\theta$ выставить $q$, чтобы максимизировать ELBO (E-step); при фиксированном $q$ обновить $\theta$ (M-step). VAE делают и то и другое сразу, потому что:
+Взгляд [[methods/variational-em|variational EM]] говорит: при фиксированном $\theta$ выставить $q$, чтобы максимизировать ELBO (E-step); при фиксированном $q$ обновить $\theta$ (M-step). VAE делают и то и другое сразу, потому что:
 
 1. «Точный E-step» $q = p(z \mid x, \theta)$ нерасчётен — $q$ параметризован нейросетью, поэтому мы только приближаем максимум.
 2. И reconstruction-член, и KL уже дифференцируемы по $(\phi, \theta)$ внутри одного графа вычислений. Технической причины разделять обновления нет.

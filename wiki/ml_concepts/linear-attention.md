@@ -6,16 +6,15 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Linear Attention (and Gated Linear Attention)
 
-> Класс attention-схем, в которых softmax-нормировка убирается, и сумма по позициям пересобирается в рекуррентное накопление матричного состояния $S_t = \sum_j v_j k_j^\top$. Это даёт $O(1)$ памяти на шаг инференса вместо растущего [[ml_concepts/attention/kv-cache|KV-кэша]], но взамен теряет точное retrieval softmax-attention. Gated Linear Attention (GLA) добавляет обучаемый forget-gate, контролирующий, сколько прошлого удерживать.
+> Класс attention-схем, в которых softmax-нормировка убирается, и сумма по позициям пересобирается в рекуррентное накопление матричного состояния $S_t = \sum_j v_j k_j^\top$. Это даёт $O(1)$ памяти на шаг инференса вместо растущего [[ml_concepts/kv-cache|KV-кэша]], но взамен теряет точное retrieval softmax-attention. Gated Linear Attention (GLA) добавляет обучаемый forget-gate, контролирующий, сколько прошлого удерживать.
 
 ## Motivation
 
-Стандартный [[ml_concepts/attention/self-attention|self-attention]] на каждом шаге считает softmax-веса между текущим запросом и *всеми* прошлыми ключами, потом взвешенно суммирует values. Из-за softmax это «всё против всех», и стоимость растёт квадратично по длине; на инференсе [[ml_concepts/attention/kv-cache|KV-кэш]] растёт линейно по длине, что для очень длинных контекстов становится тяжёлым.
+Стандартный [[ml_concepts/self-attention|self-attention]] на каждом шаге считает softmax-веса между текущим запросом и *всеми* прошлыми ключами, потом взвешенно суммирует values. Из-за softmax это «всё против всех», и стоимость растёт квадратично по длине; на инференсе [[ml_concepts/kv-cache|KV-кэш]] растёт линейно по длине, что для очень длинных контекстов становится тяжёлым.
 
 Алгебраическая мысль: что если бы вместо softmax была просто билинейная форма $q^\top k$? Тогда сумму $\sum_j (q_t^\top k_j) v_j$ можно переставить так, чтобы вынести $q_t$ за скобки и собрать всё, что зависит только от прошлого, в одну матрицу:
 
@@ -63,10 +62,10 @@ Layer 4:  [GLA / Mamba-2    ]
 
 ## Variations and related concepts
 
-- [[ml_concepts/attention/self-attention]] — операция, от которой линейная attention отказывается ради рекуррентности.
-- [[ml_concepts/attention/kv-cache]] — растущий кэш softmax-attention; линейная attention заменяет его на фиксированное состояние $S_t$.
-- [[ml_concepts/attention/variants/gated-attention]] — другой gating-механизм: гейт на *выходе* softmax-attention, не на рекуррентном состоянии.
-- [[ml_concepts/attention/efficiency/sliding-window-attention]] — параллельная стратегия удешевить long-range: ограничить окно, а не выкинуть softmax.
+- [[ml_concepts/self-attention]] — операция, от которой линейная attention отказывается ради рекуррентности.
+- [[ml_concepts/kv-cache]] — растущий кэш softmax-attention; линейная attention заменяет его на фиксированное состояние $S_t$.
+- [[ml_concepts/gated-attention]] — другой gating-механизм: гейт на *выходе* softmax-attention, не на рекуррентном состоянии.
+- [[ml_concepts/sliding-window-attention]] — параллельная стратегия удешевить long-range: ограничить окно, а не выкинуть softmax.
 
 ## Open questions
 
@@ -80,4 +79,4 @@ Layer 4:  [GLA / Mamba-2    ]
 ## Up next
 
 - [[topics/attention-variants]] — место линейной attention в общем спектре современных attention-схем.
-- [[ml_concepts/attention/efficiency/sliding-window-attention]] — альтернативная стратегия удешевить attention на длинных последовательностях.
+- [[ml_concepts/sliding-window-attention]] — альтернативная стратегия удешевить attention на длинных последовательностях.

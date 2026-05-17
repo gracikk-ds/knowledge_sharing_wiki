@@ -6,12 +6,11 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Causal Masking
 
-> Модификация [[ml_concepts/attention/self-attention|self-attention]], в которой скоры для будущих позиций обнуляются заменой на $-\infty$ до softmax. После softmax вес на будущих позициях равен нулю, и позиция $m$ агрегирует value-векторы только из позиций $1, \ldots, m$. Это превращает attention-слой в авторегрессионный.
+> Модификация [[ml_concepts/self-attention|self-attention]], в которой скоры для будущих позиций обнуляются заменой на $-\infty$ до softmax. После softmax вес на будущих позициях равен нулю, и позиция $m$ агрегирует value-векторы только из позиций $1, \ldots, m$. Это превращает attention-слой в авторегрессионный.
 
 ## Motivation
 
@@ -45,10 +44,10 @@ $$
 
 ## Variations and related concepts
 
-- [[ml_concepts/attention/self-attention]] — слой, который маска модифицирует.
-- [[ml_concepts/attention/variants/cross-attention]] — маска *не* применяется: декодер имеет право смотреть на весь вход целиком.
-- [[ml_concepts/attention/multi-head-attention]] — маска одинакова для всех heads.
-- [[methods/architectures/transformer]] — первый подслой каждого блока декодера — это masked self-attention.
+- [[ml_concepts/self-attention]] — слой, который маска модифицирует.
+- [[ml_concepts/cross-attention]] — маска *не* применяется: декодер имеет право смотреть на весь вход целиком.
+- [[ml_concepts/multi-head-attention]] — маска одинакова для всех heads.
+- [[methods/transformer]] — первый подслой каждого блока декодера — это masked self-attention.
 
 ## Open questions
 
@@ -60,5 +59,5 @@ $$
 
 ## Up next
 
-- [[ml_concepts/attention/variants/cross-attention]] — второй модификации attention в декодере, дополняющая causal masking.
-- [[methods/architectures/transformer]] — как masked self-attention встроен в каждый блок декодера.
+- [[ml_concepts/cross-attention]] — второй модификации attention в декодере, дополняющая causal masking.
+- [[methods/transformer]] — как masked self-attention встроен в каждый блок декодера.

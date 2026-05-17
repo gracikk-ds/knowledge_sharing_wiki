@@ -6,7 +6,6 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # YaRN (Yet another RoPE extensioN)
@@ -15,7 +14,7 @@ needs_rewrite: true
 
 ## Motivation
 
-Ни [[methods/positional/position-interpolation|PI]], ни [[methods/positional/ntk-aware-interpolation|NTK-Aware]] не оптимальны по отдельности. PI равномерно сжимает все частоты, разрушая локальное разрешение; NTK сглаживает переход, но управляется единственным параметром (базой $b$) и не даёт прямого контроля над отдельными частотными зонами. YaRN объединяет их сильные стороны и добавляет несколько важных коррекций.
+Ни [[methods/position-interpolation|PI]], ни [[methods/ntk-aware-interpolation|NTK-Aware]] не оптимальны по отдельности. PI равномерно сжимает все частоты, разрушая локальное разрешение; NTK сглаживает переход, но управляется единственным параметром (базой $b$) и не даёт прямого контроля над отдельными частотными зонами. YaRN объединяет их сильные стороны и добавляет несколько важных коррекций.
 
 Ключевые наблюдения:
 
@@ -91,9 +90,9 @@ $$
 
 ## Variants and successors
 
-- [[methods/positional/position-interpolation]] — частный случай YaRN, когда вся область — в «низкочастотной зоне».
-- [[methods/positional/ntk-aware-interpolation]] — другая интерполяция между «не трогать» и «PI», управляемая базой $b$ вместо ramp'а.
-- [[methods/positional/dype]] — для диффузионных моделей: YaRN делается динамическим в зависимости от шага sampling'а (Dy-YaRN).
+- [[methods/position-interpolation]] — частный случай YaRN, когда вся область — в «низкочастотной зоне».
+- [[methods/ntk-aware-interpolation]] — другая интерполяция между «не трогать» и «PI», управляемая базой $b$ вместо ramp'а.
+- [[methods/dype]] — для диффузионных моделей: YaRN делается динамическим в зависимости от шага sampling'а (Dy-YaRN).
 
 ## Sources
 
@@ -101,5 +100,5 @@ $$
 
 ## Up next
 
-- [[methods/positional/dype]] — динамическое обобщение для диффузионных моделей.
-- [[methods/positional/rope]] — материнский метод.
+- [[methods/dype]] — динамическое обобщение для диффузионных моделей.
+- [[methods/rope]] — материнский метод.

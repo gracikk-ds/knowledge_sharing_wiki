@@ -3,27 +3,26 @@ title: Mean Flow
 type: method
 tags: [flow-map, generative-models, flow-matching, few-step-generation]
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Mean Flow
 
-> Обучить [[ml_concepts/generative/flow-map]] $F_\theta(x_t, t, s)$ соответствовать **средней скорости** на $[t, s]$, выразив это среднее через мгновенную скорость и производную $F_\theta$ по времени по [[math_concepts/mean-flow-identity]].
+> Обучить [[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$ соответствовать **средней скорости** на $[t, s]$, выразив это среднее через мгновенную скорость и производную $F_\theta$ по времени по [[math_concepts/mean-flow-identity]].
 
 ## Motivation
 
-Цель у [[methods/generative/shortcut-model]] и Mean Flow общая: одна сеть-[[ml_concepts/generative/flow-map]] $F_\theta(x_t, t, s)$, способная прыгать с любого момента $t$ в любой момент $s$ за один forward pass и обучаемая без отдельного учителя. Вопрос — какую self-consistency накладывать.
+Цель у [[methods/shortcut-model]] и Mean Flow общая: одна сеть-[[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$, способная прыгать с любого момента $t$ в любой момент $s$ за один forward pass и обучаемая без отдельного учителя. Вопрос — какую self-consistency накладывать.
 
-ShortCut использует interval additivity: $F(t \to s) = F(t \to r \to s)$. Это корректно, но связывает две оценки сети на *разных интервалах*. Сигнал обучения на длинном интервале $[t, s]$ зависит от предсказания сети на коротком $[t, r]$, а тот сам так точен, как успела выучить сеть. Ошибки множатся по мере увеличения интервалов, и сигнал на коротких интервалах — там, где [[ml_concepts/generative/flow-matching]]-голова якорит $F$ — должен пройти через вложенные композиции, чтобы дотянуться до далёких пар $(t, s)$.
+ShortCut использует interval additivity: $F(t \to s) = F(t \to r \to s)$. Это корректно, но связывает две оценки сети на *разных интервалах*. Сигнал обучения на длинном интервале $[t, s]$ зависит от предсказания сети на коротком $[t, r]$, а тот сам так точен, как успела выучить сеть. Ошибки множатся по мере увеличения интервалов, и сигнал на коротких интервалах — там, где [[ml_concepts/flow-matching]]-голова якорит $F$ — должен пройти через вложенные композиции, чтобы дотянуться до далёких пар $(t, s)$.
 
 Mean Flow меняет интегральное тождество на *дифференциальное*. Определим $F_\theta$ напрямую как среднюю скорость на $[t, s]$, домножим на $(s - t)$, продифференцируем и перенесём. Получится $F_\theta(x_t, t, s) = v(x_t, t) - (s - t)\,\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)$. Правая часть связывает $F$ с мгновенной скоростью в *одной* точке $(x_t, t)$ плюс поправкой, считаемой как JVP через сам $F_\theta$. Второго композиционного прохода через сеть нет. Тождество поточечно по $(x_t, t)$, поэтому supervision-сигнал в каждой паре $(t, s)$ ложится прямо на FM-обученную velocity-голову — ближе к локальному ограничению, дальше от паттерна error-propagation вложенных интегралов.
 
 ## Problem setting
 
-То же, что в [[methods/generative/shortcut-model]]: одна сеть, произвольное число шагов inference, отдельного учителя нет. Mean Flow задаёт другой self-consistency, выведенный из *дифференциального* тождества, а не из interval additivity.
+То же, что в [[methods/shortcut-model]]: одна сеть, произвольное число шагов inference, отдельного учителя нет. Mean Flow задаёт другой self-consistency, выведенный из *дифференциального* тождества, а не из interval additivity.
 
 ## The parametrisation
 
@@ -57,6 +56,19 @@ $$
 
 что считается одним JVP через сеть (направление в $x$ задаёт $v$).
 
+```mermaid
+flowchart LR
+    XT[x at t] -->|v theta inst velocity| V[v of x t]
+    XT -->|F theta avg velocity| F[F of x t s]
+    F -->|JVP times s minus t| CORR[time derivative correction]
+    V --> RHS[sum: v minus correction]
+    CORR --> RHS
+    RHS -.-> LOSS[stop-grad target for F]
+    F -.-> LOSS
+```
+
+*Diagram: Mean Flow Identity супервизирует выход $F_\theta$ суммой мгновенной скорости (FM-голова) и JVP-поправки по времени.*
+
 ## Training objective
 
 $$
@@ -76,8 +88,8 @@ $$
 
 | Method                | Identity used                                                                       | Extra cost during training |
 |-----------------------|-------------------------------------------------------------------------------------|----------------------------|
-| [[methods/generative/shortcut-model]] | Интегральное: $F(t, s) \approx F(F(t, r), r, s)$ — один лишний forward pass    | 1 лишний forward           |
-| [[methods/generative/mean-flow]] | Дифференциальное: $F = v - (s - t)\,\mathrm{d}F/\mathrm{d}t$ — один JVP через сеть | 1 JVP                      |
+| [[methods/shortcut-model]] | Интегральное: $F(t, s) \approx F(F(t, r), r, s)$ — один лишний forward pass    | 1 лишний forward           |
+| [[methods/mean-flow]] | Дифференциальное: $F = v - (s - t)\,\mathrm{d}F/\mathrm{d}t$ — один JVP через сеть | 1 JVP                      |
 
 Дифференциальное тождество даёт более поточечный сигнал; интегральное — более «глобальную» связь между интервалами.
 
@@ -89,7 +101,7 @@ $$
 
 ## Variants and successors
 
-- [[methods/generative/shortcut-model]] — аналог через интегральное тождество.
+- [[methods/shortcut-model]] — аналог через интегральное тождество.
 - «Mean Flows for One-step Generative Modeling» (Geng et al., 2025) — статья, на которую ссылается лекция.
 
 ## Sources
@@ -98,5 +110,5 @@ $$
 
 ## Up next
 
-- [[methods/generative/shortcut-model]] — аналог через интегральное тождество; сравнение проясняет, что покупает дифференциальное.
+- [[methods/shortcut-model]] — аналог через интегральное тождество; сравнение проясняет, что покупает дифференциальное.
 - [[topics/few-step-generative-models]] — место Mean Flow среди consistency models, shortcut models и progressive distillation.

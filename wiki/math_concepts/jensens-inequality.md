@@ -32,7 +32,7 @@ $$
 \varphi(\mathbb{E}[X]) \;\ge\; \mathbb{E}[\varphi(X)].
 $$
 
-Именно эта форма используется при выводе [[ml_concepts/probabilistic/elbo|ELBO]]: переход $\log \mathbb{E}_q[\,\cdot\,] \ge \mathbb{E}_q[\log\,\cdot\,]$ — это Йенсен с вогнутым $\log$, и направление здесь важно. Оно даёт *нижнюю* границу на log-evidence, что и делает её пригодной как объект обучения.
+Именно эта форма используется при выводе [[ml_concepts/elbo|ELBO]]: переход $\log \mathbb{E}_q[\,\cdot\,] \ge \mathbb{E}_q[\log\,\cdot\,]$ — это Йенсен с вогнутым $\log$, и направление здесь важно. Оно даёт *нижнюю* границу на log-evidence, что и делает её пригодной как объект обучения.
 
 ## Step-by-step proof
 
@@ -76,7 +76,7 @@ $$
 
 ## Where it shows up in ML
 
-- [[ml_concepts/probabilistic/elbo]] — вывод $\log \mathbb{E}_q[p(x, z)/q(z)] \ge \mathbb{E}_q[\log p(x, z)/q(z)]$ использует Йенсена на вогнутом $\log$.
+- [[ml_concepts/elbo]] — вывод $\log \mathbb{E}_q[p(x, z)/q(z)] \ge \mathbb{E}_q[\log p(x, z)/q(z)]$ использует Йенсена на вогнутом $\log$.
 - [[math_concepts/kl-divergence]] — доказательство неотрицательности $\mathrm{KL}(q \,\|\, p) \ge 0$ использует Йенсена.
 - **Границы взаимной информации**, **log-sum-exp** оценки и **теоретико-информационные неравенства** в общем — Йенсен это базовый кирпич.
 

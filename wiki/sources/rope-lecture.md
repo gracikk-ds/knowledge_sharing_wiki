@@ -27,17 +27,17 @@ status: draft
 
 ## Concepts touched
 
-- [[ml_concepts/attention/self-attention]] — отправная точка про permutation equivariance; новая страница, stub.
-- [[ml_concepts/attention/positional-encodings/index]] — общий обзор схем PE, аддитивные vs мультипликативные; новая страница.
-- [[ml_concepts/attention/positional-encodings/rotary-position-embedding]] — концептуальная страница RoPE: 2D-вывод, геометрия, сохранение нормы; новая.
+- [[ml_concepts/self-attention]] — отправная точка про permutation equivariance; новая страница, stub.
+- [[ml_concepts/positional-encoding]] — общий обзор схем PE, аддитивные vs мультипликативные; новая страница.
+- [[ml_concepts/rotary-position-embedding]] — концептуальная страница RoPE: 2D-вывод, геометрия, сохранение нормы; новая.
 - [[math_concepts/rotation-matrix-2d]] — вывод матрицы поворота через проекции, свойства, worked example; новая.
-- [[methods/positional/sinusoidal-position-encoding]] — фиксированный синус-косинус PE; новая.
-- [[methods/positional/learned-absolute-position-embedding]] — обучаемая матрица $E$; новая.
-- [[methods/positional/rope]] — полный алгоритм RoPE, 1D/2D/3D, расписание частот; новая.
-- [[methods/positional/position-interpolation]] — масштабирование позиции $m \to m/s$; новая.
-- [[methods/positional/ntk-aware-interpolation]] — масштабирование базы $b$; новая.
-- [[methods/positional/yarn]] — три зоны частот плюс температурная коррекция; новая.
-- [[methods/positional/dype]] — динамическая экстраполяция для диффузии; новая.
+- [[methods/sinusoidal-position-encoding]] — фиксированный синус-косинус PE; новая.
+- [[methods/learned-absolute-position-embedding]] — обучаемая матрица $E$; новая.
+- [[methods/rope]] — полный алгоритм RoPE, 1D/2D/3D, расписание частот; новая.
+- [[methods/position-interpolation]] — масштабирование позиции $m \to m/s$; новая.
+- [[methods/ntk-aware-interpolation]] — масштабирование базы $b$; новая.
+- [[methods/yarn]] — три зоны частот плюс температурная коррекция; новая.
+- [[methods/dype]] — динамическая экстраполяция для диффузии; новая.
 - [[topics/positional-encoding]] — narrative-вход в область; новая.
 
 ## Contradictions and revisions

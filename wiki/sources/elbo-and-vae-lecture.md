@@ -29,15 +29,15 @@ status: draft
 
 ## Concepts touched
 
-- [[ml_concepts/probabilistic/elbo]] — центральный концепт лекции; выведен двумя способами (Jensen и Bayes), разложен тремя способами (исходный, с зазором до posterior, reconstruction+regularisation). Новая страница.
-- [[ml_concepts/probabilistic/latent-variable-model]] — постановка; аналогия с законом полной вероятности; режим отказа наивного Монте-Карло. Новая страница.
-- [[ml_concepts/probabilistic/variational-inference]] — фреймворк; тождество, позволяющее оптимизировать ELBO, не вычисляя истинный KL. Новая страница.
-- [[ml_concepts/probabilistic/amortized-variational-inference]] — энкодер как сеть, отображающая $x$ в параметры posterior; мотивация — труднообъемность и проблема «отдельный $q$ под каждый $x$». Новая страница.
-- [[ml_concepts/probabilistic/reparameterization-trick]] — вывод через LOTUS; канонический гауссовский случай; контраст со score-function оценкой. Новая страница.
+- [[ml_concepts/elbo]] — центральный концепт лекции; выведен двумя способами (Jensen и Bayes), разложен тремя способами (исходный, с зазором до posterior, reconstruction+regularisation). Новая страница.
+- [[ml_concepts/latent-variable-model]] — постановка; аналогия с законом полной вероятности; режим отказа наивного Монте-Карло. Новая страница.
+- [[ml_concepts/variational-inference]] — фреймворк; тождество, позволяющее оптимизировать ELBO, не вычисляя истинный KL. Новая страница.
+- [[ml_concepts/amortized-variational-inference]] — энкодер как сеть, отображающая $x$ в параметры posterior; мотивация — труднообъемность и проблема «отдельный $q$ под каждый $x$». Новая страница.
+- [[ml_concepts/reparameterization-trick]] — вывод через LOTUS; канонический гауссовский случай; контраст со score-function оценкой. Новая страница.
 - [[math_concepts/kl-divergence]] — задаёт зазор bound; закрытая форма гауссовского KL, используемая в loss VAE; доказательство неотрицательности. Новая страница.
 - [[math_concepts/jensens-inequality]] — позволяет превратить $\log \mathbb{E}_q[\cdot]$ в $\mathbb{E}_q[\log \cdot]$. Новая страница.
-- [[methods/architectures/vae]] — алгоритм, архитектура, почему один совместный оптимизатор вместо EM. Новая страница.
-- [[methods/inference/variational-em]] — фреймворк чередования, эквивалентность «max ELBO по $q$ ≡ min KL до posterior», почему VAE не делает строгий EM. Новая страница.
+- [[methods/vae]] — алгоритм, архитектура, почему один совместный оптимизатор вместо EM. Новая страница.
+- [[methods/variational-em]] — фреймворк чередования, эквивалентность «max ELBO по $q$ ≡ min KL до posterior», почему VAE не делает строгий EM. Новая страница.
 
 ## Contradictions and revisions
 
@@ -51,8 +51,8 @@ status: draft
 
 - Лекция написана русской прозой с английскими формулами. Концепты и обозначения стандартные.
 - В лекции есть кросс-ссылки между подсекциями в стиле Notion; они указывают на внутреннюю структуру самого источника и не требуют отдельных страниц вики.
-- Пример отказа наивного Монте-Карло ($x = 10$, $z \sim \mathcal{N}(0, 1)$, $\sigma = 0.1$) — конкретная иллюстрация расхождения prior–posterior; зафиксирован на [[ml_concepts/probabilistic/latent-variable-model]] в секции «Why naïve Monte Carlo fails».
-- Score-function оценка упоминается только как высокодисперсная альтернатива reparameterization и не выводится подробно; кратко описана на [[ml_concepts/probabilistic/reparameterization-trick]]. Отдельный источник мог бы развернуть её в собственную страницу.
+- Пример отказа наивного Монте-Карло ($x = 10$, $z \sim \mathcal{N}(0, 1)$, $\sigma = 0.1$) — конкретная иллюстрация расхождения prior–posterior; зафиксирован на [[ml_concepts/latent-variable-model]] в секции «Why naïve Monte Carlo fails».
+- Score-function оценка упоминается только как высокодисперсная альтернатива reparameterization и не выводится подробно; кратко описана на [[ml_concepts/reparameterization-trick]]. Отдельный источник мог бы развернуть её в собственную страницу.
 
 ## Pointer back to raw
 

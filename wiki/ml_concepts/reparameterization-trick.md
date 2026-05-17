@@ -6,7 +6,6 @@ created: 2026-05-15
 updated: 2026-05-15
 sources: 1
 status: draft
-needs_rewrite: true
 ---
 
 # Reparameterization Trick
@@ -15,13 +14,13 @@ needs_rewrite: true
 
 ## Motivation
 
-Чтобы обучать [[ml_concepts/probabilistic/amortized-variational-inference]], нужен градиент
+Чтобы обучать [[ml_concepts/amortized-variational-inference]], нужен градиент
 
 $$
 \nabla_\phi\,\mathbb{E}_{z \sim q(z \mid x, \phi)}\big[f(z)\big],
 $$
 
-где $f(z) = \log p(x \mid z, \theta)$ — reconstruction-член в [[ml_concepts/probabilistic/elbo|ELBO]]. Препятствие структурное: распределение, из которого мы сэмплируем, зависит от параметров, по которым берётся производная. Ожидание и градиент нельзя свободно поменять местами, потому что изменение $\phi$ меняет *какие $z$ сэмплируются*, а не только значение $f$ на них.
+где $f(z) = \log p(x \mid z, \theta)$ — reconstruction-член в [[ml_concepts/elbo|ELBO]]. Препятствие структурное: распределение, из которого мы сэмплируем, зависит от параметров, по которым берётся производная. Ожидание и градиент нельзя свободно поменять местами, потому что изменение $\phi$ меняет *какие $z$ сэмплируются*, а не только значение $f$ на них.
 
 Наивный подход — сэмплировать $z \sim q(z \mid x, \phi)$, считать $\nabla_\phi f(z)$ и называть это оценкой градиента — просто неверен. Полученный $z$ зависит от $\phi$ через sampler, а это недифференцируемая операция. Backprop через `sample()` не определён.
 
@@ -33,7 +32,7 @@ $$
 
 Она корректна, но трактует $f(z)$ как чёрный ящик — скалярный множитель на зашумлённом score, игнорируя структуру $f$. Дисперсия достаточно велика, чтобы обучение непрерывных латентов шло медленно или нестабильно.
 
-Reparameterization trick устраняет причину проблемы, а не обходит её. Переписать $z$ как детерминированное преобразование *фиксированного* шума: $z = g_\phi(x, \varepsilon)$ с $\varepsilon \sim p(\varepsilon)$, не зависящего от $\phi$. Теперь распределение, из которого сэмплируем, от $\phi$ не зависит; зависит только детерминированная функция $g_\phi$. Градиенты становятся обычным правилом цепочки через $g_\phi$, весь граф дифференцируем end-to-end, а один сэмпл $\varepsilon$ даёт низкодисперсный pathwise-градиент, передающий информацию через $f$, а не усредняющий её. Поэтому [[methods/architectures/vae|VAE]] используют его как default, а score-function оставляют для случаев, когда reparameterization недоступен (дискретные латенты, смеси).
+Reparameterization trick устраняет причину проблемы, а не обходит её. Переписать $z$ как детерминированное преобразование *фиксированного* шума: $z = g_\phi(x, \varepsilon)$ с $\varepsilon \sim p(\varepsilon)$, не зависящего от $\phi$. Теперь распределение, из которого сэмплируем, от $\phi$ не зависит; зависит только детерминированная функция $g_\phi$. Градиенты становятся обычным правилом цепочки через $g_\phi$, весь граф дифференцируем end-to-end, а один сэмпл $\varepsilon$ даёт низкодисперсный pathwise-градиент, передающий информацию через $f$, а не усредняющий её. Поэтому [[methods/vae|VAE]] используют его как default, а score-function оставляют для случаев, когда reparameterization недоступен (дискретные латенты, смеси).
 
 ## Formal description
 
@@ -87,10 +86,10 @@ $$
 
 ## Variations and related concepts
 
-- [[ml_concepts/probabilistic/elbo]] — потеря, для которой нужен этот трюк в $\phi$-градиенте.
-- [[ml_concepts/probabilistic/amortized-variational-inference]] — постановка, где $\phi$ — веса энкодера.
-- [[methods/architectures/vae]] — каноническое использование reparameterization.
-- [[ml_concepts/probabilistic/variational-inference]] — фреймворк вокруг всего этого.
+- [[ml_concepts/elbo]] — потеря, для которой нужен этот трюк в $\phi$-градиенте.
+- [[ml_concepts/amortized-variational-inference]] — постановка, где $\phi$ — веса энкодера.
+- [[methods/vae]] — каноническое использование reparameterization.
+- [[ml_concepts/variational-inference]] — фреймворк вокруг всего этого.
 
 ## Open questions
 
@@ -102,4 +101,4 @@ $$
 
 ## Up next
 
-- [[methods/architectures/vae]] — каноническая модель, в которой reparameterization trick позволяет обучать энкодер, декодер и ELBO одним SGD.
+- [[methods/vae]] — каноническая модель, в которой reparameterization trick позволяет обучать энкодер, декодер и ELBO одним SGD.
