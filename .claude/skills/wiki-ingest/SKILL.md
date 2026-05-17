@@ -15,7 +15,8 @@ Before doing anything else, read these in order:
 - [ ] Read `.claude/skills/_shared/page-templates.md`
 - [ ] Read `.claude/skills/_shared/russian-style.md`
 - [ ] Read `.claude/skills/_shared/illustration-policy.md`
-- [ ] Read `.claude/rules/04-frontmatter-schema.md` (for the tag whitelist)
+- [ ] Read `.claude/rules/04-frontmatter-schema.md` (frontmatter rules)
+- [ ] Read `wiki/tags.md` (the live tag registry — names + definitions)
 - [ ] Read `wiki/index.md` (to see what already exists)
 - [ ] Read `.autodoc/index.md` (skip if the file does not yet exist)
 
@@ -53,7 +54,8 @@ Target page: wiki/<kind>/<slug>.md
 TL;DR draft:
 <1-3 sentences>
 
-Tags (from whitelist): <tag1>, <tag2>, <tag3>
+Tags (from wiki/tags.md): <tag1>, <tag2>, <tag3>
+New tags to register (if any): <tag-x> — <one-sentence definition>
 
 Motivation arc:
 - What we want: ...
@@ -61,9 +63,10 @@ Motivation arc:
 - Why it fails: ...
 - What this source proposes: ...
 
-Key idea in one figure (planned):
-- Mermaid: <short description> OR
-- Matplotlib: <short description>
+Figures planned (≥ minimum from rules/03 — paper 3, lecture 2, clip 1, KS 1):
+1. <type: mermaid|matplotlib|cut-out> — <one-line description>
+2. <type> — <one-line description>
+3. <type> — <one-line description>
 
 Optional sections to include: <list, e.g., "Результаты, Сравнение, Ограничения"; or "none">
 
@@ -94,9 +97,11 @@ For the «Идея в одной картинке» (mandatory) and any addition
 
 - [ ] Pick a tool per `_shared/illustration-policy.md`: mermaid for flow/relations, matplotlib for plots/numerical, source cut-out for paper diagrams with attribution.
 - [ ] Mermaid: inline, ≤ 12 nodes, no math in node labels.
-- [ ] Matplotlib: write `.py` and run it to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both files. PNG ≤ 200 KB.
+- [ ] Matplotlib: write `.py` **and run it** to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both files. PNG ≤ 200 KB. A `.py` without its `.png` next to it is a build failure for this skill — go back and run the script.
 - [ ] Source cut-out: save under the same path with `source-cut-` prefix; caption is mandatory with full attribution.
 - [ ] Caption format follows `rules/03-illustration-policy.md`.
+- [ ] **Figure count gate.** Count the figures on the page. Required floor (rules/03): paper ≥ 3, lecture ≥ 2, clip ≥ 1, KS ≥ 1. If below floor, go back and add — typical candidates: a matplotlib plot for any quantitative claim that currently sits as bare text; a mermaid for any data flow described in prose; a source cut-out (with attribution) for paper figures you would otherwise re-explain in prose.
+- [ ] **Lead-in + walk-out gate.** Every figure has one sentence right before it («что покажем») and one sentence right after it («что забрать»). No floating images.
 
 ## Phase 7 — Self-check (Russian style + content)
 
@@ -104,7 +109,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
 - [ ] Verify every factual claim is sourced (`[[<kind>/<slug>]]` link or inline paper attribution).
 - [ ] Verify illustrations are attached to text — every figure has a one-sentence lead-in and one-sentence walk-out.
 - [ ] Verify `где: ...` list under every non-trivial formula.
-- [ ] Verify all tags are in the `rules/04` whitelist; if a tag is missing, extend the whitelist in the same commit.
+- [ ] Verify all page tags have an H2 entry in `wiki/tags.md`. If any tag is new, append an H2 to `wiki/tags.md` with name, slug, one-sentence definition, and the `[Все разборы →](/tags/<slug>)` link — **in the same commit** as the page.
 - [ ] Fix all findings inline.
 
 ## Phase 8 — Bookkeeping and commit proposal
@@ -112,8 +117,11 @@ For the «Идея в одной картинке» (mandatory) and any addition
 - [ ] **Update `wiki/index.md`**:
   - Prepend a new line under «Recent ingests» with date + link + TL;DR-one-liner.
   - Insert the new page under the matching kind section, keeping alphabetical order (or chronological newest-first for KS).
-  - Update the «By tag» section: under each tag this page uses, add the new link. Create a new tag entry if it didn't exist (after confirming the tag is in the whitelist).
+  - Update the «By tag» section: under each tag this page uses, add the new link. If a tag has no «By tag» entry yet, create one — but the tag must already exist as an H2 in `wiki/tags.md` (added in this same commit if new).
   - Trim «Recent ingests» to the last 10 entries; drop overflow.
+- [ ] **Update `wiki/tags.md`** if this ingest introduced any new tags:
+  - Append a new H2 per new tag with name, `**Slug:**`, one-sentence definition, and `[Все разборы →](/tags/<slug>)`.
+  - Bump the `_Last updated:_` line at the top to today's date.
 - [ ] **Append to `wiki/log.md`**:
   ```
   ## [YYYY-MM-DD] ingest | <source title>
@@ -131,8 +139,8 @@ For the «Идея в одной картинке» (mandatory) and any addition
   - new: wiki/<kind>/<slug>.md
   - update: wiki/index.md
   - update: wiki/log.md
-  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}  (if any)
-  - update: .claude/rules/04-frontmatter-schema.md  (if new tag added)
+  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}  (one pair per matplotlib figure)
+  - update: wiki/tags.md  (if new tag added)
   ```
 - [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**
 - [ ] **Never run `git push`.** Push is a manual user action only.
