@@ -33,7 +33,7 @@ Subject line ≤ 72 chars. Body in English, wrapped at 80 cols.
 | `raw/**` | Yes — sources are part of history |
 | `.autodoc/**` | Yes — persistent session memory |
 | `.claude/**` | Yes — config and skills |
-| `publish/static/figures/**` | Yes — only generated PNGs ≤ 200 KB |
+| `wiki/static/figures/**` | Yes — only generated PNGs ≤ 200 KB |
 | `publish/node_modules/`, `publish/.quartz-cache/` | No — gitignore |
 | `publish/public/` (Quartz build output) | No — gitignore |
 

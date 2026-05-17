@@ -63,7 +63,7 @@ sequenceDiagram
 ### File layout
 
 ```
-publish/static/figures/<page-slug>/
+wiki/static/figures/<page-slug>/
 ├── <figure-name>.py
 └── <figure-name>.png
 ```
@@ -71,7 +71,7 @@ publish/static/figures/<page-slug>/
 Example for `wiki/ml_concepts/attention/positional-encodings/rope.md`:
 
 ```
-publish/static/figures/rope/
+wiki/static/figures/rope/
 ├── rotation-2d.py
 └── rotation-2d.png
 ```
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     main()
 ```
 
-Run: `python publish/static/figures/<page-slug>/<name>.py`
+Run: `python wiki/static/figures/<page-slug>/<name>.py`
 
 Caption format on the wiki page:
 
@@ -119,7 +119,7 @@ Target ≤ 200 KB. Strategies if exceeded:
 When the original paper has a figure that no reimplementation will beat (e.g., a geometric construction):
 
 1. Take a screenshot of the figure (macOS: Cmd+Shift+4, save as PNG).
-2. Save to `publish/static/figures/<page-slug>/source-cut-<short-name>.png`.
+2. Save to `wiki/static/figures/<page-slug>/source-cut-<short-name>.png`.
 3. Caption on the page:
    ```markdown
    ![Rotation construction](/static/figures/rope/source-cut-fig2.png)

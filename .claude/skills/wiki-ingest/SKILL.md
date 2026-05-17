@@ -16,7 +16,7 @@ Before doing anything else, read these in order:
 - [ ] Read `.claude/skills/_shared/russian-style.md`
 - [ ] Read `.claude/skills/_shared/illustration-policy.md`
 - [ ] Read `wiki/index.md`
-- [ ] Read `.autodoc/index.md`
+- [ ] Read `.autodoc/index.md` (skip if the file does not exist — it will be created on first `/autodoc` run)
 
 Then create a TodoWrite list with one item per remaining phase (2-8).
 
@@ -30,7 +30,7 @@ Then create a TodoWrite list with one item per remaining phase (2-8).
 
 ## Phase 3 — Research a gap (optional)
 
-Trigger condition: the source has a gap that blocks a clear explanation (e.g., references a prior method without defining it, claims a property without proof, hints at related work).
+Trigger condition: the source has a gap that blocks a clear explanation — references a prior method or result that is load-bearing for the explanation and the primary source does not define or prove it. Skip if the source is self-contained.
 
 - [ ] If no gap, skip to Phase 4.
 - [ ] If a gap exists, dispatch the `wiki-source-researcher` agent with a narrow query:
@@ -78,7 +78,7 @@ For each page in the plan:
 - [ ] For non-trivial math, link to `[[math_concepts/...]]` instead of expanding inline.
 - [ ] Stub links to not-yet-existing pages are fine and encouraged — they queue future ingests.
 
-Edit order: concept/method pages first → source page next → `wiki/index.md` after all pages are stable → `wiki/log.md` last.
+Edit order: concept/method pages first → source page next. `wiki/index.md` and `wiki/log.md` are updated in Phase 8.
 
 ## Phase 6 — Illustrations
 
@@ -86,7 +86,7 @@ For each non-trivial concept on each page just written, apply the chooser from `
 
 - [ ] For each concept: mermaid / matplotlib / source cut-out / file a question page.
 - [ ] Mermaid: inline in markdown, ≤ 12 nodes, no math in node labels.
-- [ ] Matplotlib: write `.py` and run it to produce `.png` at `publish/static/figures/<page-slug>/`. Commit both. PNG ≤ 200 KB.
+- [ ] Matplotlib: write `.py` and run it to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both. PNG ≤ 200 KB. URL in markdown stays `/static/figures/<page-slug>/<file>.png`.
 - [ ] Source cut-out: save under same path with `source-cut-` prefix and write attribution caption.
 - [ ] Add the figure reference and caption to the page.
 
@@ -120,8 +120,9 @@ Run the illustration checklist in `_shared/illustration-policy.md` for each page
   - new: <path-a>
   - new: <path-b>
   - update: <path-c>
-  - figures: publish/static/figures/<slug>/{<file>.py,<file>.png}
+  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}
   ```
+- [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**
 - [ ] **Never run `git push`.** Wait for the user to push manually.
 
 ## Gates where you stop and wait
