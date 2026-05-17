@@ -150,6 +150,13 @@ $$y = \text{LayerNorm}(x + \text{Sublayer}(x))$$
 
 ## Сравнение с альтернативами
 
+Главное численное сравнение статьи — Table 1: сложность одного слоя, число последовательных операций, и длина пути для self-attention, RNN, свёрток и restricted self-attention. Чтобы было нагляднее, чем «log_k n меньше n» в асимптотике — вот эти же значения для длин $n$ от 2 до 4096:
+
+![Длина пути от первого до последнего токена для разных архитектур](/static/figures/vaswani-2017-attention-is-all-you-need/path-length-vs-n.png)
+*Generated: figures/vaswani-2017-attention-is-all-you-need/path-length-vs-n.py*
+
+На типичной длине предложения для NMT ($n=50$) RNN заставит градиент пройти 50 операций, ConvS2S с ядром 3 — около 17, ByteNet — около 4, а self-attention — 1. При увеличении $n$ до 4096 (длины современных контекстов) разрыв растёт катастрофически: RNN — 4096 шагов, self-attention — всё та же 1.
+
 | Слой | Сложность на слой | Sequential ops | Max path length |
 |---|---|---|---|
 | Self-attention | $O(n^2 \cdot d)$ | $O(1)$ | $O(1)$ |
