@@ -1,6 +1,6 @@
 # Page Templates
 
-Read this in `wiki-ingest` phase 5. The wiki has **one canonical template** — Template A (Motivation-first) — used for every paper, lecture, and clip breakdown. Knowledge sharings use a variant with extra frontmatter fields and one optional section. All cross-cutting writing rules (term introduction, formula annotation, code-formula bridge) at the end apply to every template.
+Read this in `wiki-ingest` phase 6. The wiki has **one canonical template** — Template A (Motivation-first) — used for every paper, lecture, and clip breakdown. Knowledge sharings use a variant with extra frontmatter fields and one optional section. All cross-cutting writing rules (term introduction, formula annotation, code-formula bridge) at the end apply to every template.
 
 ---
 

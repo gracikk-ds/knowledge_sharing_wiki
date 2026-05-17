@@ -23,9 +23,9 @@ These files are long (200-500 lines each). Auto-loading them all would burn cont
 
 | File | Purpose | Loaded by |
 |---|---|---|
-| `page-templates.md` | Template A (source breakdown for paper/lecture/clip), Template B (knowledge-sharing variant), cross-cutting rules (term introduction, formula annotation, code-formula bridge) | `wiki-ingest` phase 5 |
-| `illustration-policy.md` | Full manual with chooser logic for mermaid vs matplotlib vs cut-out | `wiki-ingest` phase 6 |
-| `russian-style.md` | Detailed Russian style guide with examples | `wiki-ingest` phase 7 |
+| `page-templates.md` | Template A (source breakdown for paper/lecture/clip), Template B (knowledge-sharing variant), cross-cutting rules (term introduction, formula annotation, code-formula bridge) | `wiki-ingest` phase 6 |
+| `illustration-policy.md` | Full manual with chooser logic for mermaid vs matplotlib vs cut-out | `wiki-ingest` phase 7 |
+| `russian-style.md` | Detailed Russian style guide with examples | `wiki-ingest` phase 8 |
 
 `.claude/role.md` lives at the `.claude/` root (not in `_shared/`) because it is shorter and conceptually a top-level identity file rather than a workflow reference.
 

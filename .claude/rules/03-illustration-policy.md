@@ -1,6 +1,6 @@
 # Illustration Policy
 
-This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_shared/illustration-policy.md` and is read by `wiki-ingest` phase 6.
+This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_shared/illustration-policy.md` and is read by `wiki-ingest` phase 7.
 
 ## Allowed tools
 
@@ -46,6 +46,6 @@ The «Идея в одной картинке» counts toward this total. Floor 
 | clip | **1** | 2-3 |
 | knowledge-sharing | **1** | 1-3 |
 
-If the page comes in under the minimum, `wiki-ingest` Phase 6 fails the check and you go back and add more — either matplotlib plots for the formal claims, mermaid for any data flow / dependency structure that the page describes in prose, or source cut-outs with attribution for paper figures you'd otherwise re-explain in 200 words.
+If the page comes in under the minimum, `wiki-ingest` Phase 7 fails the check and you go back and add more — either matplotlib plots for the formal claims, mermaid for any data flow / dependency structure that the page describes in prose, or source cut-outs with attribution for paper figures you'd otherwise re-explain in 200 words.
 
 Every figure on the page must connect to the text via a **lead-in** (one sentence right before the figure explaining what it shows) and a **walk-out** (one sentence right after explaining what to take away). Floating figures with no textual anchor are the same as missing figures.

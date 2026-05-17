@@ -1,6 +1,6 @@
 # Russian Style Guide
 
-Read this in `wiki-ingest` phase 7. Short regulation: `.claude/rules/01-language-policy.md`. This file is the deep guide with examples.
+Read this in `wiki-ingest` phase 8. Short regulation: `.claude/rules/01-language-policy.md`. This file is the deep guide with examples.
 
 ## Voice rules
 
@@ -118,10 +118,10 @@ Examples: градиент / gradient, выборка / sample, вероятно
 
 Bucket 1 keeps the term in **Latin script form**: `attention`, `residual connection`, `multi-head attention`. A Cyrillic transliteration of an English word («бэкпропагейтить», «энкодить», «зафайнтюнить») — это calque, оно остаётся в баннах ниже. Difference: bucket 1 — `fine-tuning`. Calque — `зафайнтюнить`. Same root, different fate.
 
-## Phase 7 checklist (per page)
+## Phase 8 checklist (per page)
 
 ```
-For each page produced in phase 5:
+For each page produced in phase 6:
   [ ] No bureaucratic fillers (grep for: является, представляет собой, осуществляется, в данной, следует отметить, стоит отметить, производится, имеет место)
   [ ] No AI-speak openings (grep for: давайте, погрузимся, итак, в заключение, подводя итог, как мы знаем, как известно, важно понимать, не случайно)
   [ ] No marketing epithets (grep for: мощный, впечатляющий, революционный, передовой, прорывной, инновационный)

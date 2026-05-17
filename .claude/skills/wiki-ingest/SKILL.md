@@ -1,6 +1,6 @@
 ---
 name: wiki-ingest
-description: Main flow for converting one raw source into one wiki breakdown page. 8 phases with explicit gates. Triggers when the user says "ingest", "process this source", "add this article to the wiki", or hands you a path under `raw/`.
+description: Main flow for converting one raw source into one wiki breakdown page. 9 phases with explicit gates. Triggers when the user says "ingest", "process this source", "add this article to the wiki", or hands you a path under `raw/`.
 ---
 
 # wiki-ingest
@@ -20,7 +20,7 @@ Before doing anything else, read these in order:
 - [ ] Read `wiki/index.md` (to see what already exists)
 - [ ] Read `.autodoc/index.md` (skip if the file does not yet exist)
 
-Then create a TodoWrite list with one item per remaining phase (2-8).
+Then create a TodoWrite list with one item per remaining phase (2-9).
 
 ## Phase 2 — Read the source
 
@@ -30,11 +30,65 @@ Then create a TodoWrite list with one item per remaining phase (2-8).
 - [ ] Take silent notes. Do not write the wiki page yet.
 - [ ] Scan `wiki/index.md` — does any existing breakdown overlap with this source? If yes, the new page will link to it from «Связанные разборы».
 
-## Phase 3 — Research a gap (optional)
+## Phase 3 — Extract embedded images from the source
+
+Many sources have figures embedded — papers have geometric diagrams, posts have screenshots, slides have plots. Pull them out programmatically so they can be reused as attributed cut-outs in Phase 7. This replaces the manual Cmd+Shift+4 screenshot path.
+
+Pick the right extractor by source type:
+
+**PDF** (`raw/papers/foo.pdf`):
+
+```bash
+mkdir -p /tmp/<slug>-source-imgs
+pdfimages -png raw/papers/foo.pdf /tmp/<slug>-source-imgs/img
+```
+
+Requires `poppler-utils` (`brew install poppler` on macOS; usually pre-installed on dev machines). Outputs `img-000.png`, `img-001.png`, ... For text-heavy PDFs that embed figures as vector graphics, also try:
+
+```bash
+pdftoppm -png -r 150 raw/papers/foo.pdf /tmp/<slug>-source-imgs/page
+```
+
+(One PNG per page; useful when you need the figure with its caption in context — crop later.)
+
+**DOCX / DOC** (`raw/clips/foo.docx`):
+
+```bash
+mkdir -p /tmp/<slug>-source-imgs
+unzip -j raw/clips/foo.docx 'word/media/*' -d /tmp/<slug>-source-imgs
+```
+
+DOCX is a zip; `word/media/` is where embedded images live. Files keep their original extensions (`.png`, `.jpeg`, `.emf`).
+
+**HTML / markdown clip** with referenced images:
+
+```bash
+mkdir -p /tmp/<slug>-source-imgs
+# either: parse the markdown for ![](src) and curl each one
+# or: if source is a URL, use rdrr to fetch + extract refs
+rdrr <url> -j | jq -r '.images[]' | while read u; do curl -sL "$u" -O --output-dir /tmp/<slug>-source-imgs/; done
+```
+
+**PPTX** (rare, but lecture slides):
+
+```bash
+unzip -j raw/lectures/foo.pptx 'ppt/media/*' -d /tmp/<slug>-source-imgs
+```
+
+After extraction:
+
+- [ ] List the images: `ls -lh /tmp/<slug>-source-imgs/`
+- [ ] Open the directory in Finder (`open /tmp/<slug>-source-imgs/`) and visually scan.
+- [ ] **Note** which extracted images correspond to which figures in the source (e.g., «img-003.png is Fig. 2 — the geometric construction»).
+- [ ] **Do not commit them yet.** The final selection happens in Phase 7 when you place cut-outs into the page. Keep the temp directory until then.
+
+If extraction yields nothing useful or the tool is unavailable, skip — rely on matplotlib + mermaid as usual in Phase 7. The flow does not stall on missing extraction.
+
+## Phase 4 — Research a gap (optional)
 
 Trigger condition: the source has a gap that blocks a clear explanation — references a prior method or result that is load-bearing for the explanation, and the primary source does not define or prove it. Skip if the source is self-contained.
 
-- [ ] If no gap, skip to Phase 4.
+- [ ] If no gap, skip to Phase 5.
 - [ ] If a gap exists, dispatch the `wiki-source-researcher` agent with a narrow query:
   ```
   Subagent: wiki-source-researcher
@@ -43,7 +97,7 @@ Trigger condition: the source has a gap that blocks a clear explanation — refe
   ```
 - [ ] Wait for the structured report. Keep it in context. Do **not** write the report to `raw/` automatically — the user decides what to keep.
 
-## Phase 4 — Plan + user approval
+## Phase 5 — Plan + user approval
 
 Present the plan in this format:
 
@@ -52,7 +106,7 @@ Source: <title> (<source_kind>, <source_date>)
 Target page: wiki/<kind>/<slug>.md
 
 TL;DR draft:
-<1-3 sentences>
+<4-7 sentences per page-templates.md TL;DR structure>
 
 Tags (from wiki/tags.md): <tag1>, <tag2>, <tag3>
 New tags to register (if any): <tag-x> — <one-sentence definition>
@@ -64,7 +118,7 @@ Motivation arc:
 - What this source proposes: ...
 
 Figures planned (≥ minimum from rules/03 — paper 3, lecture 2, clip 1, KS 1):
-1. <type: mermaid|matplotlib|cut-out> — <one-line description>
+1. <type: mermaid|matplotlib|cut-out from img-NNN.png> — <one-line description>
 2. <type> — <one-line description>
 3. <type> — <one-line description>
 
@@ -80,7 +134,7 @@ Anything to emphasise, skip, or correct?
 
 If the user has explicitly asked for autonomous mode, still emit the plan, then proceed unless something is genuinely ambiguous.
 
-## Phase 5 — Write the page
+## Phase 6 — Write the page
 
 - [ ] Pick Template A (or Template B for KS) from `_shared/page-templates.md`.
 - [ ] Russian prose body, English headings/slugs/tags/frontmatter (`rules/01`).
@@ -91,19 +145,20 @@ If the user has explicitly asked for autonomous mode, still emit the plan, then 
 - [ ] Term introduction discipline on every new term (bold + definition + analogy on first mention).
 - [ ] Stub links to non-existing related pages are fine — they mark future ingests.
 
-## Phase 6 — Illustrations
+## Phase 7 — Illustrations
 
 For the «Идея в одной картинке» (mandatory) and any additional figures:
 
-- [ ] Pick a tool per `_shared/illustration-policy.md`: mermaid for flow/relations, matplotlib for plots/numerical, source cut-out for paper diagrams with attribution.
+- [ ] Pick a tool per `_shared/illustration-policy.md`: mermaid for flow/relations, matplotlib for plots/numerical, source cut-out (from Phase 3 extraction) for paper figures with attribution.
 - [ ] Mermaid: inline, ≤ 12 nodes, no math in node labels.
-- [ ] Matplotlib: write `.py` to a scratch path (e.g., `/tmp/<slug>-<name>.py` or `wiki/static/figures/<slug>-<name>.py`), **run it** to produce `wiki/static/figures/<slug>-<name>.png`, verify the PNG opens and is ≤ 200 KB, then **delete the .py**. Only the PNG is committed. The script is one-shot — its recipe lives in this ingest conversation, not in the repo.
-- [ ] Source cut-out: save under the same path with `source-cut-` prefix; caption is mandatory with full attribution.
-- [ ] Caption format follows `rules/03-illustration-policy.md`.
-- [ ] **Figure count gate.** Count the figures on the page. Required floor (rules/03): paper ≥ 3, lecture ≥ 2, clip ≥ 1, KS ≥ 1. If below floor, go back and add — typical candidates: a matplotlib plot for any quantitative claim that currently sits as bare text; a mermaid for any data flow described in prose; a source cut-out (with attribution) for paper figures you would otherwise re-explain in prose.
+- [ ] Matplotlib: write `.py` to a scratch path (e.g., `/tmp/<slug>-<name>.py`), **run it** to produce `wiki/static/figures/<slug>-<name>.png`, verify the PNG opens and is ≤ 200 KB, then **delete the .py**. Only the PNG is committed. The script is one-shot — its recipe lives in this ingest conversation, not in the repo.
+- [ ] Source cut-out: copy the chosen file from `/tmp/<slug>-source-imgs/` to `wiki/static/figures/<slug>-fig<N>-cutout.png` (or `<slug>-source-<n>.png`). Crop tightly if needed. Attribution caption is mandatory: `*From <First Author> et al. (<year>), Fig. <N>.*`
+- [ ] Caption format follows `rules/03-illustration-policy.md`: matplotlib has **no** caption line, cut-outs **must** have attribution, mermaid uses `*Diagram: ...*`.
+- [ ] **Figure count gate.** Count the figures on the page. Required floor (rules/03): paper ≥ 3, lecture ≥ 2, clip ≥ 1, KS ≥ 1. If below floor, go back and add — typical candidates: a matplotlib plot for any quantitative claim that currently sits as bare text; a mermaid for any data flow described in prose; a source cut-out (with attribution) from Phase 3 for paper figures you would otherwise re-explain in prose.
 - [ ] **Lead-in + walk-out gate.** Every figure has one sentence right before it («что покажем») and one sentence right after it («что забрать»). No floating images.
+- [ ] **Cleanup.** Once all figures are in place, remove `/tmp/<slug>-source-imgs/` (the unused extracted images don't ship with the wiki).
 
-## Phase 7 — Self-check (Russian style + content)
+## Phase 8 — Self-check (Russian style + content)
 
 - [ ] Invoke `/write-russian` on the page. The skill has the full anti-AI ruleset, term-introduction discipline, anglicism replacement table, punctuation rules, and an editing checklist + fast grep. Apply all findings inline.
 - [ ] Verify every factual claim is sourced (`[[<kind>/<slug>]]` link or inline paper attribution).
@@ -112,7 +167,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
 - [ ] Verify all page tags have an H2 entry in `wiki/tags.md`. If any tag is new, append an H2 to `wiki/tags.md` with name, slug, one-sentence definition, and the `[Все разборы →](/tags/<slug>)` link — **in the same commit** as the page.
 - [ ] Fix all findings inline.
 
-## Phase 8 — Bookkeeping and commit proposal
+## Phase 9 — Bookkeeping and commit proposal
 
 - [ ] **Update `wiki/index.md`**:
   - Prepend a new line under «Recent ingests» with date + link + TL;DR-one-liner.
@@ -130,7 +185,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
   - **Page(s) touched:** [[<kind>/<slug>]]
   - **Notes:** <optional — open questions, contradictions, things to revisit>
   ```
-- [ ] Report to the user: page path, status, any contradictions with existing breakdowns, any new tags added to whitelist.
+- [ ] Report to the user: page path, status, any contradictions with existing breakdowns, any new tags added to the registry, any source images used as cut-outs.
 - [ ] Suggest `/wiki-lint` if frontmatter was edited.
 - [ ] Propose an atomic commit (≤ 300 lines):
   ```
@@ -149,8 +204,8 @@ For the «Идея в одной картинке» (mandatory) and any addition
 
 | Phase | Wait for |
 |---|---|
-| 4 | User OK on the plan before writing the page |
-| 7 | (Optional `--review` mode) — diff summary of the page before commit |
-| 8 | User OK on the commit message before `git commit` |
+| 5 | User OK on the plan before writing the page |
+| 8 | (Optional `--review` mode) — diff summary of the page before commit |
+| 9 | User OK on the commit message before `git commit` |
 
-In autonomous mode (user said "work without stopping"): Phase 4 still emits the plan but does not wait; Phases 7-8 proceed without confirmation.
+In autonomous mode (user said "work without stopping"): Phase 5 still emits the plan but does not wait; Phases 8-9 proceed without confirmation.

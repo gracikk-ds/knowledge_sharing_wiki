@@ -1,7 +1,7 @@
 # Illustration Policy — Full Manual
 
 Short regulation: `.claude/rules/03-illustration-policy.md`.
-This file is the workflow `wiki-ingest` phase 6 uses to pick a tool and produce the figure.
+This file is the workflow `wiki-ingest` phase 7 uses to pick a tool and produce the figure.
 
 ## Tool chooser
 
@@ -46,10 +46,10 @@ sequenceDiagram
     participant W as wiki-ingest
     participant R as researcher
     U->>W: /wiki-ingest paper.pdf
-    W->>W: Phase 1-2
-    W->>R: Phase 3 (if gap)
+    W->>W: Phase 1-3 (read + extract images)
+    W->>R: Phase 4 (if gap)
     R-->>W: structured report
-    W->>U: Phase 4 takeaways
+    W->>U: Phase 5 takeaways
     U-->>W: OK / edits
     W->>W: Phases 5-8
 ```
@@ -120,7 +120,7 @@ Target ≤ 200 KB. Strategies if exceeded:
 
 When the original paper has a figure that no reimplementation will beat (e.g., a geometric construction):
 
-1. Prefer the **extracted source images** from wiki-ingest Phase 2.5 (PDFs via `pdfimages`, DOCX via `word/media/` unzip, HTML via `<img>` href fetch). Manual screenshot is the fallback.
+1. Prefer the **extracted source images** from wiki-ingest Phase 3 (PDFs via `pdfimages`, DOCX via `word/media/` unzip, HTML via `<img>` href fetch). Manual screenshot is the fallback.
 2. Save to `wiki/static/figures/<page-slug>-fig<N>-cutout.png` (or `<page-slug>-source-<n>.png`).
 3. Caption on the page (attribution **mandatory**):
    ```markdown
@@ -131,7 +131,7 @@ When the original paper has a figure that no reimplementation will beat (e.g., a
 
 **Attribution is mandatory.** A cut-out without attribution is a copyright violation and a quality regression — readers cannot trace the claim.
 
-## Phase 6 checklist (run for each page produced in phase 5)
+## Phase 7 checklist (run for each page produced in phase 6)
 
 ```
 For each non-trivial concept on the page:
