@@ -97,7 +97,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
 
 - [ ] Pick a tool per `_shared/illustration-policy.md`: mermaid for flow/relations, matplotlib for plots/numerical, source cut-out for paper diagrams with attribution.
 - [ ] Mermaid: inline, ≤ 12 nodes, no math in node labels.
-- [ ] Matplotlib: write `.py` **and run it** to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both files. PNG ≤ 200 KB. A `.py` without its `.png` next to it is a build failure for this skill — go back and run the script.
+- [ ] Matplotlib: write `.py` to a scratch path (e.g., `/tmp/<slug>-<name>.py` or `wiki/static/figures/<slug>-<name>.py`), **run it** to produce `wiki/static/figures/<slug>-<name>.png`, verify the PNG opens and is ≤ 200 KB, then **delete the .py**. Only the PNG is committed. The script is one-shot — its recipe lives in this ingest conversation, not in the repo.
 - [ ] Source cut-out: save under the same path with `source-cut-` prefix; caption is mandatory with full attribution.
 - [ ] Caption format follows `rules/03-illustration-policy.md`.
 - [ ] **Figure count gate.** Count the figures on the page. Required floor (rules/03): paper ≥ 3, lecture ≥ 2, clip ≥ 1, KS ≥ 1. If below floor, go back and add — typical candidates: a matplotlib plot for any quantitative claim that currently sits as bare text; a mermaid for any data flow described in prose; a source cut-out (with attribution) for paper figures you would otherwise re-explain in prose.
@@ -139,7 +139,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
   - new: wiki/<kind>/<slug>.md
   - update: wiki/index.md
   - update: wiki/log.md
-  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}  (one pair per matplotlib figure)
+  - figures: wiki/static/figures/<slug>-<name>.png  (PNGs only; .py deleted after build)
   - update: wiki/tags.md  (if new tag added)
   ```
 - [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**

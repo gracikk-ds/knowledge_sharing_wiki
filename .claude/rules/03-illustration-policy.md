@@ -22,13 +22,13 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
 
 1. Caption directly under the image:
    - Mermaid: `*Diagram: <what it shows>*`
-   - Matplotlib: `*Generated: figures/<slug>/<file>.py*`
-   - Cut-out: `*From <First Author> et al. (<year>), Fig. <N>.*`
+   - Matplotlib: **no caption line** — the .py is deleted after the .png is built, so a «Generated: …» line would point at a non-existent file. The alt text + surrounding lead-in / walk-out prose carry the context.
+   - Cut-out: `*From <First Author> et al. (<year>), Fig. <N>.*` — attribution mandatory.
 2. PNG size ≤ 200 KB. If exceeded, lower DPI or simplify.
 3. Filename: kebab-case, **slug-prefixed**. `vaswani-2017-attention-is-all-you-need-softmax-saturation.png`, not `softmax-saturation.png`. Prevents collisions between papers.
 4. One flat folder: `wiki/static/figures/`. No per-page subfolders.
 5. Mermaid: ≤ 12 nodes. Beyond that, split into two diagrams or switch to matplotlib.
-6. Matplotlib `.py` scripts commit **alongside** the PNG. Reproducibility is mandatory.
+6. Matplotlib `.py` is **one-shot**: run it once to produce the PNG, verify, then delete. Only the PNG is committed. The figure's recipe lives in the wiki-ingest conversation that produced it — if you need to regenerate, re-run that ingest.
 7. Image path in markdown: **file-relative**, never absolute. From a page at `wiki/<kind>/<slug>.md`, the matplotlib PNG lives at `wiki/static/figures/<slug>-<figure-name>.png`, so the markdown reference is `![alt](../static/figures/<slug>-<figure-name>.png)`. Absolute paths starting with `/` work only in Quartz's HTTP server and break under file://, Obsidian, and GitHub preview.
 
 ## Coverage rule
