@@ -53,7 +53,7 @@ $$
 ## Variations and related concepts
 
 - [[methods/sinusoidal-position-encoding]] — фиксированный синус-косинус PE, аддитивный, абсолютные позиции; работает на любой длине, но без структурной relative-зависимости.
-- [[methods/learned-absolute-position-embedding]] — обучаемая матрица $E \in \mathbb{R}^{L_\max \times d}$, аддитивная, жёсткий потолок на длину контекста.
+- [[methods/learned-absolute-position-embedding]] — обучаемая матрица $E \in \mathbb{R}^{L_{\max} \times d}$, аддитивная, жёсткий потолок на длину контекста.
 - [[ml_concepts/rotary-position-embedding]] — мультипликативный поворот $q$ и $k$, по построению относительный.
 - [[methods/rope]] — конкретный алгоритм RoPE с расписанием частот и блочно-диагональной матрицей поворота.
 - [[ml_concepts/self-attention]] — слой, в который встраивается позиционная информация.

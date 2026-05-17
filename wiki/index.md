@@ -63,7 +63,7 @@ The catalog below is alphabetical by type, optimised for refresh and lookup.
 - [[methods/consistency-distillation]] — train a consistency function using one teacher solver step per pair.
 - [[methods/consistency-training]] — train a consistency function without a teacher via a same-$\epsilon$ straight-path pair.
 - [[methods/dype]] — dynamic RoPE extrapolation for diffusion: $\kappa(t)$-scaled PI/NTK/YaRN that fades to identity on late sampling steps.
-- [[methods/learned-absolute-position-embedding]] — trainable $E \in \mathbb{R}^{L_\max \times d}$ added to token embedding; hard length cap.
+- [[methods/learned-absolute-position-embedding]] — trainable $E \in \mathbb{R}^{L_{\max} \times d}$ added to token embedding; hard length cap.
 - [[methods/mean-flow]] — flow map trained to match the average velocity over $[t, s]$ via the Mean Flow Identity.
 - [[methods/multistep-consistency-model]] — split $[0, \sigma]$ into intervals and learn one consistency function per interval.
 - [[methods/ntk-aware-interpolation]] — scale RoPE base $b \to b \cdot s^{d/(d-2)}$; non-uniform compression preserves fast pairs.
