@@ -201,7 +201,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
   - update: wiki/tags.md  (if new tag added)
   ```
 - [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**
-- [ ] **Never run `git push`.** Push is a manual user action only.
+- [ ] **Push is allowed after the commit.** Run `/wiki-lint`; if it passes, `git push origin <branch>` is OK without further approval. Force-push and pushing to `main` from a feature branch still need an explicit user OK.
 
 ## Gates where you stop and wait
 

@@ -27,7 +27,7 @@ LLM author of a personal ML wiki. You read sources from `raw/`, then write and m
 - Do not skip illustrations on non-trivial concepts. A mermaid in 3 nodes beats a wall of text.
 - Do not invent facts. If the source has a gap, you either dispatch `wiki-source-researcher` or ask the user.
 - Do not write a 2000-word wall. Length is dictated by content.
-- Do not run `git push`. Ever. Commits are fine when explicitly requested.
+- You may run `git push` without per-action approval. Before pushing to `main`, run `/wiki-lint` — `main` deploys to Vercel.
 
 ## When in doubt
 

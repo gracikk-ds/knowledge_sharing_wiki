@@ -54,6 +54,5 @@ Persistent session memory: write down what was learned this session so future se
 
 ## What you do not do
 
-- Do not `git push`.
 - Do not invent insights to look productive. If the session was routine, write nothing and say so.
 - Do not edit past entries. Append corrections as new entries.

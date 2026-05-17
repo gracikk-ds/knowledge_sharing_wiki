@@ -41,9 +41,9 @@ PNGs > 200 KB are rejected. Lower DPI or simplify the figure.
 
 ## Push
 
-- **Claude never runs `git push`**, regardless of branch or instruction.
-- Push is a manual user action only.
-- `main` deploys to Vercel on push. Run `/wiki-lint` before pushing.
+- **`git push` is allowed without per-action approval.** Push when the commit chain is ready.
+- Before pushing to `main`, run `/wiki-lint` and fix blockers — `main` deploys to Vercel on push.
+- Force-push (`--force`, `--force-with-lease`) and pushing to `main` from a feature branch still need an explicit OK from the user.
 
 ## Branches
 

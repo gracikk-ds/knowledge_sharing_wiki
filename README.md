@@ -65,7 +65,7 @@ npx quartz build --serve
 
 Vercel смотрит на ветку `main`. Push в `main` = публикация. Перед push прогоняй `/wiki-lint`.
 
-**Claude никогда не делает `git push` сам.** Push — только ручное действие пользователя.
+**Claude может пушить сам** — без отдельного апрува. Force-push и пуш в `main` из feature-ветки всё ещё требуют твоего явного «ок».
 
 ## Принципы
 
@@ -73,4 +73,4 @@ Vercel смотрит на ветку `main`. Push в `main` = публикац�
 2. **Illustrate non-trivial ideas.** Mermaid, matplotlib, или вырезки из исходника с обязательной атрибуцией. AI-генерация картинок запрещена.
 3. **Russian prose, English structure.** Текст на русском, заголовки/slug/теги/frontmatter — английские. Подробности — `.claude/rules/01-language-policy.md`.
 4. **Atomic commits ≤ 300 lines.** Conventional commits с scope. Подробности — `.claude/rules/02-commit-policy.md`.
-5. **No `git push` без явного действия пользователя.** Никогда.
+5. **Push разрешён** — Claude может сам делать `git push`. Force-push и пуш в `main` из feature-ветки — только с явным «ок».

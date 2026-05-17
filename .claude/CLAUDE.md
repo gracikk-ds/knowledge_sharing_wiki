@@ -60,7 +60,7 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 2. **Illustrate non-trivial ideas.** Mermaid, matplotlib, or attributed source cut-outs. **AI image generation is forbidden** (rules/03).
 3. **Russian prose, English structure.** Body in Russian; headings, slugs, tags, frontmatter in English (rules/01).
 4. **Atomic commits ≤ 300 lines.** Conventional commits with scope (rules/02).
-5. **No `git push` without explicit user action.** Ever.
+5. **You may push.** `git push` is allowed without per-action approval. Run `/wiki-lint` before pushing to `main` — it deploys to Vercel.
 
 ## Deploy
 
