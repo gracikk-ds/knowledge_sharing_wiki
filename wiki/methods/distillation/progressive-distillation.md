@@ -6,6 +6,7 @@ created: 2026-05-15
 updated: 2026-05-15
 sources: 1
 status: stub
+needs_rewrite: true
 ---
 
 # Progressive Distillation
