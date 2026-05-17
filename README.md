@@ -14,7 +14,7 @@ wiki/               # everything the LLM writes
   ml_concepts/      # ML ideas (attention, dropout)
   math_concepts/    # math objects with step-by-step walkthroughs
   methods/          # specific algorithms (AdamW, LoRA)
-  topics/           # narrative primers across an area
+  topics/           # narrative primers across an area — entry point for a reader
   sources/          # one page per ingested document
   questions/        # open questions
   index.md          # flat catalog of all pages
@@ -42,6 +42,7 @@ Four operations, each invoked by asking Claude in plain language:
 
 ## Working on this repo
 
+- Read the wiki: start from `wiki/topics/` — these are narrative primers that walk through an area and link into the concept, method, and source pages.
 - Add a source: drop the file under the right `raw/` subdirectory, then ask Claude to ingest it.
 - Ask a question: phrase it directly — Claude reads `wiki/index.md` first, then drills into relevant pages.
 - Health-check: run `wiki-lint` every 10–20 ingests.
