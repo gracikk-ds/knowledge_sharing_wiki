@@ -1,216 +1,135 @@
 ---
 name: wiki-ingest
-description: Process a new raw source into the wiki — read it, discuss takeaways, create or update concept/method/source pages, refresh the index, append to the log. Use whenever the user wants to add a source to the wiki, says "ingest", "add this source", "process this", "file this into the wiki", or hands you a path under `raw/`.
+description: Main flow for converting a raw source into wiki pages. 8 phases with explicit gates. Triggers when the user says "ingest", "process this source", "add this article to the wiki", or hands you a path under `raw/`.
 ---
 
 # wiki-ingest
 
-Workflow for ingesting one raw source into the wiki. Read this whole skill before acting; the order matters.
+Convert one raw source into wiki pages: integration, not summarisation.
 
-The goal is **integration, not summarisation**. A good ingest revises the network of concept pages, not just adds a source page in isolation.
+## Pre-flight (Phase 1)
 
----
+Before doing anything else, read these in order:
 
-## Checklist (mirror as TodoWrite tasks)
+- [ ] Read `.claude/role.md`
+- [ ] Read `.claude/skills/_shared/page-templates.md`
+- [ ] Read `.claude/skills/_shared/russian-style.md`
+- [ ] Read `.claude/skills/_shared/illustration-policy.md`
+- [ ] Read `wiki/index.md`
+- [ ] Read `.autodoc/index.md`
 
-1. **Locate and read the source.** Confirm path under `raw/`. Read it fully. For PDFs, use the Read tool's PDF support; for long PDFs, page through in ranges.
-2. **Brief reconnaissance.** Skim `wiki/index.md` and identify which existing pages (if any) the source touches. List them mentally before reading the source again.
-3. **Discuss takeaways with the user.** Present 3–7 bullets in your own words and ask for steering before editing anything. Stop here and wait.
-4. **Plan the edits.** Decide: which concept/method pages get created, which get updated, what the source page says, what (if anything) contradicts existing content.
-5. **Apply edits in this order:** create/update concept and method pages → write the source page → update `wiki/index.md` → append a log entry.
-6. **Report what changed.** List every page touched. Surface contradictions and any newly-orphaned `[[stub-links]]` so the user can decide whether to ingest more sources or run `wiki-lint`.
+Then create a TodoWrite list with one item per remaining phase (2-8).
 
----
+## Phase 2 — Read the source
 
-## Step 1 — Locate and read the source
+- [ ] Confirm the source lives under `raw/{papers,clips,lectures,scratch}/`. If it does not, ask the user where it should live; never move files in `raw/` without permission.
+- [ ] Read the file fully. For PDFs over 10 pages, use the Read tool's `pages` parameter to page through in ranges.
+- [ ] For markdown clips with referenced images: read the markdown, identify load-bearing images (figures, plots), read those individually. Do not read all images by default.
+- [ ] Take silent notes. Do not write any wiki page yet.
+- [ ] Scan `wiki/index.md` and the relevant `wiki/ml_concepts/<top>/` or `wiki/methods/<top>/` subfolders to identify pages this source touches.
 
-- Confirm the source lives in `raw/` (papers/, clips/, scratch/, lectures/). If the user dropped a file elsewhere, move it into the right subdirectory before proceeding (or ask).
-- Read the full text. For PDFs, use the Read tool's `pages` parameter for anything over 10 pages.
-- For markdown clips or lectures that reference images on disk: read the markdown first, identify which images are load-bearing (figures, diagrams, geometric pictures, training-curve plots), then read those images individually. Don't read all images by default — only the ones whose context the prose can't carry alone. The same load-bearing images are candidates for embedding in compiled wiki pages (see "Images from sources" below).
-- Take silent notes as you read. Do not start writing wiki pages yet.
+## Phase 3 — Research a gap (optional)
 
----
+Trigger condition: the source has a gap that blocks a clear explanation (e.g., references a prior method without defining it, claims a property without proof, hints at related work).
 
-## Step 2 — Brief reconnaissance
+- [ ] If no gap, skip to Phase 4.
+- [ ] If a gap exists, dispatch the `wiki-source-researcher` agent with a narrow query:
+  ```
+  Subagent: wiki-source-researcher
+  Query: <one-sentence gap>
+  Context: <what the primary source says about it>
+  ```
+- [ ] Wait for the structured report. Keep it in context. Do **not** write the report to `raw/` automatically — the user decides.
 
-Open `wiki/index.md` and identify candidate pages the source might touch. Make a short mental list of:
+## Phase 4 — Takeaways and user approval
 
-- Concept pages that already exist and are likely to be revised.
-- Concepts mentioned in the source that **don't** have pages yet.
-- Methods (algorithms) introduced or referenced.
-- Existing claims in the wiki that this source might confirm, refine, or contradict.
-
-This costs you one extra read but prevents the most common ingest failure: writing a source page that lives in isolation and never updates the concepts.
-
----
-
-## Step 3 — Discuss takeaways with the user
-
-Present takeaways in plain prose, in your own words. Format:
+Present takeaways in this format:
 
 ```
-Source: {title} ({source_kind}, {date})
+Source: <title> (<source_kind>, <date>)
 
 Takeaways:
-- {bullet 1}
-- {bullet 2}
-...
+- <3-7 bullets in your own words; not a transcription>
 
 Likely wiki impact:
-- New: [[concept-x]], [[method-y]]
-- Update: [[concept-a]] (add ...), [[concept-b]] (refine ...)
-- Contradicts: {existing claim, if any}
+- Create: [[<new-page-path>]]
+- Update: [[<existing-page-path>]] — <one-line what changes>
+- Stub: [[<new-stub-path>]] (mentioned but not fully covered)
+- Source: [[sources/<slug>]]
 
-Anything you want me to emphasise or skip before I file this?
+Open questions:
+- <unresolved bits>
+
+Anything to emphasise or skip?
 ```
 
-**Stop and wait for the user's response.** Do not write any wiki pages in this step. The user may redirect emphasis, point out things you missed, or say "skip section X". If the user says "go", proceed to step 4.
+**Stop and wait for the user.** Do not write any page yet.
 
-If the user has explicitly asked you to work without stopping for clarifying questions, still emit the takeaways block — but immediately proceed to step 4 unless something is genuinely ambiguous.
+If the user has explicitly asked for autonomous mode, still emit the block, then proceed without waiting unless something is genuinely ambiguous.
 
----
+## Phase 5 — Write the pages
 
-## Step 4 — Plan the edits
+For each page in the plan:
 
-For each page you're about to touch, decide:
+- [ ] Pick the template from `_shared/page-templates.md` matching the `type:`.
+- [ ] Write Russian prose body, English headings/slugs/tags/frontmatter (see `rules/01`).
+- [ ] Frontmatter follows `rules/04`. Do **not** set `needs_rewrite` on new pages; clear it on pages you fully rewrite.
+- [ ] Math in LaTeX (`$...$`, `$$...$$`), never in backticks.
+- [ ] For non-trivial math, link to `[[math_concepts/...]]` instead of expanding inline.
+- [ ] Stub links to not-yet-existing pages are fine and encouraged — they queue future ingests.
 
-- **Status transition.** Stub → draft? Draft → mature? Stay put?
-- **Section impact.** Are you adding to "Motivation", revising "Formal description", adding to "Variations", or flagging in "Open questions"? On topic primers, are you extending "The setting" / "Core ideas" / "Methods that grow from these ideas"?
-- **Contradictions.** If this source disagrees with something already in the wiki, prefer one of: (a) note the disagreement in both the source page and the concept page, with attributions to each source; (b) revise the concept page if the new source is clearly more authoritative — but say so in the log. Do not silently overwrite.
-- **Stub policy.** If the source mentions ten concepts and you can't write all ten properly, write stubs for the ones you can't fill out and a full draft for the central ones. Stubs are fine; missing links are worse.
-- **Image selection.** List the source images you intend to embed and which page each lands on. Apply the policy in "Images from sources" below; if you read an image earlier but it doesn't carry weight on any wiki page, drop it now.
+Edit order: concept/method pages first → source page next → `wiki/index.md` after all pages are stable → `wiki/log.md` last.
 
-Write the plan as a short list before editing. You can keep this in your working memory; no need to share it with the user unless the user asked to preview changes.
+## Phase 6 — Illustrations
 
----
+For each non-trivial concept on each page just written, apply the chooser from `_shared/illustration-policy.md`:
 
-## Step 5 — Apply edits
+- [ ] For each concept: mermaid / matplotlib / source cut-out / file a question page.
+- [ ] Mermaid: inline in markdown, ≤ 12 nodes, no math in node labels.
+- [ ] Matplotlib: write `.py` and run it to produce `.png` at `publish/static/figures/<page-slug>/`. Commit both. PNG ≤ 200 KB.
+- [ ] Source cut-out: save under same path with `source-cut-` prefix and write attribution caption.
+- [ ] Add the figure reference and caption to the page.
 
-**Order matters.** Do concept/method pages first, source page second, index third, log last. This way the source page can reference its real impact, and the log entry can list every page actually touched.
+Run the illustration checklist in `_shared/illustration-policy.md` for each page.
 
-### 5a. Create / update concept and method pages
+## Phase 7 — Self-check (Russian style + content)
 
-Follow the templates in `CLAUDE.md`. For each page:
+- [ ] Re-read `_shared/russian-style.md`.
+- [ ] For each page, run the checklist at the end of that file (banned constructions, AI-speak, marketing epithets, calque anglicisms).
+- [ ] Verify every claim is sourced or marked as an open question.
+- [ ] Verify illustrations are attached to text (no floating images).
+- [ ] Fix all findings inline.
 
-- If creating: full frontmatter, all standard sections (even if some are short or empty).
-- If updating: bump `updated` to today's date, increment `sources` if you added a new citation, bump `status` if appropriate, then edit the relevant sections.
-- Maintain alphabetical or thematic order within sections (e.g., "Variations and related concepts" usually reads in order of relatedness, not alphabetical).
-- Every claim that came from this source must cite back to it via `[[sources/{slug}]]`.
-- Embed load-bearing images from the source where they illustrate the concept. See "Images from sources" for the policy and format.
+## Phase 8 — Bookkeeping and commit proposal
 
-### 5b. Write the source page
+- [ ] Update `wiki/index.md` with new entries (or revised one-line summaries).
+- [ ] Append to `wiki/log.md`:
+  ```
+  ## [YYYY-MM-DD] ingest | <source title>
 
-Use the source-page template in `CLAUDE.md`. Required:
+  - **What:** <one-line>
+  - **Pages touched:** [[<page-a>]], [[<page-b>]], ...
+  - **Notes:** <open questions, contradictions, anything to revisit>
+  ```
+- [ ] Report to the user: list of touched files, new stubs, contradictions with existing content.
+- [ ] Suggest `/wiki-lint` if frontmatter was edited.
+- [ ] Propose an atomic commit (≤ 300 lines):
+  ```
+  feat(wiki): ingest <source> — <short-desc>
 
-- `source_path` pointing to the raw file.
-- `source_kind`, `source_date`, `ingested` (today).
-- "Concepts touched" lists every concept page you edited, with one-line descriptions of what the source contributed.
-- "Contradictions and revisions" section — even if it just says "none".
+  - new: <path-a>
+  - new: <path-b>
+  - update: <path-c>
+  - figures: publish/static/figures/<slug>/{<file>.py,<file>.png}
+  ```
+- [ ] **Never run `git push`.** Wait for the user to push manually.
 
-### 5c. Update `wiki/index.md`
+## Gates where you stop and wait
 
-- Add new pages to their type sections.
-- Update one-line summaries for any page whose summary changed.
-- Bump the `_Last updated: YYYY-MM-DD_` line.
-- Keep alphabetical order within each section.
+| Phase | Wait for |
+|---|---|
+| 4 | User OK on takeaways before writing |
+| 7 | (Optional `--review` mode) — diff of pages before commit |
+| 8 | User OK on commit message before `git commit` |
 
-### 5d. Append to `wiki/log.md`
-
-Use this exact heading format (the leading `##` and the bracketed date make the log grep-friendly):
-
-```markdown
-## [YYYY-MM-DD] ingest | {short source title}
-
-- **What:** {one-line description of the source}
-- **Pages touched:** [[a]], [[b]], [[c]]
-- **Notes:** {contradictions, questions raised, things to revisit; omit if none}
-```
-
----
-
-## Step 6 — Report what changed
-
-After the writes complete, post a concise summary to the user:
-
-```
-Ingested: {title}
-
-Wrote:
-- [[a]] (new, draft)
-- [[b]] (updated, +1 source)
-- [[sources/{slug}]] (new)
-
-Stubs created (good ingest targets next):
-- [[c]], [[d]]
-
-Open questions surfaced:
-- [[questions/...]]
-
-Log entry: [YYYY-MM-DD] ingest | {short title}
-```
-
-Do **not** include a "what I learned" summary at this point — that lives on the source page now, where it belongs.
-
----
-
-## Images from sources
-
-Raw sources often carry diagrams, geometric pictures, training-curve plots, and architecture sketches that prose cannot replace. Embed them in the compiled wiki pages when they pull weight. The wiki is an Obsidian vault rooted at `ml_notes/`, so `raw/` images are addressable from `wiki/` pages via vault-relative wiki-links.
-
-### When to embed
-
-Embed an image when it carries information the prose cannot economically reconstruct:
-
-- A geometric picture for a rotation, projection, manifold, or flow.
-- An architecture diagram showing how blocks connect.
-- A plot of empirical behaviour (loss curves, ablations, scaling).
-- A schematic of a sampling trajectory, attention pattern, or data flow.
-
-### When not to embed
-
-Skip and re-author instead:
-
-- Screenshots of equations — re-render the math in LaTeX (`$...$`, `$$...$$`). The wiki must stay text-searchable and theme-consistent.
-- Screenshots of code — re-write as a fenced code block.
-- Decorative or marketing imagery, paper title pages, author photos, logos.
-- Images that just restate what an adjacent paragraph already says clearly.
-- Anything illegible (small text, low resolution) — describe it instead, or link the source for the curious reader.
-
-### How to reference
-
-Use Obsidian wiki-link embeds with a **vault-relative path**, not the bare filename. Raw image filenames are often generic (`image.png`, `image 2.png`) and collide across sources; the explicit path keeps the reference unambiguous when the vault grows.
-
-```markdown
-![[raw/lectures/rope/images/image 2.png]]
-*Projection of $X$ onto the $x_1$- and $x_2$-axes.*
-```
-
-A short italicised caption goes on the line directly under the embed when the surrounding prose doesn't already name what the reader is looking at. Caption is in Russian on Russian-prose pages, English on English ones — same rule as the rest of the body.
-
-Place the embed inline at the moment the prose first refers to what it shows, not in a separate "Figures" appendix. If you find yourself wanting an appendix, the page probably needs restructuring instead.
-
-### Source pages and images
-
-The source page (`wiki/sources/...`) may also embed images when a figure is itself one of the takeaways — for example, a flagship diagram the source is known for. Treat it the same way: vault-relative path, short caption, only when it adds something.
-
-### Raw paths are stable, but…
-
-Do not rename, move, or delete files under `raw/` to "tidy up" image references. `raw/` is immutable (see `CLAUDE.md`). If a path is awkward, live with it; if a source is reorganised by the user, fix the wiki references in a follow-up edit.
-
----
-
-## Edge cases
-
-- **The source is already in the wiki.** Check the `sources/` directory before reading. If a source page already exists, ask the user whether to re-ingest (overwrite), incrementally extend, or skip.
-- **The source is too long for one pass.** Ingest chapter-by-chapter or section-by-section, each as its own ingest with its own log entry. Use distinct source-page slugs (`textbook-ch3`, `textbook-ch4`).
-- **The source is mostly noise.** Some scratch notes are 90% half-formed. Be selective: ingest what's actually new or clarifying; skip the rest. Say so on the source page.
-- **The source contradicts an existing `mature` page.** Don't downgrade silently. Note the contradiction in both pages and consider opening a `[[questions/...]]` page.
-- **The source is empty / a thin abstract.** File a stub source page with what little you can extract, but don't update concept pages on thin evidence.
-
----
-
-## What this skill is NOT
-
-- Not a query workflow. If the user asks "what does the wiki say about X" without handing you a source, use `wiki-query` instead.
-- Not a lint workflow. If you discover lots of orphan stubs or contradictions across the wiki during ingest, surface them and suggest `wiki-lint` rather than fixing them in this session.
-- Not a chat. The user wants the wiki to compound. Every ingest should leave the wiki measurably richer, not just longer.
+In autonomous mode (user said "work without stopping"): phase 4 still emits takeaways but does not wait; phases 7-8 proceed without confirmation.
