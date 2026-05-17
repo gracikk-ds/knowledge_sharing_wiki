@@ -1,309 +1,166 @@
 # Page Templates
 
-Read this in `wiki-ingest` phase 5. Pick the template matching the page `type:`.
+Read this in `wiki-ingest` phase 5. The wiki has **one canonical template** — Template A (Motivation-first) — used for every paper, lecture, and clip breakdown. Knowledge sharings use a variant with extra frontmatter fields and one optional section. All cross-cutting writing rules (term introduction, formula annotation, code-formula bridge) at the end apply to every template.
 
-## ML concept page (`type: ml_concept`)
+---
 
-When to use: an ML idea that exists independently of any single algorithm — attention, dropout, residual connection. The page belongs in `wiki/ml_concepts/<slug>.md`.
+## Template A — Source breakdown (paper / lecture / clip)
+
+The page belongs in `wiki/{papers,lectures,clips}/<slug>.md` per the slug rules in `rules/04-frontmatter-schema.md`.
 
 ```markdown
 ---
-{frontmatter}
+title: <Plain title in English>
+source_kind: paper | lecture | clip
+source_path: raw/<kind>/<file>
+source_date: YYYY-MM-DD
+ingested: YYYY-MM-DD
+authors: [<First Last>, ...]
+tags: [<tag1>, <tag2>, ...]
+status: stub | draft | mature
 ---
 
-# {Title}
+# {Plain title}
 
-> {few-sentence definition — crisp, no hedging. This is the entry for refresh-mode reading.}
+> {TL;DR — 1-3 sentences in Russian. What the source shows, in plain language.
+> The reader knows in 5 seconds: relevant to me or not.}
 
-## Motivation
+## Мотивация
 
-{2–4 paragraphs in motivated build-up voice: name what we want, name the naive
-thing, name why it fails, name the workaround this concept introduces. Direct
-prose, no Q&A markers, no metaphors. Math when it clarifies.}
+{2-4 paragraphs of motivated build-up:
+1. What we want (from positional encoding, attention, training, etc.).
+2. The naive or previous approach.
+3. Why it fails — concretely, what's the failure mode.
+4. What this source proposes, in one sentence (no details yet).}
 
-## Formal description
+## Идея в одной картинке
 
-{math, pseudocode, or precise prose. Use LaTeX-style $...$ and $$...$$. For
-non-trivial math, link out to [[math_concepts/...]] instead of expanding it
-inline.}
+{One figure — mermaid diagram or matplotlib PNG. The single most important
+visualisation. Under it: caption + one paragraph of commentary explaining
+what the figure shows and why it is the key.}
 
-## Variations and related concepts
+## Как это работает
 
-- [[ml_concepts/other-concept]] — {one-line relationship}
-- [[methods/some-method]] — {how this method instantiates the concept}
-- [[math_concepts/some-math]] — {the math underneath}
+{Details. Subsections are dictated by content. Typical subsections below.}
 
-## Open questions
+### Математика
 
-- [[questions/some-open-question]]
-- {or inline if you haven't filed the question as its own page yet}
+{Formulas in LaTeX (`$...$`, `$$...$$`). Each non-trivial formula is followed
+by a `где: ...` list explaining every symbol.}
 
-## Sources
+### Pseudocode / Python
 
-- [[sources/source-page-a]] — {what this source contributed}
-- [[sources/source-page-b]] — {what this source contributed}
+{3-6 lines per snippet. Variable names in English, comments in Russian.}
 
-## Up next
+### Иллюстрация второго порядка
 
-- [[wiki-link]] — {one-line "why this is the natural next step for a reader studying this area"}
+{Optional — if there are detail diagrams beyond the «Идея в одной картинке».}
+
+## Вывод
+
+{1-3 sentences. What the reader takes away after reading «Как это работает».
+Not a repeat of TL;DR — by now the reader understands *why*.}
+
+## Источник
+
+- **`{source_path}`** ({source_kind}, {source_date})
+- URL: {arxiv / DOI / blog link}
+- Authors: {First Last et al.}
 ```
 
-## Math concept page (`type: math_concept`)
-
-When to use: a math object used in ML — KL divergence, softmax, rotation matrix. Walk every step. The page belongs in `wiki/math_concepts/<slug>.md` (flat).
-
-The math template differs from the ML template: more careful exposition, fewer shortcuts. The reader struggles with dense math, so unpack every step.
+### Optional sections (insert between «Как это работает» and «Вывод»)
 
 ```markdown
----
-{frontmatter}
----
+## Результаты
 
-# {Title}
+{Papers with empirics only. 3-7 bullets with concrete numbers and benchmark
+names. No vague «significant improvement» — specifics mandatory.}
 
-> {few-sentence definition — what this math object computes, asserts, or measures}
+## Сравнение с альтернативами
 
-## Plain-English statement
+{2-4 bullets. Each: «X differs from <related method> in that …».}
 
-{What this is, in words. When the math object has a clean motivating story —
-what we want, what naive approach fails, how this object solves it — open
-with that build-up arc. For pure-math objects without such an arc, just unpack the definition.
-Math notation OK, but introduce each symbol when it first appears. Don't drop into formulas
-without naming the variables.}
+## Ограничения
 
-## Step-by-step
+{Critical view: what the source omits, where it breaks, what it was not
+tested on. This is the author-of-breakdown's section, not a retelling.}
 
-{Walk through the math without compression. Show every intermediate step. If a
-step uses another math object, link to it: [[math_concepts/x]]. Tell the
-reader what each line does and why — not just what it equals.}
+## Открытые вопросы
 
-## Worked example
+- {Unresolved threads after reading.}
+- {Experiments worth running.}
 
-{One concrete numerical example with small numbers. Compute end-to-end so the
-reader can verify by hand. For multi-dim objects, show the shapes at each step.}
+## Связанные разборы
 
-## Where it shows up in ML
-
-- [[ml_concepts/...]] — {how this math object is used in ML}
-- [[methods/...]] — {methods that rely on it}
-
-## Common pitfalls
-
-- {index confusions, sign errors, off-by-one mistakes, dimension mismatches,
-  base of log, etc.}
-
-## Sources
-
-- [[sources/...]]
+- [[papers/<other-slug>]] — {one-line: why related}
+- [[lectures/<other-slug>]] — {one-line}
 ```
 
-## Method page (`type: method`)
+**If an optional section has no content — it is absent**, not left as an empty header.
 
-When to use: a specific algorithm or technique — AdamW, FlashAttention, LoRA. The page belongs in `wiki/methods/<slug>.md`.
+---
+
+## Template B — Knowledge sharing variant
+
+Same shape as Template A, with these deltas:
+
+**Frontmatter:** replace `authors:` with `presenter:`, add optional `audience:` and `slides:`.
+
+```yaml
+---
+title: <KS topic>
+source_kind: knowledge-sharing
+source_path: raw/knowledge-sharings/<file>
+source_date: YYYY-MM-DD                      # date of the meeting
+ingested: YYYY-MM-DD
+presenter: <First Last>
+audience: <team | internal | public>         # optional
+slides: <URL or relative path>               # optional
+tags: [<tag1>, ...]
+status: stub | draft | mature
+---
+```
+
+**Additional optional section** (insert before «Открытые вопросы»):
 
 ```markdown
----
-{frontmatter}
----
+## Q&A и обсуждение
 
-# {Title}
-
-> {few-sentence summary: what problem this method solves and how}
-
-## Motivation
-
-{2–4 paragraphs in motivated build-up voice: what we want this method to do,
-what the naive or previous approach fails at, how this method's design
-addresses that. Direct prose, no Q&A markers, no metaphors.}
-
-## Problem setting
-
-{when this method applies; what assumptions it makes}
-
-## Algorithm
-
-{pseudocode or explicit equations. Be precise about indices, shapes, and
-hyperparameters.}
-
-## Why it works
-
-{the underlying concept(s) it leverages, with [[wiki-links]] to concept pages}
-
-## Properties
-
-- Complexity: {time / memory}
-- Hyperparameters: {what to tune, sensible defaults}
-- Failure modes: {when it breaks}
-
-## Variants and successors
-
-- [[related-method]] — {one-line delta}
-
-## Sources
-
-- [[sources/...]]
-
-## Up next
-
-- [[methods/successor-or-related-method]] — {what it adds over this one}
-- [[topics/parent-topic]] — {how to see this method in the wider area}
+- {Notable question + the answer / discussion that followed}
+- {...}
 ```
 
-## Topic page (`type: topic`)
-
-When to use: a narrative primer for a whole area — Optimization, Regularization, Attention Variants. The page belongs in `wiki/topics/<slug>.md` (flat).
-
-Topic pages are *primers*: narrative entry points that walk a reader through an area in motivated build-up voice, with inline links into the reference layer. They are not link maps — the story is in the prose, and reading order is woven into it. The numbered "Reading order (recap)" at the bottom is for scanability only.
-
-```markdown
----
-{frontmatter}
----
-
-# {Title}
-
-> {few-sentence framing of the area}
-
-## The setting
-
-{2–4 paragraphs in build-up voice: the problem this area addresses, what makes
-it hard, what class of techniques shows up. This is the entry into the story,
-not a "scope" disclaimer.}
-
-## Core ideas
-
-{Narrative through the concept pages of the area in reading order. Each
-concept is introduced inline with `[[ml_concepts/foo]]` or
-`[[math_concepts/foo]]`; the transitions between them explain why one leads to
-the next. Build-up voice. Reading order is woven into prose, not stated as a
-list here.}
-
-## Methods that grow from these ideas
-
-{Narrative through method pages in reading order, with `[[methods/...]]`
-inline. Each method gets a one-paragraph sketch of what it does and what it
-adds over the previous one.}
-
-## Open threads
-
-- {unresolved questions, what to ingest next; bullets are fine here}
-
-## Reading order (recap)
-
-1. [[ml_concepts/...]]
-2. [[ml_concepts/...]]
-3. [[methods/...]]
-...
-
-## Reading queue
-
-- {sources to ingest next, even if not yet in raw/}
-```
-
-Target length: ~500–1200 words; expand when justified by content. No hard cap.
-
-## Source page (`type: source`)
-
-When to use: every ingested raw source gets one. The page belongs in `wiki/sources/<slug>.md` (flat).
-
-```markdown
----
-{frontmatter with source_path, source_kind, source_date, ingested}
----
-
-# {Title}
-
-> {few-sentence "what this source is and why it mattered"}
-
-## Key takeaways
-
-- {3–7 bullets, in your own words. Not a transcription of the source.}
-
-## Concepts touched
-
-- [[ml_concepts/concept-a]] — {how the source addressed it: new info, confirmation, contradiction, refinement}
-- [[math_concepts/concept-b]] — {…}
-
-## Contradictions and revisions
-
-{Did this source disagree with anything already in the wiki? Note it. This
-section can be empty.}
-
-## Questions raised
-
-- [[questions/...]]
-
-## Pointer back to raw
-
-`{source_path}`
-```
-
-## Question page (`type: question`)
-
-When to use: an open question that hasn't been resolved. The page belongs in `wiki/questions/<slug>.md` (flat).
-
-```markdown
----
-{frontmatter; status starts as `stub`, flips to `mature` when resolved}
----
-
-# {The question, phrased clearly}
-
-## Why it matters
-
-{1–3 sentences}
-
-## What we know so far
-
-- {bullets summarising current state — link to concepts/sources}
-
-## What would resolve it
-
-- {experiment, paper to find, derivation to attempt}
-
-## Related
-
-- [[ml_concepts/...]] or [[math_concepts/...]]
-- [[sources/...]]
-```
-
-## Common conventions across all templates
-
-- All frontmatter follows `rules/04-frontmatter-schema.md`.
-- Prose body is Russian; headings, slugs, frontmatter values are English (`rules/01-language-policy.md`).
-- Math in LaTeX, never in backticks (this carries over from existing CLAUDE.md guidance).
-- `[[wiki-link]]` syntax for internal references.
-- Page length: as long as needed, no longer. Soft target 200-1000 lines body; hard split at ~750 if a natural sub-concept emerges.
+Everything else (required sections, cross-cutting rules) is identical to Template A.
 
 ---
 
-## Term introduction (every page)
+## Cross-cutting rules (apply to every template)
 
-Every technical term gets a **one-line definition + everyday analogy** on its first mention. After that, use the term plainly.
+### Term introduction (first mention)
 
-**Format:**
+Every technical term gets a **one-line definition + everyday analogy** on its first mention. After that, the term is used plainly.
+
+Format:
 
 > **`<термин>`** (`<English original>`, if relevant) — это `<plain Russian definition>`. Можно представить как `<everyday-life analogy>`: `<one or two strokes of concrete detail>`.
 
-**Rules:**
+Rules:
 
-- **Bold** on the term at first mention.
+- **Bold** the term at first mention.
 - One short sentence of plain-Russian definition right after the bold.
-- One analogy from everyday adult life (post office, library, customs, train timetable, lab notebook, electric kettle, restaurant ticket). Avoid analogies that themselves need analogies ("это как middleware" — fails if reader doesn't know middleware).
+- One analogy from everyday adult life (post office, library, customs, train timetable, electric kettle). Avoid analogies that themselves need analogies (don't say «это как middleware» if the reader doesn't know middleware).
 - After first mention, use plain. No re-definition further down the page.
-- Applies to: ML terms, math objects, dataset names (Telco Churn, MNIST), magic numbers in code (`random_state=42`, `test_size=0.2`) on first appearance.
+- Applies to ML terms, math objects, dataset names (Telco Churn, MNIST), magic numbers in code (`random_state=42`, `test_size=0.2`) on first appearance.
 
-**Example:**
+Example:
 
-> **Attention sink** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех headах. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
+> **Attention sink** — это феномен, когда несколько позиций (обычно первый токен или знаки препинания) собирают на себя непропорционально большой attention-вес почти во всех heads. Можно представить как **общая корзина «прочее»** в магазинной выкладке: товары, которые никуда не подошли, скапливаются в одном месте — но не потому что они особенно важны, а потому что больше некуда положить.
 
----
+### Formula symbol annotation (`где: ...`)
 
-## Formula symbol annotation (math pages and any prose with math)
+Every non-trivial formula is followed by a `где: ...` list explaining each symbol. No exceptions.
 
-Every formula is followed by a **`где: …` list** explaining each symbol. No exceptions.
-
-**Format:**
+Format:
 
 > $\hat{y} = w_1 x_1 + w_2 x_2 + \ldots + w_n x_n + b$
 >
@@ -314,20 +171,18 @@ Every formula is followed by a **`где: …` list** explaining each symbol. No
 > - $b$ — свободный член (intercept), смещение по вертикали
 > - $n$ — количество признаков
 
-**Rules:**
+Rules:
 
 - Applies to LaTeX block formulas (`$$…$$`) and to inline formulas with non-trivial symbols (Σ, ∫, σ, α, β, ∇, indexed sums).
 - Naked arithmetic (`x = 5 + 3`) — no `где` needed.
-- If a Greek letter is used, name it once on first appearance: «$\alpha$ — альфа, темп обучения».
-- For indexed sums, state the index range: «$i$ пробегает от $1$ до $n$».
+- If a Greek letter is used, name it once: «$\alpha$ — альфа, темп обучения».
+- For indexed sums, state the index range.
 
----
+### Code-formula bridge
 
-## Code-formula bridge (non-trivial math gets a snippet)
+Non-trivial math gets a short Python or pseudocode snippet (3-6 lines) that turns the formula into runnable code. Applies to loss functions, gradient computation, sigmoid / softmax, entropy / Gini, metric definitions.
 
-Any non-trivial math concept gets a short Python or pseudocode snippet (3-6 lines) that turns the formula into runnable code. Applies to loss functions, gradient computation, sigmoid / softmax, entropy / Gini, metric definitions.
-
-**Example:**
+Example:
 
 ```python
 # MSE — средний квадрат ошибки
@@ -339,9 +194,17 @@ def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 ```
 
-**Rules:**
+Rules:
 
-- One concept = one snippet. Don't stuff loss + gradient + update into one block.
-- Pseudocode is allowed when full Python distracts from the idea.
+- One concept = one snippet. No stuffing loss + gradient + update into one block.
+- Pseudocode is fine when full Python distracts from the idea.
 - Variable names in English, comments in Russian (`rules/01` and `write-russian` §9.3).
-- Code blocks ≤ 10 lines by default. Longer only when the structure itself is the point.
+- Code blocks ≤ 10 lines by default.
+
+### Other conventions
+
+- All frontmatter follows `rules/04-frontmatter-schema.md`.
+- Prose body is Russian; headings, slugs, frontmatter values are English (`rules/01-language-policy.md`).
+- `[[wiki-link]]` syntax for internal references; the link path is `<kind>/<slug>` (e.g., `[[papers/su-2021-roformer]]`).
+- No marketing voice, no AI-speak, no faux-warmth. Run the `write-russian` editing checklist before commit (`rules/01-language-policy.md` lists the banned phrases inline).
+- Page length: dictated by content, no hard target. Long lectures may need 1500+ words; a short clip may fit in 400.
