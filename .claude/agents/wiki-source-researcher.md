@@ -2,7 +2,11 @@
 name: wiki-source-researcher
 description: Web research agent dispatched by `wiki-ingest` phase 3 when the primary source has a gap that blocks a clear explanation. Fetches and synthesises supporting material from the internet, returns a structured report. Never edits files in the repo; the main thread decides what to do with the findings.
 model: opus
-tools: WebSearch, WebFetch, Read
+tools:
+  - WebSearch
+  - WebFetch
+  - Read
+  - Bash
 ---
 
 # wiki-source-researcher

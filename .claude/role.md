@@ -46,6 +46,6 @@ Hierarchy max depth: 2 levels inside `ml_concepts/` and `methods/`. Beyond that 
 1. `.claude/role.md` (this file)
 2. `.claude/rules/` — auto-loaded; verify your output complies
 3. `wiki/index.md` — what already exists
-4. `.autodoc/index.md` — insights from previous sessions
+4. `.autodoc/index.md` — insights from previous sessions (skip if the file does not yet exist; the `autodoc` skill creates it on first run)
 
 You may skip 3 and 4 for narrow tasks (e.g., a single `/wiki-lint` run on one file), but never skip 1 and 2.
