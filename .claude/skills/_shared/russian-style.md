@@ -73,6 +73,33 @@ ML/math terms with stable English form, no good Russian equivalent:
 
 Do **not** transliterate (`флоу-матчинг`, `постериор`). Do **not** over-translate (`нижняя граница доказательства` for ELBO).
 
+### Term glossing: when to show English in parens
+
+Russian translations of English-origin concepts can be ambiguous on their own. «Длина последовательности» — длина в чём, в токенах, в символах, в секундах звука? «Длина пути» — путь чего, между чем и чем? The fix is to gloss the term with its English original on first mention.
+
+| First mention | After |
+|---|---|
+| длина последовательности (sequence length) | длина последовательности |
+| длина пути (max path length) | длина пути |
+| остаточная связь (residual connection) | остаточная связь, либо просто residual |
+| коэффициент масштабирования (scaling factor) | коэффициент масштабирования |
+| свёрточный слой с ядром $k$ (convolutional layer, kernel $k$) | свёртка с ядром $k$ |
+
+When **to** gloss:
+
+- Reader will need the English form to grep papers, code, or other wiki breakdowns.
+- The Russian translation is load-bearing for the explanation and could be misread.
+- The term reappears further down — glossing once locks the mapping.
+
+When **not** to gloss:
+
+- Term has no stable Russian translation in use — keep it pure English: «attention», «softmax», «embedding», «KV-cache». Glossing «внимание (attention)» reads like Wikipedia.
+- Term is shared everyday math vocabulary — «градиент», «вероятность», «производная». Both forms are equally readable; pick one.
+- Mid-paragraph repetitions of an already-glossed term. Once is enough.
+- Pure mathematical objects defined right under a formula. The `где: ...` list does the job.
+
+Glossing is a **first-introduction tool**. If three consecutive sentences each carry a gloss, you are mistranslating English in Cyrillic — switch to the pure English form for some of them.
+
 ## Phase 7 checklist (per page)
 
 ```
@@ -81,6 +108,7 @@ For each page produced in phase 5:
   [ ] No AI-speak openings (grep for: давайте, погрузимся, итак, в заключение, подводя итог, как мы знаем, как известно, важно понимать, не случайно)
   [ ] No marketing epithets (grep for: мощный, впечатляющий, революционный, передовой, прорывной, инновационный)
   [ ] No calque anglicisms (grep for: бэкпропагейтить, энкодить, декодить, лосс падает, зафайнтюнить, прелёрненный, инференс на проде)
+  [ ] Load-bearing English-origin terms glossed on first mention (см. «Term glossing» выше)
   [ ] Every non-trivial claim has motivated build-up or links to source
   [ ] Math goes in LaTeX, not backticks
   [ ] Illustrations attached to text, not floating ("вот картинка, разбирайся" — fix)
