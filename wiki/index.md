@@ -40,10 +40,12 @@ _Last updated: 2026-05-18_
 
 ## Recent ingests (last 10)
 
+- 2026-05-18 — [[papers/qwen-team-2025-qwen-image]] — 20B MMDiT-foundation для T2I + editing; MSRoPE и dual-encoding; 97.29% Level-1 Chinese characters, 3-е место на AI Arena.
 - 2026-05-18 — [[papers/vaswani-2017-attention-is-all-you-need]] — Transformer: seq2seq без рекуррентности, только attention; 28.4 BLEU на WMT'14 EN-DE за 3.5 дня на 8 P100.
 
 ## Papers
 
+- [[papers/qwen-team-2025-qwen-image]] — Qwen Team, 2025 — T2I/editing foundation с упором на text rendering, MSRoPE, flow matching + DPO/GRPO.
 - [[papers/vaswani-2017-attention-is-all-you-need]] — Vaswani et al., 2017 — Transformer.
 
 ## Lectures
@@ -63,9 +65,13 @@ _Last updated: 2026-05-18_
 Подробные определения тегов — в [[tags]]. Quartz автоматически собирает `/tags/<slug>` из frontmatter.
 
 - **attention** — [[papers/vaswani-2017-attention-is-all-you-need]]
-- **positional-encoding** — [[papers/vaswani-2017-attention-is-all-you-need]]
+- **positional-encoding** — [[papers/vaswani-2017-attention-is-all-you-need]], [[papers/qwen-team-2025-qwen-image]]
 - **normalization** — [[papers/vaswani-2017-attention-is-all-you-need]]
 - **regularization** — [[papers/vaswani-2017-attention-is-all-you-need]]
 - **training-dynamics** — [[papers/vaswani-2017-attention-is-all-you-need]]
-- **transformer-architecture** — [[papers/vaswani-2017-attention-is-all-you-need]]
+- **transformer-architecture** — [[papers/vaswani-2017-attention-is-all-you-need]], [[papers/qwen-team-2025-qwen-image]]
 - **machine-translation** — [[papers/vaswani-2017-attention-is-all-you-need]]
+- **generative-models** — [[papers/qwen-team-2025-qwen-image]]
+- **diffusion** — [[papers/qwen-team-2025-qwen-image]]
+- **flow-matching** — [[papers/qwen-team-2025-qwen-image]]
+- **text-to-image** — [[papers/qwen-team-2025-qwen-image]]

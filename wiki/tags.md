@@ -5,7 +5,7 @@ ingested: 2026-05-18
 
 # Tag Registry
 
-_Last updated: 2026-05-18_
+_Last updated: 2026-05-18_ _(added: text-to-image)_
 
 Master tag registry. Every tag used on any wiki page must be defined here first. Quartz builds `/tags/<tag>` pages automatically from frontmatter — this file is the human-readable hub that says what each tag means and links to the auto-generated index.
 
@@ -138,3 +138,11 @@ Loss landscape, gradient flow, scaling laws, learning rate dynamics, mode collap
 NMT, BLEU, parallel corpora, beam search для перевода, BPE для пары языков. Применимо к работам, где машинный перевод — основной бенчмарк или область применения.
 
 [Все разборы →](/tags/machine-translation)
+
+## text-to-image
+
+**Slug:** `text-to-image`
+
+Задача и семейство моделей, генерирующих изображения по текстовому промпту (T2I): SD-серия, FLUX, Imagen, DALL·E, Seedream, Qwen-Image. Не путать с image-editing (TI2I) и с multimodal-understanding (картинка → текст).
+
+[Все разборы →](/tags/text-to-image)
