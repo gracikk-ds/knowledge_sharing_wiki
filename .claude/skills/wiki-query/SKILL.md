@@ -6,7 +6,7 @@ description: Answer a question against the wiki — read the index, drill into r
 ## Pre-flight
 
 - [ ] Read `.claude/role.md`
-- [ ] Read `wiki/index.md`
+- [ ] Read `wiki/index.md` — the by-tag section is the entry point for concept queries.
 
 # wiki-query
 
@@ -17,12 +17,11 @@ Workflow for answering a question against the wiki. The key idea: **good answers
 ## Checklist (mirror as TodoWrite tasks)
 
 1. **Restate the question.** One sentence, in your own words, so any ambiguity surfaces before you go searching.
-2. **Read `wiki/index.md`.** Pick candidate pages by skimming the one-line summaries.
-3. **Drill into candidate pages.** Read the relevant concept / method / topic / source pages in full.
-4. **Detect gaps.** Note any concepts the question depends on that don't have pages yet — these become candidate ingests or stubs.
-5. **Synthesize the answer.** Cite by `[[wiki-link]]`. Distinguish what's in the wiki from what you're inferring.
-6. **Decide on filing.** If the answer is substantive and reusable, propose filing it back into the wiki. Otherwise skip and just append a log entry.
-7. **Append a log entry** for the query (one-liner — even if you didn't file a page).
+2. **Run the search strategy** (see Search strategy section below).
+3. **Detect gaps.** Note any concepts the question depends on that don't have pages yet — these become candidate ingests or stubs.
+4. **Synthesize the answer.** Cite by `[[wiki-link]]`. Distinguish what's in the wiki from what you're inferring.
+5. **Decide on filing.** If the answer is substantive and reusable, propose filing it back into the wiki. Otherwise skip and just append a log entry.
+6. **Append a log entry** for the query (one-liner — even if you didn't file a page).
 
 ---
 
@@ -37,27 +36,19 @@ If the restated question is ambiguous in a load-bearing way, ask one clarifying 
 
 ---
 
-## Step 2 — Read the index
+## Search strategy
 
-Open `wiki/index.md`. Read every line. Mentally tag candidates:
-
-- Direct hits: pages whose one-line summary matches the question.
-- Indirect hits: pages that are likely to be linked from the direct hits.
-- Open questions: any `questions/` pages that overlap.
-
-Keep the candidate list short (5–10 pages). If the candidate list explodes, the question is probably too broad — narrow it before drilling.
-
----
-
-## Step 3 — Drill in
-
-Read each candidate page in full. Follow `[[wiki-links]]` when a page references a concept central to the question. Stop expanding once you have enough material to answer; don't fan out to the whole graph.
+1. **Parse the question** — identify the concept(s) the user is asking about (e.g., "How does RoPE handle long contexts?" → concept = `positional-encoding`, secondary = `attention`).
+2. **Match tags** — open `wiki/index.md`, find the «By tag» section, locate the line for the relevant tag(s). It lists every breakdown that mentions the concept.
+3. **Read relevant breakdowns** — open the matching `wiki/<kind>/<slug>.md` pages in priority order: papers that introduce the concept first, then lectures, then clips, then knowledge-sharings.
+4. **Synthesize the answer** — combine findings across pages, cite each claim with `[[<kind>/<slug>]]`. State which page contributed which piece. If sources disagree, note both positions with attribution.
+5. **Suggest next reads** — if the user might benefit from a related concept, end with «Если хочешь глубже — см. [[<related-page>]]».
 
 Skim `wiki/log.md` if you want recent context — e.g., what was last ingested on this topic, or what's been flagged as contradictory.
 
 ---
 
-## Step 4 — Detect gaps
+## Step 3 — Detect gaps
 
 As you drill, you'll usually find one of three states:
 
@@ -74,7 +65,7 @@ When the wiki has gaps:
 
 ---
 
-## Step 5 — Synthesize
+## Step 4 — Synthesize
 
 Write the answer for the user. Follow the same quality bar as wiki pages:
 
@@ -94,7 +85,7 @@ Use LaTeX for math (`$...$`, `$$...$$`).
 
 ---
 
-## Step 6 — Decide on filing
+## Step 5 — Decide on filing
 
 Ask yourself: would this answer be useful to find again? Will future questions reference it? If yes, propose filing it.
 
@@ -113,11 +104,11 @@ Weak / skip candidates:
 
 If filing:
 
-- Choose the page type: usually `concept` (for new ideas), `topic` (for cross-cutting syntheses), or update an existing page (when the answer belongs as a new section there).
-- Use the standard templates and frontmatter from `CLAUDE.md`.
-- Update `wiki/index.md`.
-- Reference the original sources via `[[sources/...]]` links.
-- Note in the new page that it was created from a query (don't bury this — future you wants to know).
+- Choose the right target: usually extend an existing breakdown (add a new subsection), or update a related page's `Связанные разборы`. Creating a whole new page from a query alone is rare — prefer adding context within existing breakdowns.
+- Use the standard templates and frontmatter from `_shared/page-templates.md`.
+- Update `wiki/index.md` accordingly.
+- Note in the edit comment or log entry that the content was created from a query.
+- Never create new source-kind pages without a raw source to back them.
 
 Ask the user once before filing:
 
@@ -132,7 +123,7 @@ If a previous resolution applies the same way again (e.g., you re-derive a resul
 
 ---
 
-## Step 7 — Log entry
+## Step 6 — Log entry
 
 Always append a log entry, regardless of whether you filed a page:
 
