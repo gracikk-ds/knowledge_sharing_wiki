@@ -9,92 +9,98 @@ updated: 2026-05-17
 
 _Last updated: 2026-05-17_
 
-## Start here
-
-Topic primers are the entry points for sequential study — each walks through an area in motivated build-up voice with inline links into the reference layer.
-
-- [[topics/variational-inference]] — latent-variable generative modelling trained by approximating the intractable posterior and maximising the ELBO. Path: latent-variable-model → variational-inference → ELBO → variational-em → amortized-vi → reparameterization → VAE.
-- [[topics/few-step-generative-models]] — turning slow many-step ODE generators (diffusion, flow matching) into 1–4-step samplers via flow maps and step distillation. Path: probability-flow-ODE → flow-map → consistency-function → step-distillation → progressive-distillation → CMs → multistep-CMs → shortcut → mean-flow.
-- [[topics/positional-encoding]] — injecting position into self-attention. Path: self-attention → positional-encoding → rotation-matrix-2d → RoPE → sinusoidal/learned-absolute → RoPE method (1D/2D/3D) → PI → NTK-Aware → YaRN → DyPE.
-- [[topics/transformers]] — encoder-decoder attention architecture (Vaswani 2017). Path: self-attention → positional-encoding → multi-head-attention → causal-masking → cross-attention → transformer (architecture) → BERT/GPT/T5/ViT (stubs).
-- [[topics/attention-variants]] — modern attention zoo organised around the KV-cache bottleneck. Path: kv-cache → MHA → MQA → GQA → MLA → attention-sink → gated-attention → linear-attention (GLA, hybrids) → sliding-window → document-masking.
-
-The catalog below is alphabetical by type, optimised for refresh and lookup.
-
 ## ML concepts
 
-- [[ml_concepts/probabilistic/amortized-variational-inference]] — replace per-example $q(z)$ with a single network $q(z \mid x, \phi)$ shared across all examples.
-- [[ml_concepts/attention/attention-sink]] — phenomenon where a few "sink" positions accumulate disproportionate attention weight without semantic load; destabilises training (stub).
-- [[ml_concepts/attention/causal-masking]] — zero-out scores for future positions ($-\infty$ before softmax) so each position attends only to itself and the past; required for autoregressive decoders.
-- [[ml_concepts/generative/consistency-function]] — a learned $(x_t, t) \mapsto x_0$ map that is constant along each probability-flow ODE trajectory.
-- [[ml_concepts/attention/variants/cross-attention]] — same mechanism as self-attention but $Q$ comes from one sequence and $K, V$ from another; the encoder-decoder bridge in seq2seq transformers.
-- [[ml_concepts/generative/diffusion-model]] — generative model defined by a forward noising process and a learned reverse process (stub).
-- [[ml_concepts/attention/document-masking]] — block-diagonal causal mask that prevents attention from crossing boundaries between packed documents; non-negotiable for 64k+ contexts.
-- [[ml_concepts/probabilistic/elbo]] — tractable lower bound on $\log p(x \mid \theta)$, central training objective of variational inference and VAEs.
-- [[ml_concepts/generative/flow-map]] — the integrated solution of a generative ODE, learnt directly instead of its derivative.
-- [[ml_concepts/generative/flow-matching]] — framework that learns a velocity field of an ODE transporting prior to data (stub).
-- [[ml_concepts/attention/variants/gated-attention]] — sigmoid gate $\sigma(W^G x_t)$ elementwise multiplied into the attention output to suppress attention sinks and stabilise training.
-- [[ml_concepts/attention/efficiency/grouped-query-attention]] — heads split into $g$ groups, each group shares one $K, V$ pair; KV-cache reduced by $h/g$; with small groups outperforms MHA on ablations. Modern default.
-- [[ml_concepts/attention/kv-cache]] — inference-time table of stored $K, V$ per position per head; size $2 \cdot n_{\text{heads}} \cdot n_{\text{layers}} \cdot d_{\text{head}} \cdot L$. The bottleneck around which MQA/GQA/MLA exist.
-- [[ml_concepts/probabilistic/latent-variable-model]] — generative model that samples $z \sim p(z)$ then $x \sim p(x \mid z, \theta)$; marginalising builds complex distributions from simple parts.
-- [[ml_concepts/attention/efficiency/linear-attention]] — drop softmax, refactor $\sum_j (q_t^\top k_j) v_j$ as a recurrent state $S_t = \sum_j v_j k_j^\top$; $O(1)$ memory per step; GLA adds a forget gate; used in hybrid stacks.
-- [[ml_concepts/attention/multi-head-attention]] — $h$ parallel self-attention blocks with independent $W_Q^{(i)}, W_K^{(i)}, W_V^{(i)}$; concat + projection $W^O$; each head specialises on a different relation type.
-- [[ml_concepts/attention/efficiency/multi-latent-attention]] — compress KV into a low-dim latent $c_t$, decompress to $K, V$ on the fly; 4–8× cache compression while keeping capacity. DeepSeek, Kimi-K2.
-- [[ml_concepts/attention/efficiency/multi-query-attention]] — all heads share one $K, V$ pair; KV-cache divided by $n_{\text{heads}}$ at the cost of expressivity. Loses to MHA in ablations.
-- [[ml_concepts/attention/positional-encodings/index]] — mechanism for injecting token position into self-attention; key axis is additive vs multiplicative.
-- [[ml_concepts/generative/probability-flow-ode]] — deterministic ODE whose marginals match those of a diffusion SDE (stub).
-- [[ml_concepts/probabilistic/reparameterization-trick]] — rewrite $z \sim q(z \mid x, \phi)$ as $z = g_\phi(x, \varepsilon)$ so gradients flow through a deterministic transform.
-- [[ml_concepts/attention/positional-encodings/rotary-position-embedding]] — encode position by rotating $q, k$ at angles proportional to position so that $q_m^\top k_n$ depends only on content and $(n - m)$.
-- [[ml_concepts/probabilistic/score-function]] — gradient of the log-density of the noised marginal, used by score-based models (stub).
-- [[ml_concepts/attention/self-attention]] — Q/K/V projections from each token's embedding; output is softmax-weighted sum of values over all positions, weights from scaled dot-product of Q and K.
-- [[ml_concepts/attention/efficiency/sliding-window-attention]] — restrict each position to a window of $p$ previous tokens; $O(L \cdot p)$ instead of $O(L^2)$; usually interleaved with full attention.
-- [[ml_concepts/generative/step-distillation]] — train a fast student to mimic a slow multi-step teacher's deterministic ODE output.
-- [[ml_concepts/probabilistic/variational-inference]] — approximate an intractable posterior by the closest distribution in a tractable family under reverse KL.
+### Attention
+- [[ml_concepts/attention/attention-sink]] — Феномен, при котором небольшое число «стоковых» позиций (обычно первый токен последовательности, BOS или знаки препинания) собирает на себя непропорционально большой attention-вес почти во всех heads и слоях, при этом не неся существенной семантической нагрузки. Связан с числовой нестабильностью обучения и плохим обобщением на длинные контексты.
+- [[ml_concepts/attention/causal-masking]] — Модификация self-attention, в которой скоры для будущих позиций обнуляются заменой на $-\infty$ до softmax. После softmax вес на будущих позициях равен нулю, и позиция $m$ агрегирует value-векторы только из позиций $1, \ldots, m$. Это превращает attention-слой в авторегрессионный.
+- [[ml_concepts/attention/document-masking]] — Модификация causal mask для случая, когда несколько разных документов pack'нуты в одну обучающую последовательность ради эффективности. Маска запрещает attention пересекать границу между документами: токены из документа B не видят токенов из документа A, даже если те находятся в префиксе. На коротких контекстах эффект мал; при расширении до 64k+ токенов становится обязательным.
+- [[ml_concepts/attention/kv-cache]] — Inference-таблица, в которой для каждой авторегрессионной позиции и каждой attention-головы сохраняются векторы $K$ и $V$ всех уже сгенерированных токенов. Позволяет генерировать новый токен за $O(L)$ операций attention вместо $O(L^2)$, но платит за это памятью, линейной по длине контекста, числу слоёв и числу heads.
+- [[ml_concepts/attention/multi-head-attention]] — Параллельный запуск $h$ независимых self-attention блоков с собственными $W_Q^{(i)}, W_K^{(i)}, W_V^{(i)}$; выходы $h$ heads конкатенируются по последней оси и проецируются обучаемой матрицей $W^O$. Каждая head работает в своём $d_k$-мерном подпространстве и может специализироваться на своём типе зависимостей.
+- [[ml_concepts/attention/self-attention]] — Слой, в котором каждый токен формирует три проекции своего эмбеддинга — query $q$, key $k$, value $v$ — а выход на каждой позиции равен взвешенной сумме value-векторов всех токенов последовательности; веса считаются как softmax от скалярных произведений $q$ с $k$ всех позиций, делённых на $\sqrt{d_k}$.
+
+#### Positional encodings
+- [[ml_concepts/attention/positional-encodings/index]] — Механизм, который вносит информацию о позиции токена в self-attention слой. Без него attention обрабатывает множество токенов, а не последовательность; с ним — учитывает либо абсолютные индексы, либо относительные сдвиги между токенами.
+- [[ml_concepts/attention/positional-encodings/rotary-position-embedding]] — Идея кодировать позицию токена вращением его query и key-векторов на угол, пропорциональный номеру позиции. За счёт того, что $R(m\theta)^\top R(n\theta) = R((n-m)\theta)$, скалярное произведение $\tilde{q}_m^\top \tilde{k}_n$ зависит только от контента и относительного сдвига $(n - m)$, никогда — от $m, n$ по отдельности.
+
+#### Variants
+- [[ml_concepts/attention/variants/cross-attention]] — Тот же механизм, что self-attention, но queries и keys/values считаются из разных последовательностей. В энкодер-декодер трансформере $Q$ берётся из предыдущего слоя декодера, а $K, V$ — из выхода всего энкодерного стека. Так декодер для каждого генерируемого токена фокусируется на релевантных позициях входной последовательности.
+- [[ml_concepts/attention/variants/gated-attention]] — Модификация self-attention, в которой к выходу attention поэлементно прибавляется обучаемый sigmoid-гейт. Гейт зависит от текущего токена и учится подавлять неинформативные attention-паттерны — в первую очередь attention sinks. Стабилизирует обучение и помогает на длинных последовательностях ценой небольшого числа дополнительных параметров.
+
+#### Efficiency
+- [[ml_concepts/attention/efficiency/grouped-query-attention]] — Промежуточный вариант между MHA и MQA: $h$ heads делятся на $g$ групп, каждая группа делит свою пару $K, V$. Сокращает KV-кэш в $h / g$ раз и в ablations с малыми группами (2–8) даже обгоняет full MHA по качеству.
+- [[ml_concepts/attention/efficiency/linear-attention]] — Класс attention-схем, в которых softmax-нормировка убирается, и сумма по позициям пересобирается в рекуррентное накопление матричного состояния $S_t = \sum_j v_j k_j^\top$. Это даёт $O(1)$ памяти на шаг инференса вместо растущего KV-кэша, но взамен теряет точное retrieval softmax-attention. Gated Linear Attention (GLA) добавляет обучаемый forget-gate, контролирующий, сколько прошлого удерживать.
+- [[ml_concepts/attention/efficiency/multi-latent-attention]] — Альтернатива GQA для сжатия KV-кэша. Вместо того чтобы шарить $K, V$ между heads, MLA проецирует вход в низкоразмерное латентное представление $c_t$ и кэширует его; полные $K, V$ восстанавливаются на лету через обучаемые upward-проекции. Даёт 4–8× компрессии при сохранении выразительности, близкой к MHA, ценой инженерной сложности.
+- [[ml_concepts/attention/efficiency/multi-query-attention]] — Вариант multi-head attention, в котором все $h$ heads делят одну общую пару $K, V$, но каждая имеет свою $Q$. Сокращает KV-кэш в $h$ раз ценой потери выразительности: heads вынуждены работать в одном и том же KV-подпространстве.
+- [[ml_concepts/attention/efficiency/sliding-window-attention]] — Модификация causal mask, в которой каждая позиция $m$ видит не весь префикс $1, \ldots, m$, а только окно фиксированной ширины $p$ предыдущих позиций: $\max(1, m-p+1), \ldots, m$. Снижает стоимость с $O(L^2)$ до $O(L \cdot p)$, ограничивая контекст локально; обычно перемежается с полным attention в части слоёв, чтобы сохранить дальние зависимости.
+
+### Probabilistic
+- [[ml_concepts/probabilistic/amortized-variational-inference]] — Заменить per-example вариационное распределение $q(z)$ единой сетью $q(z \mid x, \phi)$, отображающей любой $x$ в параметры его variational posterior. Одна модель, один набор параметров $\phi$ — на все примеры.
+- [[ml_concepts/probabilistic/elbo]] — Трактуемая нижняя граница маргинального log-likelihood $\log p(x \mid \theta)$ для latent-variable модели, полученная введением вспомогательного распределения $q(z)$ над латентами. ELBO — центральная цель обучения variational inference и VAE.
+- [[ml_concepts/probabilistic/latent-variable-model]] — Генеративная модель, которая рисует каждое наблюдение $x$ в два шага: сначала latent $z \sim p(z)$ из простого prior, затем $x \sim p(x \mid z, \theta)$ из обученного conditional. Маргинализация по $z$ превращает простой рецепт в гибкое распределение.
+- [[ml_concepts/probabilistic/reparameterization-trick]] — Переписать сэмпл $z \sim q(z \mid x, \phi)$ как детерминированное преобразование $z = g_\phi(x, \varepsilon)$ шума $\varepsilon \sim p(\varepsilon)$ из фиксированного распределения. Параметры $\phi$ теперь живут внутри $g_\phi$, а не внутри распределения сэмплирования, поэтому $\nabla_\phi \mathbb{E}_q[f(z)]$ превращается в низкодисперсный pathwise-градиент.
+- [[ml_concepts/probabilistic/score-function]] — Градиент log-плотности $\nabla_x \log p_t(x)$, который выучивает score-based модель, чтобы прогонять обратный diffusion ODE/SDE.
+- [[ml_concepts/probabilistic/variational-inference]] — Фреймворк для аппроксимации труднообъемного posterior $p(z \mid x, \theta)$ более простым распределением $q(z)$ из трактуемого семейства; качество приближения измеряется $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$.
+
+### Generative
+- [[ml_concepts/generative/consistency-function]] — Consistency function $f(x_t, t) \mapsto x_0$ отображает любую точку траектории probability-flow ODE в её начало при $t = 0$, так что все точки одной траектории делят один и тот же образ.
+- [[ml_concepts/generative/diffusion-model]] — Генеративная модель, задающая forward noising-процесс $x_t = x_0 + t\,\epsilon$ и обучающаяся обращать его, предсказывая либо $x_0$, либо шум $\epsilon$, либо score $\nabla_x \log p_t(x)$.
+- [[ml_concepts/generative/flow-map]] — Flow map — это обученное проинтегрированное решение генеративного ODE: функция $\Psi_{t \to s}(x_t)$, которая по точке в момент $t$ возвращает точку, в которую траектория приходит к моменту $s$ — без солвера на inference.
+- [[ml_concepts/generative/flow-matching]] — Фреймворк генеративного моделирования, в котором обучают зависящее от времени поле скоростей $v(x, t)$ ODE, переносящего простой prior в данные.
+- [[ml_concepts/generative/probability-flow-ode]] — Детерминированный ODE, чьи маргинальные распределения совпадают с маргиналами diffusion SDE; используется на inference, потому что решается стандартными ODE-солверами и воспроизводим из фиксированного шумового сэмпла.
+- [[ml_concepts/generative/step-distillation]] — Обучить быстрого «student»-а воспроизводить за один-два forward pass то, что медленный предобученный «teacher» (diffusion) выдаёт за полный multi-step ODE-солвер.
 
 ## Math concepts
 
-- [[math_concepts/jensens-inequality]] — for convex $\varphi$, $\varphi(\mathbb{E}[X]) \le \mathbb{E}[\varphi(X)]$; concave flips the sign.
-- [[math_concepts/kl-divergence]] — non-negative asymmetric measure $\mathrm{KL}(q \,\|\, p) = \mathbb{E}_q[\log q/p]$ of how much $q$ differs from $p$.
-- [[math_concepts/mean-flow-identity]] — $F(x_t, t, s) = v(x_t, t) - (s - t)\,\mathrm{d}F/\mathrm{d}t$ relating average velocity to instantaneous velocity.
-- [[math_concepts/rotation-matrix-2d]] — $R(\theta) \in \mathbb{R}^{2 \times 2}$; ortho, composition $R(\alpha)R(\beta)=R(\alpha+\beta)$, $R^\top=R^{-1}=R(-\theta)$.
+- [[math_concepts/jensens-inequality]] — Для выпуклой функции $\varphi$ и случайной величины $X$ выполнено $\varphi(\mathbb{E}[X]) \le \mathbb{E}[\varphi(X)]$. Для вогнутой $\varphi$ знак меняется на противоположный. Равенство достигается iff $\varphi$ аффинна на носителе $X$ либо $X$ почти наверное константа.
+- [[math_concepts/kl-divergence]] — Неотрицательная асимметричная мера различия одного распределения $q$ относительно эталона $p$, заданная как $\mathrm{KL}(q \,\|\, p) = \mathbb{E}_{x \sim q}\big[\log\,q(x) / p(x)\big]$. Равна нулю iff $q = p$ почти всюду.
+- [[math_concepts/mean-flow-identity]] — Алгебраическое тождество, выражающее среднее значение поля скоростей на интервале через мгновенную скорость в левой границе плюс поправку, пропорциональную производной этого среднего по времени.
+- [[math_concepts/rotation-matrix-2d]] — Линейное преобразование $R(\theta) \in \mathbb{R}^{2 \times 2}$, поворачивающее любой 2D-вектор на угол $\theta$ относительно начала координат, не меняя его длины. В матричной форме $R(\theta) = \begin{bmatrix}\cos\theta & -\sin\theta \\ \sin\theta & \cos\theta\end{bmatrix}$.
 
 ## Methods
 
-- [[methods/distillation/consistency-distillation]] — train a consistency function using one teacher solver step per pair.
-- [[methods/distillation/consistency-training]] — train a consistency function without a teacher via a same-$\epsilon$ straight-path pair.
-- [[methods/positional/dype]] — dynamic RoPE extrapolation for diffusion: $\kappa(t)$-scaled PI/NTK/YaRN that fades to identity on late sampling steps.
-- [[methods/positional/learned-absolute-position-embedding]] — trainable $E \in \mathbb{R}^{L_{\max} \times d}$ added to token embedding; hard length cap.
-- [[methods/generative/mean-flow]] — flow map trained to match the average velocity over $[t, s]$ via the Mean Flow Identity.
-- [[methods/distillation/multistep-consistency-model]] — split $[0, \sigma]$ into intervals and learn one consistency function per interval.
-- [[methods/positional/ntk-aware-interpolation]] — scale RoPE base $b \to b \cdot s^{d/(d-2)}$; non-uniform compression preserves fast pairs.
-- [[methods/positional/position-interpolation]] — scale RoPE positions $m \to m/s$ to fit angles back into the trained range; uniform compression.
-- [[methods/distillation/progressive-distillation]] — iteratively halve sampling steps by distilling 2-step teacher behaviour into 1-step student (stub).
-- [[methods/positional/rope]] — block-diagonal $d/2$ 2D rotations with frequency schedule $\theta_i = 10000^{-2i/d}$; 1D, 2D (ViT), and 3D (video) variants.
-- [[methods/generative/shortcut-model]] — flow map trained with a stop-gradient interval-additivity self-consistency loss.
-- [[methods/positional/sinusoidal-position-encoding]] — fixed sine/cosine PE added to token embedding (Vaswani et al., 2017).
-- [[methods/architectures/transformer]] — Vaswani 2017 encoder-decoder architecture: 6+6 stacks of (masked) self-attention + (cross-attention) + FFN, residual + LayerNorm, sinusoidal PE, final linear + softmax.
-- [[methods/architectures/vae]] — latent-variable generative model trained by maximising ELBO with a Gaussian amortised encoder and the reparameterization trick.
-- [[methods/inference/variational-em]] — alternate E-step (update $q$ at fixed $\theta$) and M-step (update $\theta$ at fixed $q$) to maximise ELBO.
-- [[methods/positional/yarn]] — three-zone RoPE context extension by wavelength + softmax temperature correction.
+### Architectures
+- [[methods/architectures/transformer]] — Sequence-to-sequence архитектура (Vaswani et al., 2017), полностью построенная на attention: стек идентичных энкодеров (self-attention + feed-forward), стек идентичных декодеров (masked self-attention + cross-attention + feed-forward), residual-связки и LayerNorm вокруг каждого подслоя, sinusoidal positional encoding на входе. Никакой рекуррентности и конволюций; вся обработка последовательности параллелится по позициям.
+- [[methods/architectures/vae]] — Глубокая latent-variable генеративная модель, обучаемая максимизацией ELBO с amortized гауссовским энкодером и reparameterization trick для end-to-end SGD. Энкодер отображает $x$ в параметры $q(z \mid x)$; декодер отображает $z$ в распределение на $x$.
+
+### Positional
+- [[methods/positional/rope]] — Алгоритм позиционного encoding'а через мультипликативный поворот: $d$-мерный $q$ или $k$ разбивается на $d/2$ пар координат, каждая пара поворачивается на угол $m\theta_i$ с собственной частотой $\theta_i = b^{-2i/d}$. Скалярное произведение между $\tilde{q}_m$ и $\tilde{k}_n$ автоматически зависит только от контента и $(n - m)$.
+- [[methods/positional/dype]] — Мета-стратегия для расширения контекста RoPE в диффузионных моделях: делает любой из статических методов (PI, NTK, YaRN) динамическим — сила экстраполяции зависит от шага sampling'а $t$. На ранних шагах ($t \approx 1$, чистый шум) — полная экстраполяция; на поздних ($t \approx 0$, финальное изображение) — экстраполяция выключена.
+- [[methods/positional/ntk-aware-interpolation]] — Расширение контекста RoPE через масштабирование базы частот $b \to b' = b \cdot s^{d/(d-2)}$ вместо позиции $m$. Эффект — неравномерное сжатие: быстрые пары почти не затрагиваются, медленные сжимаются почти как в PI.
+- [[methods/positional/position-interpolation]] — Самый простой способ расширить контекстное окно RoPE: вместо позиции $m$ подставлять в схему вращения $m / s$, где $s = L_\text{target} / L_\text{train}$. Все углы поворота равномерно сжимаются в $s$ раз, гарантированно укладываясь в обученный диапазон.
+- [[methods/positional/sinusoidal-position-encoding]] — Фиксированный (необучаемый) позиционный сигнал $\mathrm{PE}(m) \in \mathbb{R}^d$, координаты которого — синусы и косинусы от $m$, домноженного на геометрически растущий набор частот. Прибавляется к токенному эмбеддингу до проекций в $Q$ и $K$.
+- [[methods/positional/learned-absolute-position-embedding]] — Обучаемая матрица $E \in \mathbb{R}^{L_{\max} \times d}$, в которой каждой позиции $m \in [0, L_{\max})$ соответствует свой вектор $E_m$. Прибавляется к токенному эмбеддингу до проекций в $Q$ и $K$.
+- [[methods/positional/yarn]] — Расширение контекста RoPE с разделением частот на три зоны по длине волны (не трогать / интерполировать / плавный переход) и компенсацией дисперсии attention-логитов через температурный множитель в softmax. Наиболее гибкий из статических методов; обычно даёт лучшее качество при минимальном fine-tuning'е.
+
+### Distillation
+- [[methods/distillation/consistency-distillation]] — Обучить consistency function, используя предобученного diffusion-учителя для построения пар на траектории, и наложить self-consistency loss на эти пары.
+- [[methods/distillation/consistency-training]] — Обучить consistency function с нуля — без diffusion-учителя — используя прямой reference-путь $x_t = x_0 + t\,\epsilon$ и переиспользуя одинаковый $\epsilon$ для обоих концов пары на траектории.
+- [[methods/distillation/progressive-distillation]] — Итеративно distill diffusion-учителя в student'а, делающего один шаг там, где учитель делал два; число шагов делится пополам в каждом раунде.
+- [[methods/distillation/multistep-consistency-model]] — Обобщить consistency function с «всегда проецируй в $t = 0$» до «проецируй в границу следующего интервала». Разбить $[0, \sigma]$ на $N$ интервалов и обучить по consistency-функции на каждый.
+
+### Generative
+- [[methods/generative/mean-flow]] — Обучить flow map $F_\theta(x_t, t, s)$ соответствовать средней скорости на $[t, s]$, выразив это среднее через мгновенную скорость и производную $F_\theta$ по времени по Mean Flow Identity.
+- [[methods/generative/shortcut-model]] — Flow map $F_\theta(x_t, t, s)$, обученный со interval-additivity self-consistency: один прыжок из $t$ в $s$ должен совпадать с двумя меньшими $t \to r \to s$ (stop-gradient на правой части).
+
+### Inference
+- [[methods/inference/variational-em]] — Максимизировать ELBO чередованием: при фиксированном $\theta$ обновить вариационное распределение $q$ к ближайшему трактуемому приближению истинного posterior (E-step); при фиксированном $q$ обновить $\theta$ так, чтобы максимизировать expected complete-data log-likelihood (M-step). Обобщает классический EM на случай, когда точный posterior $p(z \mid x, \theta)$ нерасчётен.
 
 ## Topics
 
-- [[topics/attention-variants]] — modern attention zoo organised around the KV-cache bottleneck: MHA → MQA → GQA → MLA spectrum, gated and linear attention, long-context masks (SWA, dual chunk, document masking).
-- [[topics/few-step-generative-models]] — design space of generators that sample in 1–4 forward passes.
-- [[topics/positional-encoding]] — how to inject token position into self-attention, from additive baselines to RoPE and its context-extension methods.
-- [[topics/transformers]] — Vaswani 2017 architecture and its descendants (BERT/GPT/T5/ViT); core ideas of self-attention, multi-head, positional encoding, masking, cross-attention; $O(L^2)$ as the long-term bottleneck.
-- [[topics/variational-inference]] — latent-variable generative modelling trained via ELBO maximisation and approximate posteriors.
+- [[topics/attention-variants]] — Современный landscape attention-схем в больших моделях: всё организовано вокруг одного inference-bottleneck'а — KV-кэша. Каждый вариант (MQA, GQA, MLA, gated, linear, SWA, document masking) — это разная точка на трёх осях: память кэша vs выразительность, локальное окно vs глобальный контекст, точное retrieval vs дешёвая рекуррентность.
+- [[topics/few-step-generative-models]] — Методы, превращающие медленный multi-step ODE-генератор (diffusion, flow matching) в модель, выдающую сэмплы за 1–4 forward pass'а — либо distillation многошагового учителя, либо прямое обучение проинтегрированному решению генеративного ODE.
+- [[topics/positional-encoding]] — Как вносить позицию в self-attention. От аддитивных схем (sinusoidal, learned) — к мультипликативному RoPE с относительной зависимостью, встроенной в геометрию attention, — к методам расширения контекстного окна за пределы обученной длины.
+- [[topics/transformers]] — Архитектура, заменившая рекуррентные и свёрточные sequence-модели на стэк attention-блоков. От self-attention и multi-head до полной encoder-decoder сборки с positional encoding, residual-связками, masked self-attention и cross-attention.
+- [[topics/variational-inference]] — Семейство генеративных моделей, которое обучает latent-variable модель, аппроксимируя её труднообъемный posterior трактуемым распределением и максимизируя ELBO вместо истинного log-likelihood.
 
 ## Sources
 
-- [[sources/attention-mechanisms-lecture]] — lecture surveying modern attention variants organised around the KV-cache: MHA/MQA/GQA/MLA spectrum, gated and linear (GLA) attention, long-context patterns (SWA, dual chunk, doc masking) with concrete frontier models.
-- [[sources/elbo-and-vae-lecture]] — lecture deriving ELBO and walking through the full VAE training story with reparameterization.
-- [[sources/flow-map-models-lecture]] — lecture covering CMs, multistep CMs, ShortCut, and Mean Flow under the unifying flow-map view.
-- [[sources/illustrated-transformer]] — visual walk-through of Vaswani 2017 architecture: encoder/decoder stacks, self-attention step by step, multi-head, sinusoidal PE, residual+LayerNorm, masked + cross-attention, final linear+softmax.
-- [[sources/rope-lecture]] — 5-part lecture: PE motivation, RoPE 2D intuition, $d$-dim algorithm, 2D/3D variants, context extension (PI/NTK/YaRN/DyPE).
+- [[sources/attention-mechanisms-lecture]] — Лекция, организующая весь современный landscape attention-вариантов вокруг одного inference-bottleneck'а — KV-кэша. Систематически разбирает спектр MHA → MQA → GQA → MLA с формулой кэша и ablation'ами; добавляет gated attention (против attention sinks), GLA и гибридные стэки (Mamba-2 / DeltaNet в Nemotron-H, Falcon H1, Qwen3-Next); long-context-паттерны (sliding window, dual chunk, local/global interleaving, document masking) с конкретными моделями (Gemma 3, Qwen-2.5, SmolLM3). Сильная сторона — конкретные frontier-сборки (Kimi-K2, Trinity Large, gpt-oss-120b, OLMo 3, DeepSeek) на каждой странице.
+- [[sources/elbo-and-vae-lecture]] — Самодостаточная лекция: ELBO выводится с нуля, разлагается на reconstruction и regularisation, и проходится полный сюжет обучения VAE, включая reparameterization trick и закрытую форму гауссовского KL.
+- [[sources/flow-map-models-lecture]] — Лекция из 31 слайда: почему diffusion работает медленно, почему knowledge distillation работает быстро, и обзор современного инструментария flow-map методов (Consistency Models, Multistep CMs, ShortCut, Mean Flow).
+- [[sources/illustrated-transformer]] — Визуальное введение в архитектуру Transformer (Vaswani et al., 2017): стэки энкодеров и декодеров, поток тензоров между ними, пошаговый разбор self-attention (Q/K/V, scaled dot-product, softmax, взвешенная сумма) и матричной формы, multi-head attention, sinusoidal positional encoding, residual + LayerNorm, masked self-attention и cross-attention в декодере, финальный linear + softmax, training-loss и beam search. Один из самых цитируемых учебных материалов по трансформерам.
+- [[sources/rope-lecture]] — Лекция из 5 частей: мотивация позиционного encoding'а, геометрическая интуиция RoPE в 2D, $d$-мерный алгоритм с расписанием частот, обобщения на 2D-сетку (картинки) и 3D-сетку (видео), методы расширения контекстного окна (PI, NTK-Aware, YaRN, DyPE).
 
 ## Questions
 
-- [[questions/how-is-mean-flow-time-derivative-computed]] — how is $\mathrm{d}F/\mathrm{d}t$ along the trajectory computed for the Mean Flow loss?
-- [[questions/why-cant-cms-use-ode-solvers]] — why are CMs incompatible with standard ODE solvers?
-- [[questions/why-does-consistency-training-work-without-teacher]] — why does the same-$\epsilon$ straight-path trick suffice without a teacher?
+<!-- empty for now -->
