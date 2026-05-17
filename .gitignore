@@ -1,1 +1,15 @@
 .obsidian
+
+# Source documents stay local — too large, copyright-sensitive, and
+# usually retrievable from arxiv/blogs by URL. The wiki page records
+# `source_path` and the arxiv/DOI link; that's enough to find the
+# original. Subdirectory structure (papers/, lectures/, clips/,
+# knowledge-sharings/, scratch/) is tracked via .gitkeep.
+raw/**
+!raw/
+!raw/papers/
+!raw/lectures/
+!raw/clips/
+!raw/knowledge-sharings/
+!raw/scratch/
+!raw/**/.gitkeep

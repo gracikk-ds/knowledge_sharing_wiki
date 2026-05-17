@@ -15,7 +15,7 @@
 │   ├── rules/            # язык, коммиты, иллюстрации, frontmatter
 │   ├── agents/           # wiki-source-researcher
 │   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, onboard, autodoc
-├── raw/                  # исходники (неизменяемые)
+├── raw/                  # исходники — LOCAL ONLY (gitignored)
 │   └── papers/  lectures/  clips/  knowledge-sharings/  scratch/
 ├── wiki/                 # разборы, один источник = одна страница
 │   ├── index.md          # лендинг + Recent / by-kind / by-tag
@@ -27,7 +27,7 @@
 └── .autodoc/             # сессионная память для LLM
 ```
 
-`raw/` — read-only для Claude и для человека после коммита. `wiki/` — пишет Claude через скиллы. `.claude/` — конфигурация.
+`raw/` — локальная папка, **в git не коммитится**. Сами файлы остаются на твоей машине; git хранит только структуру подпапок через `.gitkeep`. На странице разбора записан `source_path` и ссылка на arxiv/блог — этого достаточно, чтобы переcкачать оригинал при необходимости. `wiki/` — пишет Claude через скиллы. `.claude/` — конфигурация.
 
 ## С чего начать
 

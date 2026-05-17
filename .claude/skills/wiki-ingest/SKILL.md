@@ -24,7 +24,7 @@ Then create a TodoWrite list with one item per remaining phase (2-9).
 
 ## Phase 2 — Read the source
 
-- [ ] Confirm the source lives under `raw/{papers,clips,lectures,scratch}/` or `raw/knowledge-sharings/`. If it does not, ask where it should live; never move files in `raw/` without permission.
+- [ ] Confirm the source lives under `raw/{papers,clips,lectures,scratch}/` or `raw/knowledge-sharings/`. If it does not, ask where it should live; never move files in `raw/` without permission. `raw/` is **gitignored** — the file exists on the user's disk but is not in git history. That's fine for reading; just don't try to `git add` it in Phase 9.
 - [ ] Read the file fully. For PDFs over 10 pages, use the Read tool's `pages` parameter to page through in ranges.
 - [ ] For markdown clips with referenced images: read the markdown, identify load-bearing images (figures, plots), read those individually. Do not read all images by default.
 - [ ] Take silent notes. Do not write the wiki page yet.

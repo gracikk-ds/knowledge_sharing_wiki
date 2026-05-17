@@ -23,7 +23,7 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 │   ├── rules/            # language, commit, illustration, frontmatter
 │   ├── agents/           # wiki-source-researcher
 │   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, onboard, autodoc, _shared/
-├── raw/                  # source documents (immutable)
+├── raw/                  # source documents — LOCAL ONLY (gitignored)
 │   ├── papers/  clips/  lectures/  scratch/  knowledge-sharings/
 ├── wiki/                 # source breakdowns: one page per paper/lecture/clip/KS
 │   ├── index.md          # landing page + recent / by-kind / by-tag
@@ -39,8 +39,8 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 
 ## Layers
 
-- `raw/` — immutable, you read only.
-- `wiki/` — you write and maintain.
+- `raw/` — local-only (gitignored). User adds source files here; Claude reads but does not commit. Subdirectory structure (papers/lectures/clips/knowledge-sharings/scratch/) is the only thing tracked.
+- `wiki/` — you write and maintain. Source-of-truth for the published site.
 - `.claude/` — configuration; read freely, propose changes through commits.
 
 ## Commands

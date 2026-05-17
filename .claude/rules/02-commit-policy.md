@@ -30,7 +30,7 @@ Subject line ≤ 72 chars. Body in English, wrapped at 80 cols.
 | Path | Commit? |
 |---|---|
 | `wiki/**` | Yes |
-| `raw/**` | Yes — sources are part of history |
+| `raw/**` | **No** — source documents are gitignored. Only the subdirectory `.gitkeep` files are tracked, so the structure exists for fresh checkouts. The wiki page records `source_path` and a URL (arxiv/DOI/blog link); that's enough to re-fetch the original. Reasons to keep local: large files (PDFs often 5-50 MB), copyright/licensing concerns, and zero incremental value from versioning binary blobs. |
 | `.autodoc/**` | Yes — persistent session memory |
 | `.claude/**` | Yes — config and skills |
 | `wiki/static/figures/**` | Yes — only generated PNGs ≤ 200 KB |

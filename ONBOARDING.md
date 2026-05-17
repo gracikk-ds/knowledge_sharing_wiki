@@ -9,7 +9,7 @@
 ## Layout
 
 ```
-raw/                  # исходники (read-only после коммита)
+raw/                  # исходники — local only (gitignored)
   papers/  lectures/  clips/  knowledge-sharings/  scratch/
 wiki/                 # разборы
   papers/  lectures/  clips/  knowledge-sharings/
@@ -23,7 +23,7 @@ publish/              # Quartz, деплоится на Vercel
 ```
 
 Правило простое:
-- `raw/` — твоё, Claude только читает.
+- `raw/` — локальная папка, в git **не коммитится**. Claude читает, ты складываешь файлы. Структура подпапок (`papers/`, `lectures/`, `clips/`, `knowledge-sharings/`, `scratch/`) сохраняется через `.gitkeep` для свежих чекаутов.
 - `wiki/` — Claude пишет, ты ревьюишь и коммитишь.
 - `.claude/` — конфигурация, читай свободно.
 
