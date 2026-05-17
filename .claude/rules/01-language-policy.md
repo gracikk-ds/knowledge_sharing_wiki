@@ -19,6 +19,28 @@ ML and math terms stay English inside Russian prose: flow matching, attention, s
 
 Common words with stable Russian equivalents — «градиент», «вероятность», «распределение», «выборка» — pick whichever reads cleaner in context.
 
+### Term glossing on first introduction
+
+Load-bearing concepts that originate from English papers get **glossed**: the Russian translation is followed by the English original in parentheses **on first mention**. After that, use whichever reads cleaner.
+
+Format:
+
+> длина последовательности (sequence length), длина пути (max path length), остаточная связь (residual connection)
+
+When to gloss:
+
+- The reader would need the English form to look the concept up in papers, code, or other wiki breakdowns.
+- The Russian translation alone is ambiguous («длина пути» — путь чего? между чем и чем?). The English form anchors it.
+- The term will reappear on the page and you want the reader to recognise it in either form.
+
+When **not** to gloss:
+
+- Pure English terms with no Russian equivalent in use — keep them English: «attention», «softmax», «embedding», «KV-cache». Glossing them with a Russian transliteration is the calque ban below.
+- Common words that everyone knows in both forms — «градиент / gradient», «выборка / sample». Pick one and use it.
+- Mid-paragraph repetitions of an already-glossed term. Gloss once, then use plain.
+
+Glossing is a **first-introduction tool**, not a verbose habit. If you've glossed three terms in the first paragraph, you're overusing it.
+
 ### Banned constructions
 
 **Bureaucratic fillers** — never write:
