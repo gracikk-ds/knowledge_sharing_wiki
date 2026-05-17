@@ -1,11 +1,11 @@
 ---
 name: wiki-ingest
-description: Main flow for converting a raw source into wiki pages. 8 phases with explicit gates. Triggers when the user says "ingest", "process this source", "add this article to the wiki", or hands you a path under `raw/`.
+description: Main flow for converting one raw source into one wiki breakdown page. 8 phases with explicit gates. Triggers when the user says "ingest", "process this source", "add this article to the wiki", or hands you a path under `raw/`.
 ---
 
 # wiki-ingest
 
-Convert one raw source into wiki pages: integration, not summarisation.
+Convert one raw source into **one** wiki breakdown page. The page follows Template A (Motivation-first) from `_shared/page-templates.md`. Even a long lecture covering 5 concepts produces a single page — concepts become subsections of «Как это работает», not separate pages.
 
 ## Pre-flight (Phase 1)
 
@@ -15,22 +15,23 @@ Before doing anything else, read these in order:
 - [ ] Read `.claude/skills/_shared/page-templates.md`
 - [ ] Read `.claude/skills/_shared/russian-style.md`
 - [ ] Read `.claude/skills/_shared/illustration-policy.md`
-- [ ] Read `wiki/index.md`
-- [ ] Read `.autodoc/index.md` (skip if the file does not exist — it will be created on first `/autodoc` run)
+- [ ] Read `.claude/rules/04-frontmatter-schema.md` (for the tag whitelist)
+- [ ] Read `wiki/index.md` (to see what already exists)
+- [ ] Read `.autodoc/index.md` (skip if the file does not yet exist)
 
 Then create a TodoWrite list with one item per remaining phase (2-8).
 
 ## Phase 2 — Read the source
 
-- [ ] Confirm the source lives under `raw/{papers,clips,lectures,scratch}/`. If it does not, ask the user where it should live; never move files in `raw/` without permission.
+- [ ] Confirm the source lives under `raw/{papers,clips,lectures,scratch}/` or `raw/knowledge-sharings/`. If it does not, ask where it should live; never move files in `raw/` without permission.
 - [ ] Read the file fully. For PDFs over 10 pages, use the Read tool's `pages` parameter to page through in ranges.
 - [ ] For markdown clips with referenced images: read the markdown, identify load-bearing images (figures, plots), read those individually. Do not read all images by default.
-- [ ] Take silent notes. Do not write any wiki page yet.
-- [ ] Scan `wiki/index.md` and the relevant `wiki/ml_concepts/` or `wiki/methods/` files to identify pages this source touches.
+- [ ] Take silent notes. Do not write the wiki page yet.
+- [ ] Scan `wiki/index.md` — does any existing breakdown overlap with this source? If yes, the new page will link to it from «Связанные разборы».
 
 ## Phase 3 — Research a gap (optional)
 
-Trigger condition: the source has a gap that blocks a clear explanation — references a prior method or result that is load-bearing for the explanation and the primary source does not define or prove it. Skip if the source is self-contained.
+Trigger condition: the source has a gap that blocks a clear explanation — references a prior method or result that is load-bearing for the explanation, and the primary source does not define or prove it. Skip if the source is self-contained.
 
 - [ ] If no gap, skip to Phase 4.
 - [ ] If a gap exists, dispatch the `wiki-source-researcher` agent with a narrow query:
@@ -39,100 +40,109 @@ Trigger condition: the source has a gap that blocks a clear explanation — refe
   Query: <one-sentence gap>
   Context: <what the primary source says about it>
   ```
-- [ ] Wait for the structured report. Keep it in context. Do **not** write the report to `raw/` automatically — the user decides.
+- [ ] Wait for the structured report. Keep it in context. Do **not** write the report to `raw/` automatically — the user decides what to keep.
 
-## Phase 4 — Takeaways and user approval
+## Phase 4 — Plan + user approval
 
-Present takeaways in this format:
+Present the plan in this format:
 
 ```
-Source: <title> (<source_kind>, <date>)
+Source: <title> (<source_kind>, <source_date>)
+Target page: wiki/<kind>/<slug>.md
 
-Takeaways:
-- <3-7 bullets in your own words; not a transcription>
+TL;DR draft:
+<1-3 sentences>
 
-Likely wiki impact:
-- Create: [[<new-page-path>]]
-- Update: [[<existing-page-path>]] — <one-line what changes>
-- Stub: [[<new-stub-path>]] (mentioned but not fully covered)
-- Source: [[sources/<slug>]]
+Tags (from whitelist): <tag1>, <tag2>, <tag3>
 
-Open questions:
-- <unresolved bits>
+Motivation arc:
+- What we want: ...
+- Naive approach: ...
+- Why it fails: ...
+- What this source proposes: ...
 
-Anything to emphasise or skip?
+Key idea in one figure (planned):
+- Mermaid: <short description> OR
+- Matplotlib: <short description>
+
+Optional sections to include: <list, e.g., "Результаты, Сравнение, Ограничения"; or "none">
+
+Related breakdowns to link:
+- [[<kind>/<slug>]] — <one-line>
+
+Anything to emphasise, skip, or correct?
 ```
 
-**Stop and wait for the user.** Do not write any page yet.
+**Stop and wait for the user.** Do not write the page yet.
 
-If the user has explicitly asked for autonomous mode, still emit the block, then proceed without waiting unless something is genuinely ambiguous.
+If the user has explicitly asked for autonomous mode, still emit the plan, then proceed unless something is genuinely ambiguous.
 
-## Phase 5 — Write the pages
+## Phase 5 — Write the page
 
-For each page in the plan:
-
-- [ ] Pick the template from `_shared/page-templates.md` matching the `type:`.
-- [ ] Write Russian prose body, English headings/slugs/tags/frontmatter (see `rules/01`).
-- [ ] Frontmatter follows `rules/04`. Do **not** set `needs_rewrite` on new pages; clear it on pages you fully rewrite.
-- [ ] Math in LaTeX (`$...$`, `$$...$$`), never in backticks.
-- [ ] For non-trivial math, link to `[[math_concepts/...]]` instead of expanding inline.
-- [ ] Stub links to not-yet-existing pages are fine and encouraged — they queue future ingests.
-
-Edit order: concept/method pages first → source page next. `wiki/index.md` and `wiki/log.md` are updated in Phase 8.
+- [ ] Pick Template A (or Template B for KS) from `_shared/page-templates.md`.
+- [ ] Russian prose body, English headings/slugs/tags/frontmatter (`rules/01`).
+- [ ] Frontmatter exactly per `rules/04-frontmatter-schema.md`.
+- [ ] Required sections in order: TL;DR (as blockquote under H1) → Мотивация → Идея в одной картинке → Как это работает → Вывод → Источник.
+- [ ] Optional sections inserted between «Как это работает» and «Вывод» when content justifies them.
+- [ ] Math in LaTeX, every non-trivial formula followed by `где: ...`.
+- [ ] Term introduction discipline on every new term (bold + definition + analogy on first mention).
+- [ ] Stub links to non-existing related pages are fine — they mark future ingests.
 
 ## Phase 6 — Illustrations
 
-For each non-trivial concept on each page just written, apply the chooser from `_shared/illustration-policy.md`:
+For the «Идея в одной картинке» (mandatory) and any additional figures:
 
-- [ ] For each concept: mermaid / matplotlib / source cut-out / file a question page.
-- [ ] Mermaid: inline in markdown, ≤ 12 nodes, no math in node labels.
-- [ ] Matplotlib: write `.py` and run it to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both. PNG ≤ 200 KB. URL in markdown stays `/static/figures/<page-slug>/<file>.png`.
-- [ ] Source cut-out: save under same path with `source-cut-` prefix and write attribution caption.
-- [ ] Add the figure reference and caption to the page.
-
-Run the illustration checklist in `_shared/illustration-policy.md` for each page.
+- [ ] Pick a tool per `_shared/illustration-policy.md`: mermaid for flow/relations, matplotlib for plots/numerical, source cut-out for paper diagrams with attribution.
+- [ ] Mermaid: inline, ≤ 12 nodes, no math in node labels.
+- [ ] Matplotlib: write `.py` and run it to produce `.png` at `wiki/static/figures/<page-slug>/`. Commit both files. PNG ≤ 200 KB.
+- [ ] Source cut-out: save under the same path with `source-cut-` prefix; caption is mandatory with full attribution.
+- [ ] Caption format follows `rules/03-illustration-policy.md`.
 
 ## Phase 7 — Self-check (Russian style + content)
 
-- [ ] Invoke `/write-russian` on every page just produced. The skill has the full anti-AI ruleset, term-introduction discipline, anglicism replacement table, punctuation rules, and an §10 editing checklist + §11 fast grep. Apply all findings inline.
-- [ ] If `/write-russian` is unavailable for some reason, fall back to reading `_shared/russian-style.md` and applying its checklist (a leaner version of the same rules).
-- [ ] Verify every factual claim is sourced (`[[sources/<page>]]` link or inline paper attribution) or marked as an open question.
-- [ ] Verify illustrations are attached to text — no «вот картинка, разбирайся». Every figure has a one-sentence lead-in and one-sentence walk-out.
-- [ ] Verify term-introduction discipline from `_shared/page-templates.md`: every new term has bold + one-line definition + everyday analogy on first mention.
-- [ ] Verify formula-symbol annotation: every non-trivial formula has a `где: …` list.
+- [ ] Invoke `/write-russian` on the page. The skill has the full anti-AI ruleset, term-introduction discipline, anglicism replacement table, punctuation rules, and an editing checklist + fast grep. Apply all findings inline.
+- [ ] Verify every factual claim is sourced (`[[<kind>/<slug>]]` link or inline paper attribution).
+- [ ] Verify illustrations are attached to text — every figure has a one-sentence lead-in and one-sentence walk-out.
+- [ ] Verify `где: ...` list under every non-trivial formula.
+- [ ] Verify all tags are in the `rules/04` whitelist; if a tag is missing, extend the whitelist in the same commit.
 - [ ] Fix all findings inline.
 
 ## Phase 8 — Bookkeeping and commit proposal
 
-- [ ] Update `wiki/index.md` with new entries (or revised one-line summaries).
-- [ ] Append to `wiki/log.md`:
+- [ ] **Update `wiki/index.md`**:
+  - Prepend a new line under «Recent ingests» with date + link + TL;DR-one-liner.
+  - Insert the new page under the matching kind section, keeping alphabetical order (or chronological newest-first for KS).
+  - Update the «By tag» section: under each tag this page uses, add the new link. Create a new tag entry if it didn't exist (after confirming the tag is in the whitelist).
+  - Trim «Recent ingests» to the last 10 entries; drop overflow.
+- [ ] **Append to `wiki/log.md`**:
   ```
   ## [YYYY-MM-DD] ingest | <source title>
 
   - **What:** <one-line>
-  - **Pages touched:** [[<page-a>]], [[<page-b>]], ...
-  - **Notes:** <open questions, contradictions, anything to revisit>
+  - **Page(s) touched:** [[<kind>/<slug>]]
+  - **Notes:** <optional — open questions, contradictions, things to revisit>
   ```
-- [ ] Report to the user: list of touched files, new stubs, contradictions with existing content.
+- [ ] Report to the user: page path, status, any contradictions with existing breakdowns, any new tags added to whitelist.
 - [ ] Suggest `/wiki-lint` if frontmatter was edited.
 - [ ] Propose an atomic commit (≤ 300 lines):
   ```
   feat(wiki): ingest <source> — <short-desc>
 
-  - new: <path-a>
-  - new: <path-b>
-  - update: <path-c>
-  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}
+  - new: wiki/<kind>/<slug>.md
+  - update: wiki/index.md
+  - update: wiki/log.md
+  - figures: wiki/static/figures/<slug>/{<file>.py,<file>.png}  (if any)
+  - update: .claude/rules/04-frontmatter-schema.md  (if new tag added)
   ```
 - [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**
-- [ ] **Never run `git push`.** Wait for the user to push manually.
+- [ ] **Never run `git push`.** Push is a manual user action only.
 
 ## Gates where you stop and wait
 
 | Phase | Wait for |
 |---|---|
-| 4 | User OK on takeaways before writing |
-| 7 | (Optional `--review` mode) — diff of pages before commit |
-| 8 | User OK on commit message before `git commit` |
+| 4 | User OK on the plan before writing the page |
+| 7 | (Optional `--review` mode) — diff summary of the page before commit |
+| 8 | User OK on the commit message before `git commit` |
 
-In autonomous mode (user said "work without stopping"): phase 4 still emits takeaways but does not wait; phases 7-8 proceed without confirmation.
+In autonomous mode (user said "work without stopping"): Phase 4 still emits the plan but does not wait; Phases 7-8 proceed without confirmation.
