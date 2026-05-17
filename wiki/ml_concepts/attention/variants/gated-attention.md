@@ -11,7 +11,7 @@ needs_rewrite: true
 
 # Gated Attention
 
-> Модификация [[ml_concepts/self-attention|self-attention]], в которой к выходу attention поэлементно прибавляется обучаемый sigmoid-гейт. Гейт зависит от текущего токена и учится подавлять неинформативные attention-паттерны — в первую очередь [[ml_concepts/attention-sink|attention sinks]]. Стабилизирует обучение и помогает на длинных последовательностях ценой небольшого числа дополнительных параметров.
+> Модификация [[ml_concepts/attention/self-attention|self-attention]], в которой к выходу attention поэлементно прибавляется обучаемый sigmoid-гейт. Гейт зависит от текущего токена и учится подавлять неинформативные attention-паттерны — в первую очередь [[ml_concepts/attention/attention-sink|attention sinks]]. Стабилизирует обучение и помогает на длинных последовательностях ценой небольшого числа дополнительных параметров.
 
 ## Motivation
 
@@ -41,9 +41,9 @@ $$
 
 ## Variations and related concepts
 
-- [[ml_concepts/self-attention]] — операция, к выходу которой прибавляется гейт.
-- [[ml_concepts/attention-sink]] — феномен, который гейт подавляет: токены, собирающие непропорциональный вес без семантической нагрузки.
-- [[ml_concepts/linear-attention]] — другая ветвь gated-механизмов (GLA), где гейт работает не на выходе, а на рекуррентном KV-состоянии.
+- [[ml_concepts/attention/self-attention]] — операция, к выходу которой прибавляется гейт.
+- [[ml_concepts/attention/attention-sink]] — феномен, который гейт подавляет: токены, собирающие непропорциональный вес без семантической нагрузки.
+- [[ml_concepts/attention/efficiency/linear-attention]] — другая ветвь gated-механизмов (GLA), где гейт работает не на выходе, а на рекуррентном KV-состоянии.
 
 ## Open questions
 
@@ -56,5 +56,5 @@ $$
 
 ## Up next
 
-- [[ml_concepts/linear-attention]] — другое применение gating'а: forget-gate на рекуррентном KV-состоянии в GLA.
+- [[ml_concepts/attention/efficiency/linear-attention]] — другое применение gating'а: forget-gate на рекуррентном KV-состоянии в GLA.
 - [[topics/attention-variants]] — где gated attention встаёт в общую картину вариантов.

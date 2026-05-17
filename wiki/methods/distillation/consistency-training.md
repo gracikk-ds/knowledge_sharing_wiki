@@ -11,15 +11,15 @@ needs_rewrite: true
 
 # Consistency Training (CT)
 
-> Обучить [[ml_concepts/consistency-function]] с нуля — без diffusion-учителя — используя прямой reference-путь $x_t = x_0 + t\,\epsilon$ и переиспользуя *одинаковый* $\epsilon$ для обоих концов пары на траектории.
+> Обучить [[ml_concepts/generative/consistency-function]] с нуля — без diffusion-учителя — используя прямой reference-путь $x_t = x_0 + t\,\epsilon$ и переиспользуя *одинаковый* $\epsilon$ для обоих концов пары на траектории.
 
 ## Motivation
 
-[[methods/consistency-distillation]] требует предобученной [[ml_concepts/diffusion-model]], чтобы строить согласованные пары на траекториях $(x_t, \hat{x}_{t-\Delta})$. Это тяжёлая предпосылка: нужно полностью оплатить обучение multi-step учителя, прежде чем приступать к обучению one-step student'а. Вопрос — можно ли обойтись без учителя и всё равно обучить [[ml_concepts/consistency-function]], сохраняющую инвариантность вдоль траектории.
+[[methods/distillation/consistency-distillation]] требует предобученной [[ml_concepts/generative/diffusion-model]], чтобы строить согласованные пары на траекториях $(x_t, \hat{x}_{t-\Delta})$. Это тяжёлая предпосылка: нужно полностью оплатить обучение multi-step учителя, прежде чем приступать к обучению one-step student'а. Вопрос — можно ли обойтись без учителя и всё равно обучить [[ml_concepts/generative/consistency-function]], сохраняющую инвариантность вдоль траектории.
 
-Препятствие — само построение пары. Чтобы обеспечить $f_\theta(x_t, t) = f_\theta(x_s, s)$, нужны две точки на *одной* ODE-траектории. Только учитель знал, какой $x_s$ соответствует данному $x_t$, потому что траектория сворачивает по data manifold сложным образом, зависящим от обученной [[ml_concepts/score-function]]. Сэмплируем свежий $\epsilon$ для каждого момента — и две точки оказываются на *разных* траекториях; ограничение инвариантности превращается в шум.
+Препятствие — само построение пары. Чтобы обеспечить $f_\theta(x_t, t) = f_\theta(x_s, s)$, нужны две точки на *одной* ODE-траектории. Только учитель знал, какой $x_s$ соответствует данному $x_t$, потому что траектория сворачивает по data manifold сложным образом, зависящим от обученной [[ml_concepts/probabilistic/score-function]]. Сэмплируем свежий $\epsilon$ для каждого момента — и две точки оказываются на *разных* траекториях; ограничение инвариантности превращается в шум.
 
-CT выходит из положения, меняя сам ODE, который consistency function должна отслеживать. Если приблизить score conditional score'ом в одной data-точке, [[ml_concepts/probability-flow-ode]] схлопывается в прямую $x_t = x_0 + t \epsilon$, и спаривание становится тривиальным: берём один $\epsilon$, считаем прямую в двух моментах — пара готова. Student теперь учит consistency function *спрямлённой* траектории, что заодно и есть то, что нужно one-step сэмплерам — прямой ODE как раз тот, что один шаг Эйлера решает без ошибки. Два forward pass'а на шаг обучения, ни учителя, ни вызова солвера. Цена — нижележащий ODE уже не настоящий diffusion ODE; CT наследует любой bias, привнесённый приближением прямого пути.
+CT выходит из положения, меняя сам ODE, который consistency function должна отслеживать. Если приблизить score conditional score'ом в одной data-точке, [[ml_concepts/generative/probability-flow-ode]] схлопывается в прямую $x_t = x_0 + t \epsilon$, и спаривание становится тривиальным: берём один $\epsilon$, считаем прямую в двух моментах — пара готова. Student теперь учит consistency function *спрямлённой* траектории, что заодно и есть то, что нужно one-step сэмплерам — прямой ODE как раз тот, что один шаг Эйлера решает без ошибки. Два forward pass'а на шаг обучения, ни учителя, ни вызова солвера. Цена — нижележащий ODE уже не настоящий diffusion ODE; CT наследует любой bias, привнесённый приближением прямого пути.
 
 ## Problem setting
 
@@ -79,7 +79,7 @@ CT не приближает *настоящую* diffusion-траекторию
 
 - «Consistency Models Made Easy» (2024) — variance reduction.
 - «Consistency Flow Matching» (2024) — явный straight-flow target.
-- [[methods/consistency-distillation]] — teacher-based аналог.
+- [[methods/distillation/consistency-distillation]] — teacher-based аналог.
 
 ## Sources
 
@@ -87,5 +87,5 @@ CT не приближает *настоящую* diffusion-траекторию
 
 ## Up next
 
-- [[methods/consistency-distillation]] — teacher-based аналог; сравнение двух методов проясняет, что именно покупал учитель.
+- [[methods/distillation/consistency-distillation]] — teacher-based аналог; сравнение двух методов проясняет, что именно покупал учитель.
 - [[topics/few-step-generative-models]] — более широкий ландшафт one-step сэмплеров; CT стоит рядом с shortcut models и mean flow.

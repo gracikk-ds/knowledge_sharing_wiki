@@ -15,13 +15,13 @@ needs_rewrite: true
 
 ## Motivation
 
-Стандартный diffusion и [[ml_concepts/flow-matching]] обучают векторное поле $v(x, t)$ — мгновенную скорость генеративного ODE. Сэмплирование — это интегрирование $\mathrm{d}x = v(x, t)\,\mathrm{d}t$ от шума к данным. Траектория искривлена, поэтому точный солвер требует много мелких шагов; каждый шаг — полный forward pass через сеть. 50–200 вычислений на сэмпл — стандартная цена.
+Стандартный diffusion и [[ml_concepts/generative/flow-matching]] обучают векторное поле $v(x, t)$ — мгновенную скорость генеративного ODE. Сэмплирование — это интегрирование $\mathrm{d}x = v(x, t)\,\mathrm{d}t$ от шума к данным. Траектория искривлена, поэтому точный солвер требует много мелких шагов; каждый шаг — полный forward pass через сеть. 50–200 вычислений на сэмпл — стандартная цена.
 
 Первая попытка уменьшить цену — взять более крупный шаг, но кривизна пути ограничивает, насколько далеко можно уйти одним Эйлеровским шагом, не сбившись с траектории. Лучшие солверы (Heun, DPM-Solver) помогают, но всё равно требуют десятков вычислений, потому что они по сути перестраивают кривую из локальных кусков. Бутылочное горлышко не в солвере — в *представлении*. Векторное поле говорит мгновенное направление, но никогда — пункт назначения.
 
 Flow map меняет то, что сеть выдаёт. Вместо скорости в $(x, t)$ — выучить проинтегрированный endpoint $\Psi_{t \to s}(x_t)$, то есть где траектория окажется в будущий момент $s$. Один forward pass теперь делает работу полного ODE rollout от $t$ до $s$. Сэмплирование за 1–4 шага вместо 50–200 у vector-field аналога.
 
-Цена этого — обучение. Векторное поле в $(x, t)$ — локальная величина; её можно прочитать с инфинитезимальных данных. Flow map в $(x, t, s)$ — *результат* интегрирования того же поля, поэтому сеть должна сжать целое семейство интегралов — по одному на каждую пару $(t, s)$ — в свои веса. Интересно, как методы это супервизируют, не разворачивая ODE на каждом градиентном шаге: distillation от учителя, структурные self-consistency тождества как у [[ml_concepts/consistency-function|consistency models]], или граничный якорь при $s = t$. Различия методов в этой семье — именно в выборе supervision.
+Цена этого — обучение. Векторное поле в $(x, t)$ — локальная величина; её можно прочитать с инфинитезимальных данных. Flow map в $(x, t, s)$ — *результат* интегрирования того же поля, поэтому сеть должна сжать целое семейство интегралов — по одному на каждую пару $(t, s)$ — в свои веса. Интересно, как методы это супервизируют, не разворачивая ODE на каждом градиентном шаге: distillation от учителя, структурные self-consistency тождества как у [[ml_concepts/generative/consistency-function|consistency models]], или граничный якорь при $s = t$. Различия методов в этой семье — именно в выборе supervision.
 
 ## Formal description
 
@@ -53,13 +53,13 @@ $$
 
 При $N = 1$ модель прыгает из чистого шума в сэмпл за один forward pass.
 
-[[ml_concepts/consistency-function]] — частный случай, когда целевое время фиксировано как $t = 0$: $f_\theta(x_t, t) = \Psi_{t \to 0}(x_t)$.
+[[ml_concepts/generative/consistency-function]] — частный случай, когда целевое время фиксировано как $t = 0$: $f_\theta(x_t, t) = \Psi_{t \to 0}(x_t)$.
 
 ## Why it can be learnt
 
 Flow map корректно определён, потому что генеративный ODE **детерминирован**: каждая $(x_t, t)$ лежит ровно на одной траектории, поэтому $\Psi_{t \to s}(x_t)$ — функция. Три способа его супервизии:
 
-1. **Distillation from a teacher** — гонит ODE-солвер учителя из $(x_t, t)$ в $s$, регрессирует student'а к этому endpoint'у. Используется в [[methods/progressive-distillation]] и [[methods/consistency-distillation]].
+1. **Distillation from a teacher** — гонит ODE-солвер учителя из $(x_t, t)$ в $s$, регрессирует student'а к этому endpoint'у. Используется в [[methods/distillation/progressive-distillation]] и [[methods/distillation/consistency-distillation]].
 2. **Self-consistency** — эксплуатирует структурное тождество, выполняемое истинным flow. У consistency models это $f(x_t, t) = f(x_{t - \Delta}, t - \Delta)$ вдоль траектории; у shortcut models — interval additivity $F(x_t, t, s) = F(F(x_t, t, r), r, s)$; у Mean Flow — [[math_concepts/mean-flow-identity]].
 3. **Boundary anchoring** — при $s = t$ flow map вырождается в тождественное отображение (или в мгновенную скорость, в зависимости от параметризации). Фиксация этой границы не даёт схлопнуться к вырожденному решению вроде $F \equiv 0$.
 
@@ -79,12 +79,12 @@ Flow map корректно определён, потому что генера
 
 ## Variations and related concepts
 
-- [[ml_concepts/consistency-function]] — flow map с target $s = 0$.
-- [[ml_concepts/step-distillation]] — супервизирует flow map через учителя.
-- [[methods/shortcut-model]] — flow-map метод через interval additivity.
-- [[methods/mean-flow]] — flow-map метод через тождество средней скорости.
-- [[methods/multistep-consistency-model]] — flow map, ограниченный на интервалы.
-- [[ml_concepts/flow-matching]] — vector-field аналог, который flow-map методы пытаются «преинтегрировать».
+- [[ml_concepts/generative/consistency-function]] — flow map с target $s = 0$.
+- [[ml_concepts/generative/step-distillation]] — супервизирует flow map через учителя.
+- [[methods/generative/shortcut-model]] — flow-map метод через interval additivity.
+- [[methods/generative/mean-flow]] — flow-map метод через тождество средней скорости.
+- [[methods/distillation/multistep-consistency-model]] — flow map, ограниченный на интервалы.
+- [[ml_concepts/generative/flow-matching]] — vector-field аналог, который flow-map методы пытаются «преинтегрировать».
 
 ## Open questions
 
@@ -97,5 +97,5 @@ Flow map корректно определён, потому что генера
 
 ## Up next
 
-- [[ml_concepts/consistency-function]] — самый изученный flow map, у которого целевое время фиксировано как $s = 0$.
-- [[methods/shortcut-model]] — flow map, обученный через тождество interval additivity $F(x_t, t, s) = F(F(x_t, t, r), r, s)$.
+- [[ml_concepts/generative/consistency-function]] — самый изученный flow map, у которого целевое время фиксировано как $s = 0$.
+- [[methods/generative/shortcut-model]] — flow map, обученный через тождество interval additivity $F(x_t, t, s) = F(F(x_t, t, r), r, s)$.

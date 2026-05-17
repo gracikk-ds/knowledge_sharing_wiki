@@ -31,7 +31,7 @@ $$
 q_m = W_Q\, x_m, \qquad k_m = W_K\, x_m, \qquad v_m = W_V\, x_m,
 $$
 
-каждая в $\mathbb{R}^{d_k}$. Размерность $d_k$ обычно меньше $d$ (в оригинальной статье $d = 512$, $d_k = 64$) — это нужно, чтобы стоимость [[ml_concepts/multi-head-attention|multi-head]] оставалась примерно постоянной по сравнению с одноголовой версией.
+каждая в $\mathbb{R}^{d_k}$. Размерность $d_k$ обычно меньше $d$ (в оригинальной статье $d = 512$, $d_k = 64$) — это нужно, чтобы стоимость [[ml_concepts/attention/multi-head-attention|multi-head]] оставалась примерно постоянной по сравнению с одноголовой версией.
 
 **Скоринг через scaled dot-product.** Скор пары $(m, n)$ — скалярное произведение запроса и ключа, делённое на $\sqrt{d_k}$:
 
@@ -67,15 +67,15 @@ $Q K^\top$ — матрица скоров $L \times L$; softmax применя�
 
 ## Permutation equivariance
 
-Без позиционного сигнала self-attention — функция от *множества* токенов, а не от их *последовательности*. Если переставить токены на входе, выход переставится так же, но содержательно не изменится: $q_m^\top k_n$ зависит от содержимого $q_m, k_n$, а не от их позиций $m, n$. Чтобы трансформер видел порядок, нужно явно добавить позиционную информацию — это решает [[ml_concepts/positional-encoding]].
+Без позиционного сигнала self-attention — функция от *множества* токенов, а не от их *последовательности*. Если переставить токены на входе, выход переставится так же, но содержательно не изменится: $q_m^\top k_n$ зависит от содержимого $q_m, k_n$, а не от их позиций $m, n$. Чтобы трансформер видел порядок, нужно явно добавить позиционную информацию — это решает [[ml_concepts/attention/positional-encodings/index]].
 
 ## Variations and related concepts
 
-- [[ml_concepts/multi-head-attention]] — параллельный запуск $h$ независимых наборов $W_Q, W_K, W_V$, чтобы каждый head специализировался на своём типе зависимостей.
-- [[ml_concepts/cross-attention]] — тот же механизм, но queries и keys/values приходят из разных последовательностей; основа encoder-decoder связки в seq2seq трансформере.
-- [[ml_concepts/causal-masking]] — занулить будущие позиции в скорах перед softmax, чтобы получить decoder-вариант, в котором позиция $m$ видит только $1, \ldots, m$.
-- [[ml_concepts/positional-encoding]] — отдельный сигнал, который ломает permutation equivariance.
-- [[methods/transformer]] — архитектура, в которой self-attention — основной строительный блок.
+- [[ml_concepts/attention/multi-head-attention]] — параллельный запуск $h$ независимых наборов $W_Q, W_K, W_V$, чтобы каждый head специализировался на своём типе зависимостей.
+- [[ml_concepts/attention/variants/cross-attention]] — тот же механизм, но queries и keys/values приходят из разных последовательностей; основа encoder-decoder связки в seq2seq трансформере.
+- [[ml_concepts/attention/causal-masking]] — занулить будущие позиции в скорах перед softmax, чтобы получить decoder-вариант, в котором позиция $m$ видит только $1, \ldots, m$.
+- [[ml_concepts/attention/positional-encodings/index]] — отдельный сигнал, который ломает permutation equivariance.
+- [[methods/architectures/transformer]] — архитектура, в которой self-attention — основной строительный блок.
 
 ## Open questions
 
@@ -89,5 +89,5 @@ $Q K^\top$ — матрица скоров $L \times L$; softmax применя�
 
 ## Up next
 
-- [[ml_concepts/multi-head-attention]] — почему один набор $Q/K/V$ недостаточен и как параллельные heads дают «representation subspaces».
-- [[methods/transformer]] — как self-attention собирается в полноценную encoder-decoder архитектуру.
+- [[ml_concepts/attention/multi-head-attention]] — почему один набор $Q/K/V$ недостаточен и как параллельные heads дают «representation subspaces».
+- [[methods/architectures/transformer]] — как self-attention собирается в полноценную encoder-decoder архитектуру.

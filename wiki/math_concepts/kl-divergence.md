@@ -60,7 +60,7 @@ $$
 
 ## Step-by-step: KL between two Gaussians
 
-Это форма, используемая аналитически в [[methods/vae]]. Пусть $q = \mathcal{N}(\mu_1, \sigma_1^2)$ и $p = \mathcal{N}(\mu_2, \sigma_2^2)$ в одномерном случае. Тогда
+Это форма, используемая аналитически в [[methods/architectures/vae]]. Пусть $q = \mathcal{N}(\mu_1, \sigma_1^2)$ и $p = \mathcal{N}(\mu_2, \sigma_2^2)$ в одномерном случае. Тогда
 
 $$
 \mathrm{KL}(q \,\|\, p) \;=\; \log\frac{\sigma_2}{\sigma_1} \;+\; \frac{\sigma_1^2 + (\mu_1 - \mu_2)^2}{2\sigma_2^2} \;-\; \frac{1}{2}.
@@ -121,9 +121,9 @@ $$
 
 ## Where it shows up in ML
 
-- [[ml_concepts/elbo]] — зазор $\log p(x) - \mathrm{ELBO}$ равен $\mathrm{KL}(q \,\|\, p(z \mid x))$.
-- [[ml_concepts/variational-inference]] — VI минимизирует $\mathrm{KL}(q \,\|\, p(z \mid x))$, эквивалентно максимизирует ELBO.
-- [[methods/vae]] — использует Gaussian-vs-Gaussian KL в закрытой форме как регуляризатор.
+- [[ml_concepts/probabilistic/elbo]] — зазор $\log p(x) - \mathrm{ELBO}$ равен $\mathrm{KL}(q \,\|\, p(z \mid x))$.
+- [[ml_concepts/probabilistic/variational-inference]] — VI минимизирует $\mathrm{KL}(q \,\|\, p(z \mid x))$, эквивалентно максимизирует ELBO.
+- [[methods/architectures/vae]] — использует Gaussian-vs-Gaussian KL в закрытой форме как регуляризатор.
 - Maximum likelihood обучение — это минимизация forward KL: $\min_\theta \mathrm{KL}(\pi(x) \,\|\, p(x \mid \theta))$, причём энтропия данных вынесена как константа.
 
 ## Common pitfalls

@@ -21,7 +21,7 @@ needs_rewrite: true
 
 Подвох обнаруживается при попытке обучить эту модель. Maximum likelihood требует $\log p(x \mid \theta)$, а тот — интеграла. Закрытой формы нет, а наивный Monte Carlo — усреднить $p(x \mid z, \theta)$ по $z$ из prior — ломается, потому что prior ничего не знает о том конкретном $x$, на котором мы условились. Почти каждый prior-сэмпл приземляется на $z$, к $x$ отношения не имеющий, $p(x \mid z, \theta) \approx 0$, и дисперсия оценки почти бесконечна.
 
-Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/variational-inference]] и [[ml_concepts/elbo|ELBO]]. Вместо слепого сэмплирования $z$ — берём из распределения $q(z)$, сосредоточенного на latent'ах, которые могли бы породить $x$. Цена смены меры — нижняя граница на log-evidence вместо самого log-evidence: трактуемый суррогат, на котором стоит обучение всех современных latent-variable моделей.
+Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/probabilistic/variational-inference]] и [[ml_concepts/probabilistic/elbo|ELBO]]. Вместо слепого сэмплирования $z$ — берём из распределения $q(z)$, сосредоточенного на latent'ах, которые могли бы породить $x$. Цена смены меры — нижняя граница на log-evidence вместо самого log-evidence: трактуемый суррогат, на котором стоит обучение всех современных latent-variable моделей.
 
 ## Formal description
 
@@ -49,15 +49,15 @@ $$
 
 Это безнадёжно, когда $p(x \mid z, \theta)$ остро пикован по $z$. Для конкретного $x$ значимый вклад дают только те $z$, что его объясняют; всё остальное практически ноль. Конкретный пример отказа: с $z \sim \mathcal{N}(0, 1)$ и $x \mid z \sim \mathcal{N}(z, \sigma^2)$ при малом $\sigma$ наблюдение $x = 10$ хорошо объясняется только $z \approx 10$, но $z \sim \mathcal{N}(0, 1)$ такие сэмплы практически не выдаёт. Требуемое $K$ растёт экспоненциально с расхождением prior и posterior.
 
-Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/variational-inference]]: вместо слепого сэмплирования $z$ из prior берём из распределения $q(z)$, сконцентрированного на значениях, объясняющих $x$. Цена смены меры — оценка [[ml_concepts/elbo|ELBO]] на log-evidence.
+Это и есть бутылочное горлышко, мотивирующее [[ml_concepts/probabilistic/variational-inference]]: вместо слепого сэмплирования $z$ из prior берём из распределения $q(z)$, сконцентрированного на значениях, объясняющих $x$. Цена смены меры — оценка [[ml_concepts/probabilistic/elbo|ELBO]] на log-evidence.
 
 ## Variations and related concepts
 
-- [[ml_concepts/elbo]] — граница, делающая оптимизацию трактуемой.
-- [[ml_concepts/variational-inference]] — фреймворк вокруг приближённых posterior.
-- [[ml_concepts/amortized-variational-inference]] — общая сеть на все $x$.
-- [[methods/vae]] — каноническая latent-variable модель с amortized inference.
-- [[methods/variational-em]] — чередующая оптимизация модели и posterior.
+- [[ml_concepts/probabilistic/elbo]] — граница, делающая оптимизацию трактуемой.
+- [[ml_concepts/probabilistic/variational-inference]] — фреймворк вокруг приближённых posterior.
+- [[ml_concepts/probabilistic/amortized-variational-inference]] — общая сеть на все $x$.
+- [[methods/architectures/vae]] — каноническая latent-variable модель с amortized inference.
+- [[methods/inference/variational-em]] — чередующая оптимизация модели и posterior.
 
 ## Open questions
 
@@ -69,5 +69,5 @@ $$
 
 ## Up next
 
-- [[ml_concepts/variational-inference]] — фреймворк, превращающий нерасчётный posterior inference в трактуемую оптимизацию.
-- [[ml_concepts/elbo]] — нижняя граница на $\log p(x \mid \theta)$, на которой стоит maximum-likelihood обучение latent-variable моделей.
+- [[ml_concepts/probabilistic/variational-inference]] — фреймворк, превращающий нерасчётный posterior inference в трактуемую оптимизацию.
+- [[ml_concepts/probabilistic/elbo]] — нижняя граница на $\log p(x \mid \theta)$, на которой стоит maximum-likelihood обучение latent-variable моделей.

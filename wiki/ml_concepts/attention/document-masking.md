@@ -11,7 +11,7 @@ needs_rewrite: true
 
 # Document Masking
 
-> Модификация [[ml_concepts/causal-masking|causal mask]] для случая, когда несколько разных документов pack'нуты в одну обучающую последовательность ради эффективности. Маска запрещает attention пересекать границу между документами: токены из документа B не видят токенов из документа A, даже если те находятся в префиксе. На коротких контекстах эффект мал; при расширении до 64k+ токенов становится обязательным.
+> Модификация [[ml_concepts/attention/causal-masking|causal mask]] для случая, когда несколько разных документов pack'нуты в одну обучающую последовательность ради эффективности. Маска запрещает attention пересекать границу между документами: токены из документа B не видят токенов из документа A, даже если те находятся в префиксе. На коротких контекстах эффект мал; при расширении до 64k+ токенов становится обязательным.
 
 ## Motivation
 
@@ -59,19 +59,19 @@ C ■  ■  ■  ■  ■  ■  ■  ■          C ·  ·  ·  ·  ·  ·  ■ 
 
 - **На коротких контекстах (< 4k).** SmolLM3 нашёл мелкое улучшение на PIQA и практически нулевой эффект на других short-context-задачах. Часто пропускают, чтобы не усложнять пайплайн.
 - **При расширении до 64k+.** Document masking становится обязательным. Без него loss при претренинге на длинных контекстах ведёт себя нестабильно: модель учится cross-document шорткатам, которые в test-time исчезают.
-- **В сочетании с [[methods/rope|RoPE]] и context extension.** Чистые границы attention нужны, чтобы методы расширения контекста (PI, NTK-Aware, [[methods/yarn|YaRN]]) корректно работали — иначе позиционные кодировки тянут лишний сигнал через границы документов.
+- **В сочетании с [[methods/positional/rope|RoPE]] и context extension.** Чистые границы attention нужны, чтобы методы расширения контекста (PI, NTK-Aware, [[methods/positional/yarn|YaRN]]) корректно работали — иначе позиционные кодировки тянут лишний сигнал через границы документов.
 
 ## Variations and related concepts
 
-- [[ml_concepts/causal-masking]] — базовая маска, которую document masking уточняет, обрезая cross-document'ные пары.
-- [[ml_concepts/sliding-window-attention]] — другая модификация маски на длинных контекстах: ограничение по расстоянию, не по документу.
-- [[ml_concepts/self-attention]] — операция, к которой применяется маска.
-- [[methods/yarn]], [[methods/dype]] — методы расширения контекста, для корректной работы которых нужны чистые attention-границы.
+- [[ml_concepts/attention/causal-masking]] — базовая маска, которую document masking уточняет, обрезая cross-document'ные пары.
+- [[ml_concepts/attention/efficiency/sliding-window-attention]] — другая модификация маски на длинных контекстах: ограничение по расстоянию, не по документу.
+- [[ml_concepts/attention/self-attention]] — операция, к которой применяется маска.
+- [[methods/positional/yarn]], [[methods/positional/dype]] — методы расширения контекста, для корректной работы которых нужны чистые attention-границы.
 
 ## Open questions
 
 - Почему эффект document masking резко возрастает именно с порядка 4k → 64k? Это плавный переход или критическая длина, после которой cross-document-контаминация перестаёт быть terпимой?
-- Как комбинируется document masking с [[ml_concepts/sliding-window-attention|SWA]] — если окно $p$ меньше типичного документа, document mask вообще не активируется. Какие документы выигрывают/проигрывают в такой комбинации?
+- Как комбинируется document masking с [[ml_concepts/attention/efficiency/sliding-window-attention|SWA]] — если окно $p$ меньше типичного документа, document mask вообще не активируется. Какие документы выигрывают/проигрывают в такой комбинации?
 
 ## Sources
 
@@ -79,5 +79,5 @@ C ■  ■  ■  ■  ■  ■  ■  ■          C ·  ·  ·  ·  ·  ·  ■ 
 
 ## Up next
 
-- [[ml_concepts/sliding-window-attention]] — другой стандартный паттерн масок на длинных контекстах.
+- [[ml_concepts/attention/efficiency/sliding-window-attention]] — другой стандартный паттерн масок на длинных контекстах.
 - [[topics/attention-variants]] — место document masking в общем спектре long-context-патчей.

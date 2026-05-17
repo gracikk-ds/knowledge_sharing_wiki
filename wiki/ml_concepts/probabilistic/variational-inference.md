@@ -15,7 +15,7 @@ needs_rewrite: true
 
 ## Motivation
 
-В [[ml_concepts/latent-variable-model]] нам постоянно нужен posterior $p(z \mid x, \theta)$ — для предсказаний, для ожиданий, возникающих в целях обучения, для анализа того, чему модель научилась. Правило Байеса его выписывает:
+В [[ml_concepts/probabilistic/latent-variable-model]] нам постоянно нужен posterior $p(z \mid x, \theta)$ — для предсказаний, для ожиданий, возникающих в целях обучения, для анализа того, чему модель научилась. Правило Байеса его выписывает:
 
 $$
 p(z \mid x, \theta) \;=\; \frac{p(x \mid z, \theta)\,p(z)}{p(x \mid \theta)}.
@@ -25,7 +25,7 @@ $$
 
 Variational inference заменяет inference на оптимизацию. Берём трактуемое семейство $\mathcal{Q} = \{q\}$ — диагональные гауссианы, mean-field факторизации, более сложные параметрические семейства — и ищем внутри него $q$, ближайший к истинному posterior, по [[math_concepts/kl-divergence]]. Найденный $q^*$ используется как прокси: ожидания под истинным posterior заменяются ожиданиями под $q^*$, и эти последние мы посчитать можем, потому что $q^*$ взят из трактуемого семейства.
 
-Прямая попытка минимизировать $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$ упирается в ту же стену, что и раньше: KL содержит $\log p(z \mid x, \theta)$, а это та же неизвестная нормировка. Выход — тождество $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q \,\|\, p(z \mid x, \theta))$. Левая часть от $q$ не зависит, поэтому минимизировать KL по $q$ — это в точности то же, что максимизировать [[ml_concepts/elbo|ELBO]] по $q$. ELBO нуждается только в joint $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$, который у нас есть. Это и есть базовый ход VI: трудный объект и трактуемый суррогат различаются на константу по $q$, поэтому оптимизация суррогата эквивалентна оптимизации настоящей величины.
+Прямая попытка минимизировать $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$ упирается в ту же стену, что и раньше: KL содержит $\log p(z \mid x, \theta)$, а это та же неизвестная нормировка. Выход — тождество $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q \,\|\, p(z \mid x, \theta))$. Левая часть от $q$ не зависит, поэтому минимизировать KL по $q$ — это в точности то же, что максимизировать [[ml_concepts/probabilistic/elbo|ELBO]] по $q$. ELBO нуждается только в joint $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$, который у нас есть. Это и есть базовый ход VI: трудный объект и трактуемый суррогат различаются на константу по $q$, поэтому оптимизация суррогата эквивалентна оптимизации настоящей величины.
 
 Остаётся выбор дизайна — семейство $\mathcal{Q}$. Богаче семейство — ближе к истинному posterior, но сложнее в оптимизации и выше дисперсия градиентных оценок. Mean-field $q(z) = \prod_j q_j(z_j)$ — классический default; диагональные гауссианы доминируют в amortized-постановках. Этот компромисс — bias от $\mathcal{Q}$ против стоимости оптимизации — главная ручка, которую крутит VI-практик.
 
@@ -49,7 +49,7 @@ $$
 \arg\min_{q} \mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big) \;\equiv\; \arg\max_{q} \mathrm{ELBO}(q, \theta).
 $$
 
-Истинный posterior для подгонки $q$ не нужен — максимизация [[ml_concepts/elbo|ELBO]] по $q$ — та же оптимизация, что минимизация KL к posterior. Это базовое тождество VI.
+Истинный posterior для подгонки $q$ не нужен — максимизация [[ml_concepts/probabilistic/elbo|ELBO]] по $q$ — та же оптимизация, что минимизация KL к posterior. Это базовое тождество VI.
 
 ## Why reverse KL (not forward)
 
@@ -64,15 +64,15 @@ Reverse KL выбран потому, что $q$ — это proposal, из ко�
 
 Классический выбор — **mean-field** семейство: $q(z) = \prod_j q_j(z_j)$, каждый множитель в простом параметрическом семействе. Полностью факторизованное, легко сэмплируется, но не выражает корреляций между латентами.
 
-Для amortized-постановок (одна inference-сеть на все $x$) типичный выбор — **диагональный гауссиан** $q(z \mid x, \phi) = \mathcal{N}(\mu_\phi(x), \mathrm{diag}(\sigma_\phi^2(x)))$ с $\mu_\phi, \sigma_\phi$ как выходами нейросети. Это и есть выбор [[methods/vae]]. Более богатые семейства существуют (normalising flows для $q$, structured posteriors) ценой дополнительной сложности.
+Для amortized-постановок (одна inference-сеть на все $x$) типичный выбор — **диагональный гауссиан** $q(z \mid x, \phi) = \mathcal{N}(\mu_\phi(x), \mathrm{diag}(\sigma_\phi^2(x)))$ с $\mu_\phi, \sigma_\phi$ как выходами нейросети. Это и есть выбор [[methods/architectures/vae]]. Более богатые семейства существуют (normalising flows для $q$, structured posteriors) ценой дополнительной сложности.
 
 ## Variations and related concepts
 
-- [[ml_concepts/elbo]] — суррогат, оптимизируемый вместо нерасчётного KL.
-- [[ml_concepts/amortized-variational-inference]] — общая $q(z \mid x, \phi)$ на все примеры.
-- [[ml_concepts/reparameterization-trick]] — backprop через $\nabla_\phi \mathbb{E}_{q}[\cdot]$.
-- [[methods/variational-em]] — чередовать VI ($q$-обновления) с обновлениями модели.
-- [[methods/vae]] — VI, end-to-end параметризованная как глубокий автоэнкодер.
+- [[ml_concepts/probabilistic/elbo]] — суррогат, оптимизируемый вместо нерасчётного KL.
+- [[ml_concepts/probabilistic/amortized-variational-inference]] — общая $q(z \mid x, \phi)$ на все примеры.
+- [[ml_concepts/probabilistic/reparameterization-trick]] — backprop через $\nabla_\phi \mathbb{E}_{q}[\cdot]$.
+- [[methods/inference/variational-em]] — чередовать VI ($q$-обновления) с обновлениями модели.
+- [[methods/architectures/vae]] — VI, end-to-end параметризованная как глубокий автоэнкодер.
 - [[math_concepts/kl-divergence]] — мера «близости», которую минимизируем.
 
 ## Open questions
@@ -85,5 +85,5 @@ Reverse KL выбран потому, что $q$ — это proposal, из ко�
 
 ## Up next
 
-- [[ml_concepts/elbo]] — суррогатная цель, превращающая нерасчётную KL-минимизацию в трактуемую задачу максимизации.
-- [[ml_concepts/amortized-variational-inference]] — общая нейросеть на все $x$ вместо per-example подгонки $q$.
+- [[ml_concepts/probabilistic/elbo]] — суррогатная цель, превращающая нерасчётную KL-минимизацию в трактуемую задачу максимизации.
+- [[ml_concepts/probabilistic/amortized-variational-inference]] — общая нейросеть на все $x$ вместо per-example подгонки $q$.

@@ -27,32 +27,32 @@ status: draft
 
 ## Concepts touched
 
-- [[ml_concepts/self-attention]] — апгрейд stub → draft: полный механизм Q/K/V, scaled dot-product, матричная форма, мотивация через альтернативы RNN. **Главный вклад источника.**
-- [[ml_concepts/multi-head-attention]] — новая страница. Мотивация (доминирование самотокена, разные типы отношений), формальное описание ($h$ heads, конкатенация, $W^O$), стоимость.
-- [[ml_concepts/cross-attention]] — новая страница. Encoder-decoder attention: $Q$ из декодера, $K, V$ из энкодера; матрица скоров $L_{\text{tgt}} \times L_{\text{src}}$.
-- [[ml_concepts/causal-masking]] — новая страница. Маскирование будущих позиций для авторегрессионного декодера; параллельное обучение vs последовательный инференс.
-- [[ml_concepts/positional-encoding]] — добавлена как второй источник: контекст оригинального трансформера, аддитивная схема, интуиция про осмысленные расстояния после проекции.
-- [[methods/transformer]] — новая страница. Полная архитектура: encoder/decoder стэки, residual + LayerNorm, sinusoidal PE, финальный linear+softmax, варианты (BERT/GPT/T5/ViT).
-- [[methods/sinusoidal-position-encoding]] — добавлена как второй источник: расхождение между формулой в статье и реализацией в Tensor2Tensor.
+- [[ml_concepts/attention/self-attention]] — апгрейд stub → draft: полный механизм Q/K/V, scaled dot-product, матричная форма, мотивация через альтернативы RNN. **Главный вклад источника.**
+- [[ml_concepts/attention/multi-head-attention]] — новая страница. Мотивация (доминирование самотокена, разные типы отношений), формальное описание ($h$ heads, конкатенация, $W^O$), стоимость.
+- [[ml_concepts/attention/variants/cross-attention]] — новая страница. Encoder-decoder attention: $Q$ из декодера, $K, V$ из энкодера; матрица скоров $L_{\text{tgt}} \times L_{\text{src}}$.
+- [[ml_concepts/attention/causal-masking]] — новая страница. Маскирование будущих позиций для авторегрессионного декодера; параллельное обучение vs последовательный инференс.
+- [[ml_concepts/attention/positional-encodings/index]] — добавлена как второй источник: контекст оригинального трансформера, аддитивная схема, интуиция про осмысленные расстояния после проекции.
+- [[methods/architectures/transformer]] — новая страница. Полная архитектура: encoder/decoder стэки, residual + LayerNorm, sinusoidal PE, финальный linear+softmax, варианты (BERT/GPT/T5/ViT).
+- [[methods/positional/sinusoidal-position-encoding]] — добавлена как второй источник: расхождение между формулой в статье и реализацией в Tensor2Tensor.
 - [[topics/transformers]] — новая страница. Narrative-вход в область: мотивация, core ideas, methods, потомки и направления оптимизации.
 
 ## Contradictions and revisions
 
-Нет. Источник первым открывает область трансформеров в вики; существующие соседние страницы ([[ml_concepts/positional-encoding]], [[methods/sinusoidal-position-encoding]], [[ml_concepts/rotary-position-embedding]]) согласуются с его изложением. Stub [[ml_concepts/self-attention]] существовал до ингеста как заглушка из RoPE-лекции; этот источник заполняет его — рост сложности страницы корректен.
+Нет. Источник первым открывает область трансформеров в вики; существующие соседние страницы ([[ml_concepts/attention/positional-encodings/index]], [[methods/positional/sinusoidal-position-encoding]], [[ml_concepts/attention/positional-encodings/rotary-position-embedding]]) согласуются с его изложением. Stub [[ml_concepts/attention/self-attention]] существовал до ингеста как заглушка из RoPE-лекции; этот источник заполняет его — рост сложности страницы корректен.
 
 ## Questions raised
 
-- **Pre-LN vs Post-LN.** Пост использует Post-LN ($\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))$), современные модели — Pre-LN. Что именно ломается в Post-LN при больших глубинах? Записано в [[methods/transformer]] и [[topics/transformers]], отдельной `questions/` страницы не создано — нужен сфокусированный источник.
-- **Многоголовость и интерпретируемость.** Каждая head специализируется на своём (антецедент, синтаксис) — это наблюдение из ранних разборов BERT/GPT-2. Сохраняется ли оно для современных крупных моделей? Записано в [[ml_concepts/multi-head-attention]].
-- **$O(L^2)$ узкое место.** Записано в [[ml_concepts/self-attention]] и [[topics/transformers]] как направление оптимизации (FlashAttention, linear attention, Mamba) — кандидат на отдельную тему при будущем ингесте.
+- **Pre-LN vs Post-LN.** Пост использует Post-LN ($\mathrm{LayerNorm}(x + \mathrm{Sublayer}(x))$), современные модели — Pre-LN. Что именно ломается в Post-LN при больших глубинах? Записано в [[methods/architectures/transformer]] и [[topics/transformers]], отдельной `questions/` страницы не создано — нужен сфокусированный источник.
+- **Многоголовость и интерпретируемость.** Каждая head специализируется на своём (антецедент, синтаксис) — это наблюдение из ранних разборов BERT/GPT-2. Сохраняется ли оно для современных крупных моделей? Записано в [[ml_concepts/attention/multi-head-attention]].
+- **$O(L^2)$ узкое место.** Записано в [[ml_concepts/attention/self-attention]] и [[topics/transformers]] как направление оптимизации (FlashAttention, linear attention, Mamba) — кандидат на отдельную тему при будущем ингесте.
 
 ## Notes
 
 - Источник популярный, не академический. Уровень — мотивирующий разбор с диаграммами; точность достаточная для понимания механизма, но детали (точные размеры, расписание learning rate, label smoothing, dropout) не разбираются — это нужно брать из оригинальной статьи Vaswani 2017 (в reading queue на [[topics/transformers]]).
-- В посте 2025 года автор обновил его и сослался на свою книгу LLM-book.com (Chapter 3), где разобраны Multi-Query Attention и RoPE. Эти расширения уже частично покрыты в вики: [[methods/rope]], reading queue на [[topics/transformers]] и [[topics/positional-encoding]].
+- В посте 2025 года автор обновил его и сослался на свою книгу LLM-book.com (Chapter 3), где разобраны Multi-Query Attention и RoPE. Эти расширения уже частично покрыты в вики: [[methods/positional/rope]], reading queue на [[topics/transformers]] и [[topics/positional-encoding]].
 - Изображения. Все диаграммы в источнике — внешние URL'ы на jalammar.github.io. По политике вики (self-contained, без рисков ротации внешних ссылок) embed'ы не делал; описания фигур уходят в прозу концептуальных страниц. Оригинал доступен по URL источника, указанному в frontmatter clip'а.
 - Beam search и greedy decoding упомянуты в источнике, но в вики не вынесены в отдельные методы — мотивация выходит за рамки именно трансформера. Оставлены как будущие стабы при ингесте сфокусированного источника по декодингу.
-- Residual connection, LayerNorm и position-wise FFN упомянуты в источнике как «детали», но без характеризации. Оставлены как stub-кандидаты в [[methods/transformer]] и [[topics/transformers]]; самостоятельные страницы создавать на этом источнике преждевременно.
+- Residual connection, LayerNorm и position-wise FFN упомянуты в источнике как «детали», но без характеризации. Оставлены как stub-кандидаты в [[methods/architectures/transformer]] и [[topics/transformers]]; самостоятельные страницы создавать на этом источнике преждевременно.
 
 ## Pointer back to raw
 

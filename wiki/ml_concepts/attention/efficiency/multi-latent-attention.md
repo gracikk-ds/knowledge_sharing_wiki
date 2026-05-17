@@ -11,7 +11,7 @@ needs_rewrite: true
 
 # Multi-Latent Attention (MLA)
 
-> Альтернатива [[ml_concepts/grouped-query-attention|GQA]] для сжатия [[ml_concepts/kv-cache|KV-кэша]]. Вместо того чтобы шарить $K, V$ между heads, MLA проецирует вход в низкоразмерное латентное представление $c_t$ и кэширует *его*; полные $K, V$ восстанавливаются на лету через обучаемые upward-проекции. Даёт 4–8× компрессии при сохранении выразительности, близкой к MHA, ценой инженерной сложности.
+> Альтернатива [[ml_concepts/attention/efficiency/grouped-query-attention|GQA]] для сжатия [[ml_concepts/attention/kv-cache|KV-кэша]]. Вместо того чтобы шарить $K, V$ между heads, MLA проецирует вход в низкоразмерное латентное представление $c_t$ и кэширует *его*; полные $K, V$ восстанавливаются на лету через обучаемые upward-проекции. Даёт 4–8× компрессии при сохранении выразительности, близкой к MHA, ценой инженерной сложности.
 
 ## Motivation
 
@@ -51,10 +51,10 @@ $$
 
 ## Variations and related concepts
 
-- [[ml_concepts/multi-head-attention]] — исходная схема, относительно которой MLA — более выразительный способ сжать кэш, чем шаринг heads.
-- [[ml_concepts/grouped-query-attention]] — альтернативный путь сжатия. GQA проще в реализации; MLA даёт больший фактор сжатия и лучше держит выразительность.
-- [[ml_concepts/multi-query-attention]] — крайний случай GQA; MLA можно считать «GQA-2.0», в которой шаринг превратился в обучаемое сжатие.
-- [[ml_concepts/kv-cache]] — bottleneck, ради которого MLA вообще проектировался.
+- [[ml_concepts/attention/multi-head-attention]] — исходная схема, относительно которой MLA — более выразительный способ сжать кэш, чем шаринг heads.
+- [[ml_concepts/attention/efficiency/grouped-query-attention]] — альтернативный путь сжатия. GQA проще в реализации; MLA даёт больший фактор сжатия и лучше держит выразительность.
+- [[ml_concepts/attention/efficiency/multi-query-attention]] — крайний случай GQA; MLA можно считать «GQA-2.0», в которой шаринг превратился в обучаемое сжатие.
+- [[ml_concepts/attention/kv-cache]] — bottleneck, ради которого MLA вообще проектировался.
 
 ## Open questions
 
@@ -68,4 +68,4 @@ $$
 ## Up next
 
 - [[topics/attention-variants]] — narrative-вход в KV-bottleneck и весь спектр сжимающих attention-схем.
-- [[ml_concepts/grouped-query-attention]] — для сравнения двух доминирующих стратегий сжатия.
+- [[ml_concepts/attention/efficiency/grouped-query-attention]] — для сравнения двух доминирующих стратегий сжатия.

@@ -28,7 +28,7 @@ $$
 F(x_t, t, s) \;=\; v(x_t, t) \;-\; (s - t)\,\frac{\mathrm{d}}{\mathrm{d}t}F(x_t, t, s).
 $$
 
-Средняя скорость равна мгновенной скорости в $t$ минус $(s - t)$, умноженное на то, как быстро это среднее меняется с $t$. Интеграл исчез; остались мгновенная скорость (один forward pass через velocity-модель) и полная производная $F$ по $t$ (один Jacobian-vector product через $F_\theta$). На этом стоит [[methods/mean-flow]]: одна сеть выдаёт $F$, а правая часть — построенная из $v$ и JVP $F$ — её супервизирует.
+Средняя скорость равна мгновенной скорости в $t$ минус $(s - t)$, умноженное на то, как быстро это среднее меняется с $t$. Интеграл исчез; остались мгновенная скорость (один forward pass через velocity-модель) и полная производная $F$ по $t$ (один Jacobian-vector product через $F_\theta$). На этом стоит [[methods/generative/mean-flow]]: одна сеть выдаёт $F$, а правая часть — построенная из $v$ и JVP $F$ — её супервизирует.
 
 ## Step-by-step derivation
 
@@ -106,8 +106,8 @@ $$
 
 ## Where it shows up in ML
 
-- [[methods/mean-flow]] — использует тождество как stop-gradient таргет, чтобы flow-map выход сети оставался согласованным с её flow-matching velocity-головой.
-- [[ml_concepts/flow-map]] — более общий концепт, на котором тождество живёт.
+- [[methods/generative/mean-flow]] — использует тождество как stop-gradient таргет, чтобы flow-map выход сети оставался согласованным с её flow-matching velocity-головой.
+- [[ml_concepts/generative/flow-map]] — более общий концепт, на котором тождество живёт.
 
 ## Common pitfalls
 

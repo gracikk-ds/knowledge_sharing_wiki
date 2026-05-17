@@ -20,27 +20,27 @@ Few-step генеративные модели от этой цены отказ
 
 ## Core ideas
 
-Фундамент — [[ml_concepts/probability-flow-ode]]. У diffusion это детерминированный двойник noising SDE; у flow matching это ODE, переносящий prior в data вдоль обученного векторного поля. Сэмплирование = решение этого ODE, и стоимость сэмплирования = число шагов солвера.
+Фундамент — [[ml_concepts/generative/probability-flow-ode]]. У diffusion это детерминированный двойник noising SDE; у flow matching это ODE, переносящий prior в data вдоль обученного векторного поля. Сэмплирование = решение этого ODE, и стоимость сэмплирования = число шагов солвера.
 
-[[ml_concepts/flow-map]] — смена точки зрения, из которой вырастает остальная область. Вместо *мгновенной* скорости $v(x_t, t)$ — производной траектории в одной точке — выучить *проинтегрированное* решение $\Psi_{t \to s}(x_t)$ напрямую: функцию, которая берёт состояние в момент $t$ и возвращает состояние в момент $s$. Если у тебя есть $\Psi_{0 \leftarrow \sigma}$ на всём интервале, сэмплирование — один вызов сети. Вся few-step область — про то, как обучить flow map достаточно точно, чтобы обойтись без ODE-солвера.
+[[ml_concepts/generative/flow-map]] — смена точки зрения, из которой вырастает остальная область. Вместо *мгновенной* скорости $v(x_t, t)$ — производной траектории в одной точке — выучить *проинтегрированное* решение $\Psi_{t \to s}(x_t)$ напрямую: функцию, которая берёт состояние в момент $t$ и возвращает состояние в момент $s$. Если у тебя есть $\Psi_{0 \leftarrow \sigma}$ на всём интервале, сэмплирование — один вызов сети. Вся few-step область — про то, как обучить flow map достаточно точно, чтобы обойтись без ODE-солвера.
 
-Самая простая цель для flow-map — приземляться в данные. [[ml_concepts/consistency-function]] — это flow map $\Psi_{0 \leftarrow t}$, определённый для каждого $t$, с одним ограничением: точки на одной траектории probability-flow должны переходить в один и тот же data-сэмпл. Именно это свойство и делает consistency models обучаемыми без явного учителя и даёт семье название.
+Самая простая цель для flow-map — приземляться в данные. [[ml_concepts/generative/consistency-function]] — это flow map $\Psi_{0 \leftarrow t}$, определённый для каждого $t$, с одним ограничением: точки на одной траектории probability-flow должны переходить в один и тот же data-сэмпл. Именно это свойство и делает consistency models обучаемыми без явного учителя и даёт семье название.
 
-[[ml_concepts/step-distillation]] — более ранний фрейминг, из которого область выросла. Обучить быстрого student'а имитировать *выход* медленного multi-step учителя, рассматривая multi-step траекторию учителя как supervision-сигнал. Это работает независимо от того, есть ли у student'а flow-map структура. Методы ниже смешивают эти две идеи — flow-map параметризацию и step distillation — в разных пропорциях.
+[[ml_concepts/generative/step-distillation]] — более ранний фрейминг, из которого область выросла. Обучить быстрого student'а имитировать *выход* медленного multi-step учителя, рассматривая multi-step траекторию учителя как supervision-сигнал. Это работает независимо от того, есть ли у student'а flow-map структура. Методы ниже смешивают эти две идеи — flow-map параметризацию и step distillation — в разных пропорциях.
 
 ## Methods that grow from these ideas
 
-[[methods/progressive-distillation]] первым продвинул few-step сэмплирование на масштабе. Обучить student'а воспроизводить два шага учителя за один, затем повторить distillation на новом student'е, пока не дойдём до одного шага. Каждый раунд делит число шагов пополам. Student — это перепараметризованный учитель — без flow-map структуры, без consistency-ограничения — поэтому ошибка копится с каждым урезанием шагов, и качество изображений резко падает в самом конце расписания.
+[[methods/distillation/progressive-distillation]] первым продвинул few-step сэмплирование на масштабе. Обучить student'а воспроизводить два шага учителя за один, затем повторить distillation на новом student'е, пока не дойдём до одного шага. Каждый раунд делит число шагов пополам. Student — это перепараметризованный учитель — без flow-map структуры, без consistency-ограничения — поэтому ошибка копится с каждым урезанием шагов, и качество изображений резко падает в самом конце расписания.
 
-[[methods/consistency-distillation]] — flow-map аналог. Обучить consistency function, требуя, чтобы соседние точки на сгенерированной учителем траектории отображались в один выход: student видит $x_t$ из одного шага учителя и $x_{t - \Delta t}$ из следующего, и loss заставляет оба давать одинаковое предсказание. Учитель даёт ground-truth траектории; consistency-ограничение даёт структурное свойство. Один forward pass из любого $t$ в $0$ даёт сэмпл.
+[[methods/distillation/consistency-distillation]] — flow-map аналог. Обучить consistency function, требуя, чтобы соседние точки на сгенерированной учителем траектории отображались в один выход: student видит $x_t$ из одного шага учителя и $x_{t - \Delta t}$ из следующего, и loss заставляет оба давать одинаковое предсказание. Учитель даёт ground-truth траектории; consistency-ограничение даёт структурное свойство. Один forward pass из любого $t$ в $0$ даёт сэмпл.
 
-[[methods/consistency-training]] полностью убирает учителя. Берём два момента $t < s$, рисуем *одинаковый* гауссовский шум $\varepsilon$, строим две зашумлённые версии $x_t = x_0 + t\varepsilon$ и $x_s = x_0 + s\varepsilon$ — обе лежат на одной прямой траектории между $x_0$ и шумовой границей — и накладываем на эти две точки consistency-ограничение. Ни учителя, ни предобученной diffusion-сети. Трюк в том, что одинаковая $\varepsilon$ гарантирует, что обе точки лежат на одной траектории в прямом transport'е.
+[[methods/distillation/consistency-training]] полностью убирает учителя. Берём два момента $t < s$, рисуем *одинаковый* гауссовский шум $\varepsilon$, строим две зашумлённые версии $x_t = x_0 + t\varepsilon$ и $x_s = x_0 + s\varepsilon$ — обе лежат на одной прямой траектории между $x_0$ и шумовой границей — и накладываем на эти две точки consistency-ограничение. Ни учителя, ни предобученной diffusion-сети. Трюк в том, что одинаковая $\varepsilon$ гарантирует, что обе точки лежат на одной траектории в прямом transport'е.
 
-[[methods/multistep-consistency-model]] — естественное ослабление, когда одна consistency function недостаточно точна на всём $[0, \sigma]$. Разбить интервал на $K$ под-интервалов, выучить отдельный flow map на каждый, и сэмплировать цепочкой из $K$ forward pass'ов — обычно $K = 2$ или $K = 4$. Это закрывает разрыв в качестве между one-step CMs и многошаговым diffusion: за точность платят forward pass'ами, а не раундами distillation.
+[[methods/distillation/multistep-consistency-model]] — естественное ослабление, когда одна consistency function недостаточно точна на всём $[0, \sigma]$. Разбить интервал на $K$ под-интервалов, выучить отдельный flow map на каждый, и сэмплировать цепочкой из $K$ forward pass'ов — обычно $K = 2$ или $K = 4$. Это закрывает разрыв в качестве между one-step CMs и многошаговым diffusion: за точность платят forward pass'ами, а не раундами distillation.
 
-[[methods/shortcut-model]] обобщает «все flow map приземляются в ноль». Выучить $F(x_t, t, s)$ для произвольных $t, s$ и наложить interval-additivity: переход $t \to s$ должен совпадать с $t \to u \to s$ для любого промежуточного $u$. Это self-consistency loss, который вместе со stop-gradient на одной стороне равенства даёт одной сети целое семейство $\Psi_{t \to s}$ без учителя.
+[[methods/generative/shortcut-model]] обобщает «все flow map приземляются в ноль». Выучить $F(x_t, t, s)$ для произвольных $t, s$ и наложить interval-additivity: переход $t \to s$ должен совпадать с $t \to u \to s$ для любого промежуточного $u$. Это self-consistency loss, который вместе со stop-gradient на одной стороне равенства даёт одной сети целое семейство $\Psi_{t \to s}$ без учителя.
 
-[[methods/mean-flow]] переосмысливает тот же flow map как *среднюю скорость* на $[t, s]$. Средняя скорость — естественная для обучения величина, но на вид неинтегрируемая: чтобы её усреднить, нужна та самая траектория, от которой мы пытаемся избавиться. [[math_concepts/mean-flow-identity]] выражает среднюю скорость через один вызов мгновенной скорости плюс производную $F$ по времени, делая цель обучения локальной. Модель учится удовлетворять тождеству в каждой тройке $(x_t, t, s)$.
+[[methods/generative/mean-flow]] переосмысливает тот же flow map как *среднюю скорость* на $[t, s]$. Средняя скорость — естественная для обучения величина, но на вид неинтегрируемая: чтобы её усреднить, нужна та самая траектория, от которой мы пытаемся избавиться. [[math_concepts/mean-flow-identity]] выражает среднюю скорость через один вызов мгновенной скорости плюс производную $F$ по времени, делая цель обучения локальной. Модель учится удовлетворять тождеству в каждой тройке $(x_t, t, s)$.
 
 ## Open threads
 
@@ -50,16 +50,16 @@ Few-step генеративные модели от этой цены отказ
 
 ## Reading order (recap)
 
-1. [[ml_concepts/probability-flow-ode]]
-2. [[ml_concepts/flow-map]]
-3. [[ml_concepts/consistency-function]]
-4. [[ml_concepts/step-distillation]]
-5. [[methods/progressive-distillation]]
-6. [[methods/consistency-distillation]]
-7. [[methods/consistency-training]]
-8. [[methods/multistep-consistency-model]]
-9. [[methods/shortcut-model]]
-10. [[math_concepts/mean-flow-identity]] → [[methods/mean-flow]]
+1. [[ml_concepts/generative/probability-flow-ode]]
+2. [[ml_concepts/generative/flow-map]]
+3. [[ml_concepts/generative/consistency-function]]
+4. [[ml_concepts/generative/step-distillation]]
+5. [[methods/distillation/progressive-distillation]]
+6. [[methods/distillation/consistency-distillation]]
+7. [[methods/distillation/consistency-training]]
+8. [[methods/distillation/multistep-consistency-model]]
+9. [[methods/generative/shortcut-model]]
+10. [[math_concepts/mean-flow-identity]] → [[methods/generative/mean-flow]]
 
 ## Reading queue
 

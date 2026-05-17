@@ -15,7 +15,7 @@ needs_rewrite: true
 
 ## Motivation
 
-У нас есть [[ml_concepts/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. Чтобы обучить её через максимум правдоподобия, нужен этот интеграл. Закрытой формы у него нет, поэтому первый инстинкт — Монте-Карло: семплируем $z \sim p(z)$ и усредняем $p(x \mid z, \theta)$. Это ломается по конкретной причине: для фиксированного $x$ почти каждый сэмпл из prior попадает в такой $z$, который к $x$ отношения не имеет, и $p(x \mid z, \theta) \approx 0$. Из тысячи сэмплов вклад дают единицы; дисперсия оценки огромна.
+У нас есть [[ml_concepts/probabilistic/latent-variable-model]] $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. Чтобы обучить её через максимум правдоподобия, нужен этот интеграл. Закрытой формы у него нет, поэтому первый инстинкт — Монте-Карло: семплируем $z \sim p(z)$ и усредняем $p(x \mid z, \theta)$. Это ломается по конкретной причине: для фиксированного $x$ почти каждый сэмпл из prior попадает в такой $z$, который к $x$ отношения не имеет, и $p(x \mid z, \theta) \approx 0$. Из тысячи сэмплов вклад дают единицы; дисперсия оценки огромна.
 
 ELBO решает эту проблему. Вместо $p(z)$ семплируем из более умного $q(z)$, сосредоточенного на тех латентах, что могут объяснить $x$. Величина, которую можно так оценить, — это *нижняя граница* на $\log p(x \mid \theta)$, не сам логарифм, но граница тугая, когда $q$ близок к истинному posterior, и зазор сужается по мере улучшения $q$.
 
@@ -67,22 +67,22 @@ $$
 
 Две парадигмы:
 
-- **[[methods/variational-em]]** — чередовать: при фиксированном $\theta$ выставить $q$ так, чтобы максимизировать ELBO (E-step); при фиксированном $q$ обновить $\theta$ (M-step). При фиксированном $\theta$ $\log p(x \mid \theta)$ от $q$ не зависит, поэтому максимизация ELBO по $q$ эквивалентна минимизации $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$, то есть подгонке $q$ к истинному posterior.
-- **VAE** — параметризуем $q$ как $q(z \mid x, \phi)$ через [[ml_concepts/amortized-variational-inference]] (encoder network) и обновляем $(\phi, \theta)$ совместно через SGD. См. [[methods/vae]].
+- **[[methods/inference/variational-em]]** — чередовать: при фиксированном $\theta$ выставить $q$ так, чтобы максимизировать ELBO (E-step); при фиксированном $q$ обновить $\theta$ (M-step). При фиксированном $\theta$ $\log p(x \mid \theta)$ от $q$ не зависит, поэтому максимизация ELBO по $q$ эквивалентна минимизации $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$, то есть подгонке $q$ к истинному posterior.
+- **VAE** — параметризуем $q$ как $q(z \mid x, \phi)$ через [[ml_concepts/probabilistic/amortized-variational-inference]] (encoder network) и обновляем $(\phi, \theta)$ совместно через SGD. См. [[methods/architectures/vae]].
 
 Две координаты градиента обрабатываются по-разному:
 
 - $\nabla_\theta \mathrm{ELBO}$: $q$ от $\theta$ не зависит, поэтому градиент проходит внутрь ожидания, и оценка тривиально считается Monte Carlo.
-- $\nabla_\phi \mathrm{ELBO}$: $q$ зависит от $\phi$. Наивная перестановка градиента и ожидания неверна; нужен [[ml_concepts/reparameterization-trick]] (или более высоко-дисперсная score-function оценка).
+- $\nabla_\phi \mathrm{ELBO}$: $q$ зависит от $\phi$. Наивная перестановка градиента и ожидания неверна; нужен [[ml_concepts/probabilistic/reparameterization-trick]] (или более высоко-дисперсная score-function оценка).
 
 ## Variations and related concepts
 
-- [[ml_concepts/latent-variable-model]] — постановка, мотивирующая ELBO.
-- [[ml_concepts/variational-inference]] — фреймворк вокруг ELBO.
-- [[ml_concepts/amortized-variational-inference]] — общая сеть на все $x$ вместо per-example $q$.
-- [[ml_concepts/reparameterization-trick]] — как протолкнуть backprop через $\nabla_\phi \mathrm{ELBO}$.
-- [[methods/vae]] — ELBO с гауссовским амортизованным энкодером, end-to-end обучение.
-- [[methods/variational-em]] — ELBO, максимизированный чередованием $q$ и $\theta$.
+- [[ml_concepts/probabilistic/latent-variable-model]] — постановка, мотивирующая ELBO.
+- [[ml_concepts/probabilistic/variational-inference]] — фреймворк вокруг ELBO.
+- [[ml_concepts/probabilistic/amortized-variational-inference]] — общая сеть на все $x$ вместо per-example $q$.
+- [[ml_concepts/probabilistic/reparameterization-trick]] — как протолкнуть backprop через $\nabla_\phi \mathrm{ELBO}$.
+- [[methods/architectures/vae]] — ELBO с гауссовским амортизованным энкодером, end-to-end обучение.
+- [[methods/inference/variational-em]] — ELBO, максимизированный чередованием $q$ и $\theta$.
 - [[math_concepts/jensens-inequality]] — задаёт направление неравенства.
 - [[math_concepts/kl-divergence]] — измеряет зазор границы и появляется в регуляризационном члене.
 
@@ -96,5 +96,5 @@ $$
 
 ## Up next
 
-- [[ml_concepts/reparameterization-trick]] — как считается $\nabla_\phi \mathrm{ELBO}$ в моделях, где $q$ зависит от нейросети.
-- [[methods/vae]] — канонический метод, построенный на ELBO.
+- [[ml_concepts/probabilistic/reparameterization-trick]] — как считается $\nabla_\phi \mathrm{ELBO}$ в моделях, где $q$ зависит от нейросети.
+- [[methods/architectures/vae]] — канонический метод, построенный на ELBO.

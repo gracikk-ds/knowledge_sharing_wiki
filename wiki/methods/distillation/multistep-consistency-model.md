@@ -11,11 +11,11 @@ needs_rewrite: true
 
 # Multistep Consistency Models (Multi-boundary CMs)
 
-> Обобщить [[ml_concepts/consistency-function]] с «всегда проецируй в $t = 0$» до «проецируй в границу следующего интервала». Разбить $[0, \sigma]$ на $N$ интервалов и обучить по consistency-функции на каждый.
+> Обобщить [[ml_concepts/generative/consistency-function]] с «всегда проецируй в $t = 0$» до «проецируй в границу следующего интервала». Разбить $[0, \sigma]$ на $N$ интервалов и обучить по consistency-функции на каждый.
 
 ## Motivation
 
-Одноинтервальная [[ml_concepts/consistency-function]] просит одну сеть отображать любой $x_t$ на траектории обратно в его чистый endpoint $x_0$. Этот таргет растянут на весь интервал $[0, \sigma]$ [[ml_concepts/probability-flow-ode]], поэтому сеть должна представить результат интегрирования сильно нелинейного векторного поля на всём диапазоне. При одном шаге inference это максимум, на что способен один forward pass. Цена за качество видна на практике: single-step CMs уступают учителю на сложных распределениях даже после аккуратного обучения.
+Одноинтервальная [[ml_concepts/generative/consistency-function]] просит одну сеть отображать любой $x_t$ на траектории обратно в его чистый endpoint $x_0$. Этот таргет растянут на весь интервал $[0, \sigma]$ [[ml_concepts/generative/probability-flow-ode]], поэтому сеть должна представить результат интегрирования сильно нелинейного векторного поля на всём диапазоне. При одном шаге inference это максимум, на что способен один forward pass. Цена за качество видна на практике: single-step CMs уступают учителю на сложных распределениях даже после аккуратного обучения.
 
 Разрешить больше шагов inference помогло бы, но у стандартного CM нет понятия «остановиться раньше». Функция построена так, чтобы приземляться в $t = 0$, а не в какой-то промежуточный момент. Очевидного способа разложить длинный прыжок на короткие через ту же сеть нет — каждый шаг это прыжок прямо до endpoint'а.
 
@@ -66,8 +66,8 @@ $$
 
 ## Variants and successors
 
-- [[methods/consistency-distillation]] — частный случай $M = 1$.
-- [[methods/shortcut-model]] — другой принцип self-consistency (interval additivity вместо within-interval инвариантности).
+- [[methods/distillation/consistency-distillation]] — частный случай $M = 1$.
+- [[methods/generative/shortcut-model]] — другой принцип self-consistency (interval additivity вместо within-interval инвариантности).
 - «Multistep Consistency Models» (Heek et al., 2024) — оригинальная статья.
 
 ## Sources
@@ -76,5 +76,5 @@ $$
 
 ## Up next
 
-- [[methods/mean-flow]] — отказывается от boundary-projection-таргета вообще; обучает произвольный $F_\theta(x_t, t, s)$ через дифференциальное тождество.
+- [[methods/generative/mean-flow]] — отказывается от boundary-projection-таргета вообще; обучает произвольный $F_\theta(x_t, t, s)$ через дифференциальное тождество.
 - [[topics/few-step-generative-models]] — как multistep CMs соотносятся с shortcut models, mean flow и distillation.

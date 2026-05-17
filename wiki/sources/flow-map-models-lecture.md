@@ -27,19 +27,19 @@ status: draft
 
 ## Concepts touched
 
-- [[ml_concepts/flow-map]] — объединяющий организующий концепт лекции; новая страница.
-- [[ml_concepts/consistency-function]] — определение, self-consistency, граничное условие; новая страница.
-- [[ml_concepts/step-distillation]] — объяснение one-to-many vs one-to-one, one-step vs multi-step KD; новая страница.
-- [[ml_concepts/diffusion-model]] — упоминается как медленный учитель; stub.
-- [[ml_concepts/flow-matching]] — упоминается как instantaneous-velocity baseline; stub.
-- [[ml_concepts/probability-flow-ode]] — ODE, в котором живёт траектория; stub.
-- [[ml_concepts/score-function]] — используется при выводе CT; stub.
-- [[methods/consistency-distillation]] — полный алгоритм; новая страница.
-- [[methods/consistency-training]] — вывод через прямой путь; новая страница.
-- [[methods/multistep-consistency-model]] — определение и цель multi-boundary CM; новая страница.
-- [[methods/shortcut-model]] — interval-additivity loss; новая страница.
-- [[methods/mean-flow]] — Mean Flow Identity и цель; новая страница.
-- [[methods/progressive-distillation]] — упомянут как multi-step KD; stub.
+- [[ml_concepts/generative/flow-map]] — объединяющий организующий концепт лекции; новая страница.
+- [[ml_concepts/generative/consistency-function]] — определение, self-consistency, граничное условие; новая страница.
+- [[ml_concepts/generative/step-distillation]] — объяснение one-to-many vs one-to-one, one-step vs multi-step KD; новая страница.
+- [[ml_concepts/generative/diffusion-model]] — упоминается как медленный учитель; stub.
+- [[ml_concepts/generative/flow-matching]] — упоминается как instantaneous-velocity baseline; stub.
+- [[ml_concepts/generative/probability-flow-ode]] — ODE, в котором живёт траектория; stub.
+- [[ml_concepts/probabilistic/score-function]] — используется при выводе CT; stub.
+- [[methods/distillation/consistency-distillation]] — полный алгоритм; новая страница.
+- [[methods/distillation/consistency-training]] — вывод через прямой путь; новая страница.
+- [[methods/distillation/multistep-consistency-model]] — определение и цель multi-boundary CM; новая страница.
+- [[methods/generative/shortcut-model]] — interval-additivity loss; новая страница.
+- [[methods/generative/mean-flow]] — Mean Flow Identity и цель; новая страница.
+- [[methods/distillation/progressive-distillation]] — упомянут как multi-step KD; stub.
 - [[math_concepts/mean-flow-identity]] — вывод проходится шаг за шагом; новая страница.
 - [[topics/few-step-generative-models]] — общая зонтичная тема; новая страница.
 

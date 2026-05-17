@@ -15,7 +15,7 @@ needs_rewrite: true
 
 ## Motivation
 
-Концептуально RoPE — это «поворачивай $q$ и $k$ на угол, пропорциональный позиции, и абсолютные углы сократятся в скалярном произведении». В $\mathbb{R}^2$ это даёт [[ml_concepts/rotary-position-embedding|чистую relative-зависимость]] и сохранение нормы — то, чего не достигали ни [[methods/sinusoidal-position-encoding|sinusoidal PE]], ни [[methods/learned-absolute-position-embedding|learned absolute PE]]. Но реальные эмбеддинги $d$-мерны, и нужно решить, как масштабировать идею с $\mathbb{R}^2$ на $\mathbb{R}^d$ без потери ключевых свойств.
+Концептуально RoPE — это «поворачивай $q$ и $k$ на угол, пропорциональный позиции, и абсолютные углы сократятся в скалярном произведении». В $\mathbb{R}^2$ это даёт [[ml_concepts/attention/positional-encodings/rotary-position-embedding|чистую relative-зависимость]] и сохранение нормы — то, чего не достигали ни [[methods/positional/sinusoidal-position-encoding|sinusoidal PE]], ни [[methods/positional/learned-absolute-position-embedding|learned absolute PE]]. Но реальные эмбеддинги $d$-мерны, и нужно решить, как масштабировать идею с $\mathbb{R}^2$ на $\mathbb{R}^d$ без потери ключевых свойств.
 
 Наивный ход — выбрать одну $d \times d$ матрицу поворота. Но она потребует $d(d-1)/2$ параметров и одну общую угловую скорость на весь вектор, что лишает схему многомасштабности. Хочется, чтобы разные части эмбеддинга «видели» позицию на разных масштабах — как разные частоты в синусоидальной PE.
 
@@ -133,10 +133,10 @@ $$
 
 Методы расширения контекста (поднимают $L_\text{target} > L_\text{train}$, удерживая углы в обученной зоне):
 
-- [[methods/position-interpolation]] — масштабирует позицию $m \to m / s$, равномерно сжимая все частоты.
-- [[methods/ntk-aware-interpolation]] — масштабирует базу $b \to b'$, неравномерно сжимая только медленные пары.
-- [[methods/yarn]] — гибридная схема с тремя зонами по длине волны и температурной коррекцией softmax.
-- [[methods/dype]] — динамическая экстраполяция для диффузионных моделей: сила экстраполяции зависит от шага sampling'а.
+- [[methods/positional/position-interpolation]] — масштабирует позицию $m \to m / s$, равномерно сжимая все частоты.
+- [[methods/positional/ntk-aware-interpolation]] — масштабирует базу $b \to b'$, неравномерно сжимая только медленные пары.
+- [[methods/positional/yarn]] — гибридная схема с тремя зонами по длине волны и температурной коррекцией softmax.
+- [[methods/positional/dype]] — динамическая экстраполяция для диффузионных моделей: сила экстраполяции зависит от шага sampling'а.
 
 ## Sources
 
@@ -144,5 +144,5 @@ $$
 
 ## Up next
 
-- [[methods/yarn]] — наиболее гибкая статическая схема расширения контекста.
+- [[methods/positional/yarn]] — наиболее гибкая статическая схема расширения контекста.
 - [[topics/positional-encoding]] — narrative-обзор всей области.

@@ -15,11 +15,11 @@ needs_rewrite: true
 
 ## Motivation
 
-[[methods/position-interpolation|PI]], [[methods/ntk-aware-interpolation|NTK-Aware]] и [[methods/yarn|YaRN]] применяют *статическое* масштабирование: коэффициент $s$ фиксируется один раз и не меняется на протяжении всего инференса. Для языковых моделей это естественно — генерация текста не имеет внутренней «стадийности», где одни частоты были бы важнее других в начале и наоборот в конце.
+[[methods/positional/position-interpolation|PI]], [[methods/positional/ntk-aware-interpolation|NTK-Aware]] и [[methods/positional/yarn|YaRN]] применяют *статическое* масштабирование: коэффициент $s$ фиксируется один раз и не меняется на протяжении всего инференса. Для языковых моделей это естественно — генерация текста не имеет внутренней «стадийности», где одни частоты были бы важнее других в начале и наоборот в конце.
 
 Но в диффузионных моделях есть чёткая спектральная прогрессия. Низкочастотные компоненты изображения (крупномасштабная композиция, общие формы) формируются на ранних шагах sampling'а; высокочастотные детали (текстуры, мелкие элементы) — на поздних. Это и эксплуатирует DyPE: зачем держать постоянный компромисс между «представить весь увеличенный контекст» и «сохранить высокочастотное разрешение», если на разных шагах нужно разное?
 
-В формулировке [[ml_concepts/flow-matching|flow matching]] промежуточный сэмпл $x_t = (1 - t) x + t \varepsilon$. Спектральная плотность мощности (PSD):
+В формулировке [[ml_concepts/generative/flow-matching|flow matching]] промежуточный сэмпл $x_t = (1 - t) x + t \varepsilon$. Спектральная плотность мощности (PSD):
 
 $$
 \lVert \hat{x}_t \rVert_f^2 = (1 - t)^2 \cdot C / f^\omega + t^2,
@@ -72,7 +72,7 @@ DyPE даёт оба эффекта в одной формуле: $\kappa(t)$ а
 
 ## Variants and successors
 
-- [[methods/position-interpolation]], [[methods/ntk-aware-interpolation]], [[methods/yarn]] — статические базы, поверх которых DyPE строит свою динамику.
+- [[methods/positional/position-interpolation]], [[methods/positional/ntk-aware-interpolation]], [[methods/positional/yarn]] — статические базы, поверх которых DyPE строит свою динамику.
 
 ## Sources
 
@@ -80,5 +80,5 @@ DyPE даёт оба эффекта в одной формуле: $\kappa(t)$ а
 
 ## Up next
 
-- [[methods/rope]] — материнский метод; DyPE — это уже четвёртая надстройка над ним.
+- [[methods/positional/rope]] — материнский метод; DyPE — это уже четвёртая надстройка над ним.
 - [[topics/positional-encoding]] — narrative-обзор всей области расширения контекста.

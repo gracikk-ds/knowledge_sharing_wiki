@@ -11,7 +11,7 @@ needs_rewrite: true
 
 # Grouped Query Attention (GQA)
 
-> Промежуточный вариант между [[ml_concepts/multi-head-attention|MHA]] и [[ml_concepts/multi-query-attention|MQA]]: $h$ heads делятся на $g$ групп, каждая группа делит свою пару $K, V$. Сокращает [[ml_concepts/kv-cache|KV-кэш]] в $h / g$ раз и в ablations с малыми группами (2–8) даже *обгоняет* full MHA по качеству.
+> Промежуточный вариант между [[ml_concepts/attention/multi-head-attention|MHA]] и [[ml_concepts/attention/efficiency/multi-query-attention|MQA]]: $h$ heads делятся на $g$ групп, каждая группа делит свою пару $K, V$. Сокращает [[ml_concepts/attention/kv-cache|KV-кэш]] в $h / g$ раз и в ablations с малыми группами (2–8) даже *обгоняет* full MHA по качеству.
 
 ## Motivation
 
@@ -65,11 +65,11 @@ MHA (h=8, no sharing)         GQA (h=8, g=4 groups)        MQA (h=8, 1 shared KV
 
 ## Variations and related concepts
 
-- [[ml_concepts/multi-head-attention]] — крайний случай $g = h$ (полное отсутствие шаринга).
-- [[ml_concepts/multi-query-attention]] — крайний случай $g = 1$ (максимальное шаринг).
-- [[ml_concepts/multi-latent-attention]] — альтернативный путь сжатия KV: не шарить heads, а сжимать $K, V$ в латентное представление.
-- [[ml_concepts/kv-cache]] — bottleneck, ради которого GQA вообще применяется.
-- [[methods/transformer]] — современные транcформеры используют GQA вместо MHA в attention-подслоях.
+- [[ml_concepts/attention/multi-head-attention]] — крайний случай $g = h$ (полное отсутствие шаринга).
+- [[ml_concepts/attention/efficiency/multi-query-attention]] — крайний случай $g = 1$ (максимальное шаринг).
+- [[ml_concepts/attention/efficiency/multi-latent-attention]] — альтернативный путь сжатия KV: не шарить heads, а сжимать $K, V$ в латентное представление.
+- [[ml_concepts/attention/kv-cache]] — bottleneck, ради которого GQA вообще применяется.
+- [[methods/architectures/transformer]] — современные транcформеры используют GQA вместо MHA в attention-подслоях.
 
 ## Open questions
 
@@ -82,5 +82,5 @@ MHA (h=8, no sharing)         GQA (h=8, g=4 groups)        MQA (h=8, 1 shared KV
 
 ## Up next
 
-- [[ml_concepts/multi-latent-attention]] — параллельная стратегия сжатия KV, дающая 4–8× компрессии другими средствами.
+- [[ml_concepts/attention/efficiency/multi-latent-attention]] — параллельная стратегия сжатия KV, дающая 4–8× компрессии другими средствами.
 - [[topics/attention-variants]] — общий narrative по KV-bottleneck'у и его вариантам.
