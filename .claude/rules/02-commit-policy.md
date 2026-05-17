@@ -14,13 +14,14 @@ Conventional commits with scope. Common scopes:
 
 | Scope | Use for |
 |---|---|
-| `feat(wiki)` | New page, new section in an existing page |
-| `feat(wiki)` | Ingest a new source: `feat(wiki): ingest <source> — <short-desc>` |
+| `feat(wiki)` | New page, new section in an existing page, or ingest of a new source |
 | `fix(wiki)` | Broken link, frontmatter typo, factual correction |
 | `refactor(wiki)` | Move pages between subfolders, rename slugs |
 | `docs(skill)` | Update a SKILL.md or `.claude/role.md` |
 | `feat(rules)` | New or rewritten rule |
 | `chore(autodoc)` | Append session insights: `chore(autodoc): session insights — YYYY-MM-DD` |
+
+For ingest commits, follow the subject pattern: `feat(wiki): ingest <source> — <short-desc>`.
 
 Subject line ≤ 72 chars. Body in English, wrapped at 80 cols.
 
