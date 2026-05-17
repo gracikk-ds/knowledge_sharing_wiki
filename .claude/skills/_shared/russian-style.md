@@ -77,10 +77,10 @@ Do **not** transliterate (`флоу-матчинг`, `постериор`). Do *
 
 ```
 For each page produced in phase 5:
-  [ ] No bureaucratic fillers (grep for: является, представляет собой, осуществляется, в данной)
-  [ ] No AI-speak openings (grep for: давайте, итак, в заключение, как мы знаем, важно понимать)
-  [ ] No marketing epithets (grep for: мощный, революционный, передовой, прорывной)
-  [ ] No calque anglicisms (grep for: бэкпропагейтить, энкодить, декодить, зафайнтюнить)
+  [ ] No bureaucratic fillers (grep for: является, представляет собой, осуществляется, в данной, следует отметить, стоит отметить, производится, имеет место)
+  [ ] No AI-speak openings (grep for: давайте, погрузимся, итак, в заключение, подводя итог, как мы знаем, как известно, важно понимать, не случайно)
+  [ ] No marketing epithets (grep for: мощный, впечатляющий, революционный, передовой, прорывной, инновационный)
+  [ ] No calque anglicisms (grep for: бэкпропагейтить, энкодить, декодить, лосс падает, зафайнтюнить, прелёрненный, инференс на проде)
   [ ] Every non-trivial claim has motivated build-up or links to source
   [ ] Math goes in LaTeX, not backticks
   [ ] Illustrations attached to text, not floating ("вот картинка, разбирайся" — fix)
