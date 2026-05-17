@@ -12,19 +12,19 @@ status: stub
 
 ## Why it matters
 
-[[methods/consistency-training]] claims you can fit a [[ml_concepts/consistency-function]] without running a single diffusion solver step. That sounds almost too cheap. Understanding *why* it works clarifies what the resulting model represents and when CT-trained samples diverge from CD-trained ones.
+[[methods/consistency-training]] утверждает, что [[ml_concepts/consistency-function]] можно обучить, не запуская ни одного шага diffusion-солвера. Звучит почти слишком дёшево. Понимание, *почему* это работает, проясняет, что именно представляет полученная модель и когда CT-сэмплы расходятся с CD-сэмплами.
 
 ## What we know so far
 
-- The trick: pair $(x_n, x_{n-1})$ is built from the **same** noise vector $\epsilon$: $x_n = x_0 + t_n\,\epsilon$, $x_{n-1} = x_0 + t_{n-1}\,\epsilon$.
-- This pair lies on a **straight line** in $(x, t)$. The lecture derives it from the conditional-score approximation $\nabla_x \log p_t(x) \approx -(x - x_0)/t^2$, which collapses the [[ml_concepts/probability-flow-ode]] to $\mathrm{d}x = (x - x_0)/t\,\mathrm{d}t$.
-- So CT trains a flow map for the **straightened** ODE, not for the original diffusion ODE.
+- Трюк: пара $(x_n, x_{n-1})$ строится из **одного и того же** noise-вектора $\epsilon$: $x_n = x_0 + t_n\,\epsilon$, $x_{n-1} = x_0 + t_{n-1}\,\epsilon$.
+- Эта пара лежит на **прямой** в $(x, t)$. Лекция выводит это из приближения условного score'а $\nabla_x \log p_t(x) \approx -(x - x_0)/t^2$, которое сворачивает [[ml_concepts/probability-flow-ode]] к $\mathrm{d}x = (x - x_0)/t\,\mathrm{d}t$.
+- То есть CT учит flow-map для **спрямлённого** ODE, а не для исходного diffusion ODE.
 
 ## Open sub-questions
 
-- The straightened ODE and the original diffusion ODE differ in general (the conditional score is the score only in expectation, not pointwise). What is the gap, and when does it matter?
-- Is CT secretly equivalent to a rectified-flow target? "Consistency Flow Matching" (2024) seems to claim yes.
-- Empirically, CT samples can be sharp at 1 step. Is that because the straight ODE is easier to invert, or because CT regularises away low-frequency content?
+- Спрямлённый ODE и исходный diffusion ODE в общем случае различаются (условный score равен score только в среднем, не поточечно). Каков зазор и когда он значим?
+- Эквивалентен ли CT по сути цели rectified-flow? Статья «Consistency Flow Matching» (2024), кажется, утверждает, что да.
+- На практике CT-сэмплы могут быть чёткими за 1 шаг. Это потому, что прямой ODE проще обращать, или потому, что CT регуляризует низкочастотное содержимое?
 
 ## Related
 

@@ -117,14 +117,13 @@ Use these as defaults. Deviate when the content demands it. **Prose body is Russ
 
 # {Title}
 
-> {one- or two-sentence definition — crisp, no hedging. This is the entry for refresh-mode reading.}
+> {few-sentence definition — crisp, no hedging. This is the entry for refresh-mode reading.}
 
 ## Motivation
 
 {2–4 paragraphs in motivated build-up voice: name what we want, name the naive
 thing, name why it fails, name the workaround this concept introduces. Direct
-prose, no Q&A markers, no metaphors. Math when it clarifies. See the
-"Motivation voice" subsection of Quality bar for the bar to match.}
+prose, no Q&A markers, no metaphors. Math when it clarifies.}
 
 ## Formal description
 
@@ -164,15 +163,14 @@ The math template differs from the ML template: more careful exposition, fewer s
 
 # {Title}
 
-> {one-sentence definition — what this math object computes, asserts, or measures}
+> {few-sentence definition — what this math object computes, asserts, or measures}
 
 ## Plain-English statement
 
 {What this is, in words. When the math object has a clean motivating story —
 what we want, what naive approach fails, how this object solves it — open
-with that build-up arc (see "Motivation voice" in Quality bar). For pure-math
-objects without such an arc, just unpack the definition. Math notation OK,
-but introduce each symbol when it first appears. Don't drop into formulas
+with that build-up arc. For pure-math objects without such an arc, just unpack the definition. 
+Math notation OK, but introduce each symbol when it first appears. Don't drop into formulas
 without naming the variables.}
 
 ## Step-by-step
@@ -210,14 +208,13 @@ reader can verify by hand. For multi-dim objects, show the shapes at each step.}
 
 # {Title}
 
-> {one-sentence summary: what problem this method solves and how}
+> {few-sentence summary: what problem this method solves and how}
 
 ## Motivation
 
 {2–4 paragraphs in motivated build-up voice: what we want this method to do,
 what the naive or previous approach fails at, how this method's design
-addresses that. Direct prose, no Q&A markers, no metaphors. See "Motivation
-voice" in Quality bar.}
+addresses that. Direct prose, no Q&A markers, no metaphors.}
 
 ## Problem setting
 
@@ -263,7 +260,7 @@ Topic pages are *primers*: narrative entry points that walk a reader through an 
 
 # {Title}
 
-> {one-sentence framing of the area}
+> {few-sentence framing of the area}
 
 ## The setting
 
@@ -312,7 +309,7 @@ Target length: ~500–1200 words; expand when justified by content. No hard cap.
 
 # {Title}
 
-> {one-sentence "what this source is and why it mattered"}
+> {few-sentence "what this source is and why it mattered"}
 
 ## Key takeaways
 
@@ -473,21 +470,6 @@ The reader is a working ML engineer. Calibrate accordingly:
 - **One concept per page.** If a page is doing two things, split it.
 - **Cite specifically.** Don't write "as discussed in the source"; link to the source page with the contribution stated inline.
 
-### Motivation voice
-
-`## Motivation` sections on `ml_concept` and `method` pages, the `## Plain-English statement` body on `math_concept` pages, and the prose body of `topic` primers all share one voice:
-
-- **No metaphors leaning on everyday objects** (fishing, lakes, cooking, archery). The "no marketing voice" rule subsumes these.
-- **Build-up arc.** Each paragraph or paragraph group names what we want → names the naive thing → names why it fails → names the workaround. The reader feels the need before seeing the answer.
-- **Math when it clarifies.** Plain words for the narrative tissue around it; LaTeX for everything mathematical (see "Math notation").
-- **No syllabus tone.** In primers, reading order is woven into prose. The trailing numbered "Reading order (recap)" exists for scanning, not for reading.
-
-Reference paragraph — Motivation for ELBO, the bar to match (Russian, since prose body is Russian):
-
-> У нас есть модель с латентной переменной: $p(x \mid \theta) = \int p(x \mid z, \theta)\,p(z)\,dz$. Чтобы обучить её через максимум правдоподобия, нужен этот интеграл. Закрытой формы у него нет, поэтому первый инстинкт — Монте-Карло: семплируем $z \sim p(z)$ и усредняем $p(x \mid z, \theta)$. Это ломается по конкретной причине: для фиксированного $x$ почти каждый сэмпл из prior попадает в такой $z$, который к $x$ отношения не имеет, и $p(x \mid z, \theta) \approx 0$. Из тысячи сэмплов вклад дают единицы; дисперсия оценки огромна.
->
-> ELBO решает эту проблему. Вместо $p(z)$ семплируем из более умного $q(z)$, сосредоточенного на тех латентах, что могут объяснить $x$.
-
 ### Up next footer
 
 `## Up next` appears at the bottom of `ml_concept` and `method` pages. It tells a reader in study mode where to go next.
@@ -536,7 +518,7 @@ On `ml_concept` and method pages, if a derivation gets gnarly, link out to a `ma
 
 ### Page length
 
-No hard cap. Aim for "as long as needed to make the point, no longer". If a page passes ~500 lines, look for a natural split (usually a sub-concept that deserves its own page).
+No hard cap. Aim for "as long as needed to make the point, no longer". If a page passes ~750 lines, look for a natural split (usually a sub-concept that deserves its own page).
 
 ### What not to write
 
@@ -551,19 +533,14 @@ No hard cap. Aim for "as long as needed to make the point, no longer". If a page
 Narrative wiki pages — everything under `wiki/ml_concepts/`, `wiki/math_concepts/`, `wiki/methods/`, `wiki/topics/`, `wiki/sources/`, `wiki/questions/` — are written in **Russian**. Service files — this `CLAUDE.md`, `wiki/index.md`, `wiki/log.md`, `.claude/skills/**` — stay in English.
 
 What stays English even inside Russian pages:
-
-- **Section headings.** `## Motivation`, `## Algorithm`, `## Sources`, `## Up next`, `## Plain-English statement`, `## Step-by-step`, `## Worked example`, `## Where it shows up in ML`, `## Common pitfalls`, `## Problem setting`, `## Why it works`, `## Properties`, `## Variants and successors`, `## Reading queue`, `## Reading order (recap)`, `## Open questions`, `## Pointer back to raw`, `## Key takeaways`, `## Concepts touched`, `## Contradictions and revisions`, `## Questions raised`, `## What we know so far`, `## What would resolve it`, `## Related`, `## The setting`, `## Core ideas`, `## Methods that grow from these ideas`, `## Open threads`. They are structural markers, treated like ML terms.
 - **Frontmatter `title:` field and H1 of the page.** `title: Variational Autoencoder (VAE)`, `# Variational Autoencoder (VAE)`.
 - **Filenames / slugs, tags, internal `[[wiki-links]]`.**
 - **ML and math terms inside Russian prose.** Keep them English: flow matching, attention, score matching, KL divergence, posterior, prior, embedding, latent, ELBO, autoencoder, gradient, softmax, dropout, EMA, etc. Do not transliterate (`флоу-матчинг`, `постериор`) and do not over-translate (`нижняя граница доказательства` for ELBO). Common words with stable Russian equivalents — «градиент», «вероятность», «распределение», «выборка» — pick whichever reads cleaner in context.
 
 Style rules for Russian prose:
-
 - **No bureaucracy.** Avoid clerical fillers: «является», «осуществляется», «представляет собой», «в данной работе», «следует отметить, что», «производится», «имеет место».
 - **No filler openings.** Banned: «в заключение», «подводя итог», «стоит отметить», «важно понимать, что», «давайте разберёмся», «погрузимся в», «как мы знаем», «как известно», «не случайно».
 - **No marketing epithets.** Banned: «мощный», «впечатляющий», «революционный», «передовой», «прорывной», «инновационный».
-- **No Q&A markers.** No bolded «**Вопрос.**», «**Первая попытка.**», «**Подвох.**», «**Попытка 1.**».
-- **Simple grammar.** Avoid long participial / adverbial phrases, deeply nested clauses, inverted word order. Split long sentences into two short ones.
 
 Service text (this `CLAUDE.md`, skills, log entries) stays plain English: common words, no idioms, no archaic phrasing, straightforward grammar.
 

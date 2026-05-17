@@ -10,44 +10,44 @@ status: draft
 
 # Variational Inference
 
-> A family of generative models that train a latent-variable model by approximating its intractable posterior with a tractable distribution and maximising the [[ml_concepts/elbo|ELBO]] in place of the true log-likelihood.
+> Семейство генеративных моделей, которое обучает latent-variable модель, аппроксимируя её труднообъемный posterior трактуемым распределением и максимизируя [[ml_concepts/elbo|ELBO]] вместо истинного log-likelihood.
 
 ## The setting
 
-Latent-variable generative models posit that every data point $x$ is generated from an unobserved $z$: draw $z \sim p(z)$ from a simple prior, then $x \sim p(x \mid z, \theta)$ from a conditional. The thing you actually want — maximum likelihood — needs the marginal $p(x \mid \theta) = \int p(x \mid z, \theta) p(z) dz$, integrated over all possible latents.
+Latent-variable генеративные модели предполагают, что каждый data point $x$ порождается из ненаблюдаемого $z$: рисуем $z \sim p(z)$ из простого prior, затем $x \sim p(x \mid z, \theta)$ из conditional. Истинная цель — maximum likelihood — требует маргинал $p(x \mid \theta) = \int p(x \mid z, \theta) p(z) dz$, проинтегрированный по всем возможным latent'ам.
 
-That integral is intractable in general. There is no closed form for any model interesting enough to be worth fitting, and the naive Monte Carlo workaround — sample $z \sim p(z)$ and average the conditional — fails. For any specific $x$, the latents that could plausibly explain it occupy a thin region of the prior, and almost every prior sample lands outside it. The integrand is near zero for those samples; your estimator is dominated by noise and the gradient is useless for training.
+В общем случае этот интеграл нерасчётен. Закрытой формы нет ни для одной достаточно содержательной модели, а наивный Монте-Карло — семплируем $z \sim p(z)$ и усредняем conditional — ломается. Для конкретного $x$ те latent'ы, что могут его правдоподобно объяснить, занимают тонкую область prior, и почти каждый prior-сэмпл приземляется вне неё. Подынтегральное выражение для этих сэмплов почти ноль; в оценке доминирует шум, и градиент бесполезен для обучения.
 
-Variational inference attacks this with one move: introduce a second distribution $q(z)$ whose mass sits where the integrand is large, then bound $\log p(x \mid \theta)$ by a quantity you can estimate from $q$-samples. The bound is the ELBO. The rest of the area is the design space around that move — what shape $q$ takes, how you fit it, how you backprop through it.
+Variational inference атакует это одним ходом: ввести второе распределение $q(z)$, чья масса сидит там, где подынтегральное выражение велико, и ограничить $\log p(x \mid \theta)$ величиной, которую можно оценить по $q$-сэмплам. Эта граница — ELBO. Остальная область — дизайн вокруг этого хода: какой формы $q$, как его подогнать, как через него протолкнуть градиент.
 
 ## Core ideas
 
-The starting point is the [[ml_concepts/latent-variable-model]] itself — a generative story where $x$ is observed, $z$ is not, and the two are joined by a prior $p(z)$ and a conditional $p(x \mid z, \theta)$. The marginal integral is where everything breaks. Everything below is workarounds.
+Стартовая точка — сам [[ml_concepts/latent-variable-model]]: генеративная история, в которой $x$ наблюдается, $z$ нет, и эти двое связаны prior $p(z)$ и conditional $p(x \mid z, \theta)$. Маргинальный интеграл — то место, где всё ломается. Всё ниже — обходные пути.
 
-The framework's central idea is [[ml_concepts/variational-inference]]: approximate the true posterior $p(z \mid x, \theta)$ with the closest distribution $q$ in some tractable family under reverse KL. The direction is "reverse" because the expectation is taken under $q$, which is what you can actually sample from. Reverse KL is mode-seeking — it puts $q$'s mass on the highest peaks of the posterior and ignores low-mass regions, which has consequences discussed on the page.
+Центральная идея фреймворка — [[ml_concepts/variational-inference]]: аппроксимировать истинный posterior $p(z \mid x, \theta)$ ближайшим в каком-то трактуемом семействе $q$ под reverse KL. Направление «reverse», потому что ожидание берётся по $q$ — тому, из чего реально можно сэмплировать. Reverse KL mode-seeking: он кладёт массу $q$ на самые высокие пики posterior и игнорирует low-mass области, со всеми последствиями, описанными на странице.
 
-From this falls out the [[ml_concepts/elbo]]: a tractable lower bound on $\log p(x \mid \theta)$ that you can estimate from $q$-samples. The bound's slack is exactly $\mathrm{KL}(q \,\|\, p(z \mid x))$, so maximising the bound jointly in $q$ and $\theta$ also pushes $q$ toward the true posterior. Two pieces of math sit underneath: [[math_concepts/jensens-inequality]] gives the bound direction, and [[math_concepts/kl-divergence]] measures both the slack and the regulariser term that appears in the loss in practice.
+Отсюда выпадает [[ml_concepts/elbo]]: трактуемая нижняя граница $\log p(x \mid \theta)$, оцениваемая по $q$-сэмплам. Зазор границы в точности равен $\mathrm{KL}(q \,\|\, p(z \mid x))$, поэтому максимизация границы по $q$ и $\theta$ заодно толкает $q$ к истинному posterior. Под этим лежат две математические опоры: [[math_concepts/jensens-inequality]] задаёт направление границы, а [[math_concepts/kl-divergence]] измеряет и зазор, и регуляризационный член, появляющийся в loss на практике.
 
-Two ideas turn the framework into a trainable system. [[ml_concepts/amortized-variational-inference]] replaces a per-example $q$ with a single neural network $q(z \mid x, \phi)$ shared across all $x$ — cheaper at inference, mildly sub-optimal per example. And [[ml_concepts/reparameterization-trick]] rewrites a sample $z \sim q(z \mid x, \phi)$ as a deterministic transform $z = g_\phi(x, \varepsilon)$ of fixed-distribution noise $\varepsilon$, so the gradient $\nabla_\phi \mathbb{E}_q[\cdot]$ becomes an expectation over $\varepsilon$ and you can backprop through the sampling step.
+Две идеи превращают фреймворк в обучаемую систему. [[ml_concepts/amortized-variational-inference]] заменяет per-example $q$ единой нейросетью $q(z \mid x, \phi)$, общей на все $x$ — дешевле на inference, чуть хуже на каждом примере. [[ml_concepts/reparameterization-trick]] переписывает сэмпл $z \sim q(z \mid x, \phi)$ как детерминированное преобразование $z = g_\phi(x, \varepsilon)$ фиксированного шума $\varepsilon$, чтобы градиент $\nabla_\phi \mathbb{E}_q[\cdot]$ стал ожиданием по $\varepsilon$, и через шаг сэмплирования можно было прогнать backprop.
 
 ## Methods that grow from these ideas
 
-[[methods/variational-em]] is the textbook way. Alternate an E-step that updates $q$ at fixed $\theta$ with an M-step that updates $\theta$ at fixed $q$. It pre-dates deep learning by decades and works whenever $q$ has a tractable form and the E-step admits a closed-form solution. It is useful for understanding what the ELBO is *trying* to do at each step, but it scales poorly to high-dimensional models where the exact E-step is itself intractable.
+[[methods/variational-em]] — учебниковый способ. Чередовать E-step, обновляющий $q$ при фиксированном $\theta$, с M-step, обновляющим $\theta$ при фиксированном $q$. Этот метод старше deep learning на десятилетия и работает всегда, когда $q$ имеет трактуемую форму и E-step разрешается в закрытой форме. Он полезен, чтобы понять, что ELBO *пытается* делать на каждом шаге, но плохо масштабируется на высокоразмерные модели, где точный E-step сам неразрешим.
 
-The modern method is the [[methods/vae]]. The encoder (an amortised $q$) and the decoder (the $p(x \mid z, \theta)$) are both neural networks. The KL term becomes a closed-form Gaussian-vs-Gaussian expression; the reconstruction term is a Monte Carlo estimate using a single reparameterized sample; the gradient flows through both terms in one computation graph. The decision to drop the EM alternation — at fixed $\theta$ the exact E-step is intractable anyway, since $q$ is itself a neural network — is what makes the VAE work end-to-end.
+Современный метод — [[methods/vae]]. Энкодер (амортизованный $q$) и декодер ($p(x \mid z, \theta)$) — обе нейросети. KL-член превращается в закрытую формулу Gaussian-vs-Gaussian; reconstruction-член — Monte Carlo оценка по одному reparameterized сэмплу; градиент проходит через оба члена в одном вычислительном графе. Отказ от EM-чередования — при фиксированном $\theta$ точный E-step всё равно неразрешим, так как $q$ сам нейросеть — и делает VAE сквозно обучаемым.
 
 ## Open threads
 
-- **Amortization gap.** Quantitatively, how much does the shared encoder under-fit the per-example optimum? Mentioned on [[ml_concepts/amortized-variational-inference]] but not analysed.
-- **Posterior collapse.** Conditions under which $q(z \mid x, \phi) \to p(z)$ and the latent code becomes uninformative; mitigations.
-- **Score-function estimator.** Used in discrete-latent and non-reparameterizable settings; only briefly mentioned on [[ml_concepts/reparameterization-trick]].
-- **Tighter bounds.** Importance-weighted ELBO (IWAE); $\beta$-VAE and information-theoretic objectives.
+- **Amortization gap.** Количественно, насколько общий энкодер недотягивает до per-example оптимума? Упоминается на [[ml_concepts/amortized-variational-inference]], но не разбирается.
+- **Posterior collapse.** Условия, при которых $q(z \mid x, \phi) \to p(z)$ и latent code становится неинформативным; способы митигации.
+- **Score-function оценка.** Используется при дискретных latent'ах и не-reparameterizable случаях; кратко упомянута на [[ml_concepts/reparameterization-trick]].
+- **Более тугие границы.** Importance-weighted ELBO (IWAE); $\beta$-VAE и теоретико-информационные цели.
 
 ## Reading order (recap)
 
 1. [[ml_concepts/latent-variable-model]]
 2. [[ml_concepts/variational-inference]]
-3. [[ml_concepts/elbo]] — referring to [[math_concepts/jensens-inequality]] and [[math_concepts/kl-divergence]] as needed
+3. [[ml_concepts/elbo]] — с обращением к [[math_concepts/jensens-inequality]] и [[math_concepts/kl-divergence]] по мере необходимости
 4. [[methods/variational-em]]
 5. [[ml_concepts/amortized-variational-inference]]
 6. [[ml_concepts/reparameterization-trick]]
@@ -55,8 +55,8 @@ The modern method is the [[methods/vae]]. The encoder (an amortised $q$) and the
 
 ## Reading queue
 
-- Kingma & Welling, "Auto-Encoding Variational Bayes" (2014) — original VAE paper.
-- Rezende, Mohamed, Wierstra, "Stochastic Backpropagation and Approximate Inference in Deep Generative Models" (2014) — concurrent reparameterization-trick paper.
-- Burda, Grosse, Salakhutdinov, "Importance Weighted Autoencoders" (IWAE, 2016) — tighter bound.
-- Higgins et al., "$\beta$-VAE" (2017) — disentanglement via reweighted KL.
-- Kingma & Welling, "An Introduction to Variational Autoencoders" (Foundations and Trends, 2019) — long-form survey.
+- Kingma & Welling, «Auto-Encoding Variational Bayes» (2014) — оригинальная статья VAE.
+- Rezende, Mohamed, Wierstra, «Stochastic Backpropagation and Approximate Inference in Deep Generative Models» (2014) — параллельная статья про reparameterization trick.
+- Burda, Grosse, Salakhutdinov, «Importance Weighted Autoencoders» (IWAE, 2016) — более тугая граница.
+- Higgins et al., «$\beta$-VAE» (2017) — disentanglement через перевзвешенный KL.
+- Kingma & Welling, «An Introduction to Variational Autoencoders» (Foundations and Trends, 2019) — длинный обзор.

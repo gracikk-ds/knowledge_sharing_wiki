@@ -10,83 +10,83 @@ status: draft
 
 # Jensen's Inequality
 
-> For a convex function $\varphi$ and a random variable $X$, $\varphi(\mathbb{E}[X]) \le \mathbb{E}[\varphi(X)]$. For concave $\varphi$ the inequality flips. Equality holds iff $\varphi$ is affine on the support of $X$, or $X$ is almost-surely constant.
+> Для выпуклой функции $\varphi$ и случайной величины $X$ выполнено $\varphi(\mathbb{E}[X]) \le \mathbb{E}[\varphi(X)]$. Для вогнутой $\varphi$ знак меняется на противоположный. Равенство достигается iff $\varphi$ аффинна на носителе $X$ либо $X$ почти наверное константа.
 
 ## Plain-English statement
 
-We want to relate two quantities: $\varphi(\mathbb{E}[X])$ — apply $\varphi$ to the mean of $X$ — and $\mathbb{E}[\varphi(X)]$ — average $\varphi$ over the distribution of $X$. For linear $\varphi$ these are equal: $\mathbb{E}[aX + b] = a\,\mathbb{E}[X] + b$, expectation commutes with $\varphi$ and there is nothing to say. The interesting case is when $\varphi$ is nonlinear. The naive instinct is to pull $\varphi$ inside or outside the expectation as if it were linear, but for nonlinear $\varphi$ the two quantities disagree, and the disagreement has a sign.
+Нужно связать две величины: $\varphi(\mathbb{E}[X])$ — функция $\varphi$ от среднего $X$ — и $\mathbb{E}[\varphi(X)]$ — среднее $\varphi$ по распределению $X$. Для линейной $\varphi$ они равны: $\mathbb{E}[aX + b] = a\,\mathbb{E}[X] + b$, ожидание коммутирует с $\varphi$ и говорить тут не о чем. Содержательный случай — когда $\varphi$ нелинейна. Наивный инстинкт — таскать $\varphi$ внутрь и наружу ожидания, как если бы она была линейной, но для нелинейной $\varphi$ две величины расходятся, причём расхождение имеет знак.
 
-Jensen's inequality pins down that sign. For convex $\varphi$, $\mathbb{E}[\varphi(X)] \ge \varphi(\mathbb{E}[X])$ — the average of the outputs is at least the output at the average. Convex functions curve upward, so spread in $X$ pushes $\mathbb{E}[\varphi(X)]$ above $\varphi(\mathbb{E}[X])$; a point mass closes the gap, more spread widens it.
+Неравенство Йенсена этот знак фиксирует. Для выпуклой $\varphi$ верно $\mathbb{E}[\varphi(X)] \ge \varphi(\mathbb{E}[X])$ — среднее выходов не меньше выхода в среднем. Выпуклые функции изгибаются вверх, поэтому разброс $X$ толкает $\mathbb{E}[\varphi(X)]$ выше $\varphi(\mathbb{E}[X])$; точечная масса закрывает зазор, больший разброс — расширяет его.
 
-The simplest two-point case is already informative. For $X$ taking values $a, b$ with probabilities $\lambda, 1 - \lambda$ and a convex $\varphi$, the inequality reduces to the definition of convexity:
+Простейший двухточечный случай уже информативен. Если $X$ принимает значения $a, b$ с вероятностями $\lambda, 1 - \lambda$ и $\varphi$ выпукла, неравенство сводится к определению выпуклости:
 
 $$
 \varphi\!\big(\lambda a + (1 - \lambda) b\big) \;\le\; \lambda\,\varphi(a) + (1 - \lambda)\,\varphi(b).
 $$
 
-Jensen's inequality is the same statement extended to arbitrary distributions: the mean of $X$ on the left, the expectation of $\varphi(X)$ on the right.
+Неравенство Йенсена — то же утверждение, распространённое на произвольные распределения: среднее $X$ слева, ожидание $\varphi(X)$ справа.
 
-For concave $\varphi$ (like $\log$), the curvature flips and so does the inequality:
+Для вогнутой $\varphi$ (например $\log$) кривизна меняет знак, и неравенство тоже:
 
 $$
 \varphi(\mathbb{E}[X]) \;\ge\; \mathbb{E}[\varphi(X)].
 $$
 
-This is the form used to derive the [[ml_concepts/elbo|ELBO]]: the move $\log \mathbb{E}_q[\,\cdot\,] \ge \mathbb{E}_q[\log\,\cdot\,]$ is Jensen's with concave $\log$, and the direction matters — it gives a *lower* bound on the log-evidence, which is what makes the bound usable as a training objective.
+Именно эта форма используется при выводе [[ml_concepts/elbo|ELBO]]: переход $\log \mathbb{E}_q[\,\cdot\,] \ge \mathbb{E}_q[\log\,\cdot\,]$ — это Йенсен с вогнутым $\log$, и направление здесь важно. Оно даёт *нижнюю* границу на log-evidence, что и делает её пригодной как объект обучения.
 
 ## Step-by-step proof
 
-The cleanest proof uses the **supporting hyperplane** characterisation of convex functions.
+Самое чистое доказательство опирается на характеризацию выпуклых функций через **опорную гиперплоскость**.
 
-Let $\varphi$ be convex on an interval containing the support of $X$. Set $\mu = \mathbb{E}[X]$. By convexity, there is an affine lower bound through $(\mu, \varphi(\mu))$ — a "supporting line" with slope $m$ for some $m$ (the right derivative if $\varphi$ is non-smooth, the derivative if smooth):
+Пусть $\varphi$ выпукла на интервале, содержащем носитель $X$. Положим $\mu = \mathbb{E}[X]$. По выпуклости через точку $(\mu, \varphi(\mu))$ проходит аффинная нижняя оценка — «опорная прямая» с наклоном $m$ для некоторого $m$ (правая производная, если $\varphi$ негладкая; обычная производная, если гладкая):
 
 $$
 \varphi(x) \;\ge\; \varphi(\mu) + m\,(x - \mu) \qquad \text{for all } x \text{ in the support of } X. \tag{1}
 $$
 
-Take expectation of both sides under the distribution of $X$. The right-hand side is linear in $x$, so the expectation passes inside:
+Возьмём ожидание обеих частей по распределению $X$. Правая часть линейна по $x$, поэтому ожидание заходит внутрь:
 
 $$
 \mathbb{E}[\varphi(X)] \;\ge\; \varphi(\mu) + m\,(\mathbb{E}[X] - \mu) \;=\; \varphi(\mu) + 0 \;=\; \varphi(\mathbb{E}[X]).
 $$
 
-That is Jensen's inequality. Equality in (1) holds only where the support of $X$ sits on the supporting line, so equality in Jensen's holds iff $\varphi$ is affine on the support of $X$ (or $X$ is constant).
+Это и есть неравенство Йенсена. Равенство в (1) достигается только там, где носитель $X$ лежит на опорной прямой, поэтому равенство в Йенсене достигается iff $\varphi$ аффинна на носителе $X$ (либо $X$ константа).
 
-For concave $\varphi$, apply the convex result to $-\varphi$ and flip the sign.
+Для вогнутой $\varphi$ применить выпуклый результат к $-\varphi$ и развернуть знак.
 
 ## Geometric reading
 
-Picture the graph of $\varphi$ and a chord between $(a, \varphi(a))$ and $(b, \varphi(b))$. For convex $\varphi$ the chord lies above the graph; for concave, below. Jensen extends this from two points to any distribution: the chord becomes the expected value $\mathbb{E}[\varphi(X)]$, and the position on the graph at $\mu = \mathbb{E}[X]$ is $\varphi(\mu)$. Convex curves trap the chord above; concave curves trap it below. Spread of $X$ widens the gap; a point mass closes it.
+Представим график $\varphi$ и хорду между $(a, \varphi(a))$ и $(b, \varphi(b))$. Для выпуклой $\varphi$ хорда лежит над графиком, для вогнутой — под ним. Йенсен распространяет это с двух точек на произвольное распределение: хорда становится ожидаемым значением $\mathbb{E}[\varphi(X)]$, а позиция на графике в точке $\mu = \mathbb{E}[X]$ — это $\varphi(\mu)$. Выпуклые кривые держат хорду над собой; вогнутые — под собой. Разброс $X$ расширяет зазор, точечная масса его закрывает.
 
 ## Worked example
 
-Take $X$ uniform on $\{1, 4\}$ and $\varphi(x) = x^2$ (convex).
+Возьмём $X$, равномерно распределённую на $\{1, 4\}$, и $\varphi(x) = x^2$ (выпуклая).
 
-- $\mathbb{E}[X] = 2.5$, so $\varphi(\mathbb{E}[X]) = 2.5^2 = 6.25$.
+- $\mathbb{E}[X] = 2.5$, значит $\varphi(\mathbb{E}[X]) = 2.5^2 = 6.25$.
 - $\mathbb{E}[\varphi(X)] = \tfrac{1}{2}(1^2 + 4^2) = \tfrac{17}{2} = 8.5$.
 
-Jensen: $6.25 \le 8.5$ ✓. The gap is $8.5 - 6.25 = 2.25$, which equals $\mathrm{Var}(X) = \tfrac{1}{2}(1 - 2.5)^2 + \tfrac{1}{2}(4 - 2.5)^2 = 2.25$ — for $\varphi(x) = x^2$ the Jensen gap is exactly the variance.
+Йенсен: $6.25 \le 8.5$ ✓. Зазор $8.5 - 6.25 = 2.25$ равен $\mathrm{Var}(X) = \tfrac{1}{2}(1 - 2.5)^2 + \tfrac{1}{2}(4 - 2.5)^2 = 2.25$ — для $\varphi(x) = x^2$ зазор Йенсена равен в точности дисперсии.
 
-Now the concave case: $\varphi(x) = \log x$, with $X$ uniform on $\{1, 4\}$.
+Теперь вогнутый случай: $\varphi(x) = \log x$, $X$ равномерна на $\{1, 4\}$.
 
 - $\log \mathbb{E}[X] = \log 2.5 \approx 0.916$.
 - $\mathbb{E}[\log X] = \tfrac{1}{2}(\log 1 + \log 4) = \tfrac{1}{2} \log 4 \approx 0.693$.
 
-Jensen (concave): $0.916 \ge 0.693$ ✓. This is the AM–GM inequality in disguise: the geometric mean $\sqrt{1 \cdot 4} = 2$ is less than the arithmetic mean $2.5$, equivalently $\log$ of GM is less than $\log$ of AM, equivalently $\mathbb{E}[\log X] \le \log \mathbb{E}[X]$.
+Йенсен (вогнутый): $0.916 \ge 0.693$ ✓. Это переформулировка неравенства AM–GM: геометрическое среднее $\sqrt{1 \cdot 4} = 2$ меньше арифметического $2.5$; эквивалентно, $\log$ от GM меньше $\log$ от AM; эквивалентно, $\mathbb{E}[\log X] \le \log \mathbb{E}[X]$.
 
 ## Where it shows up in ML
 
-- [[ml_concepts/elbo]] — derivation $\log \mathbb{E}_q[p(x, z)/q(z)] \ge \mathbb{E}_q[\log p(x, z)/q(z)]$ uses Jensen on the concave $\log$.
-- [[math_concepts/kl-divergence]] — the non-negativity proof $\mathrm{KL}(q \,\|\, p) \ge 0$ uses Jensen.
-- **Mutual information bounds**, **log-sum-exp** bounds, and **information-theoretic inequalities** generally — Jensen is the elementary building block.
+- [[ml_concepts/elbo]] — вывод $\log \mathbb{E}_q[p(x, z)/q(z)] \ge \mathbb{E}_q[\log p(x, z)/q(z)]$ использует Йенсена на вогнутом $\log$.
+- [[math_concepts/kl-divergence]] — доказательство неотрицательности $\mathrm{KL}(q \,\|\, p) \ge 0$ использует Йенсена.
+- **Границы взаимной информации**, **log-sum-exp** оценки и **теоретико-информационные неравенства** в общем — Йенсен это базовый кирпич.
 
 ## Common pitfalls
 
-- **Direction of the inequality.** $\le$ for convex, $\ge$ for concave. A common bug is to derive the wrong direction by misremembering whether $\log$ is convex or concave (it is concave).
-- **Strict vs non-strict.** "$\ge$" is the standard statement. Strict inequality requires $\varphi$ strictly convex on the support and $X$ non-degenerate.
-- **Function vs random variable.** $\varphi$ is the function (deterministic); $X$ is the random variable. Mixing the arguments — e.g. writing $\mathbb{E}[\varphi(\mu)]$ or $\varphi(\mathbb{E}[\varphi(X)])$ — is a common source of confusion.
-- **Conditional Jensen.** Jensen also applies under conditional expectation: $\varphi(\mathbb{E}[X \mid \mathcal{F}]) \le \mathbb{E}[\varphi(X) \mid \mathcal{F}]$ for convex $\varphi$. Useful in iterated-expectation arguments.
+- **Направление неравенства.** $\le$ для выпуклой, $\ge$ для вогнутой. Частая ошибка — перепутать, выпуклый или вогнутый $\log$ (он вогнутый), и получить неравенство не в ту сторону.
+- **Строгое vs нестрогое.** «$\ge$» — стандартная формулировка. Строгое неравенство требует, чтобы $\varphi$ была строго выпукла на носителе и $X$ был невырожден.
+- **Функция vs случайная величина.** $\varphi$ — это функция (детерминированная); $X$ — случайная величина. Смешать аргументы — например, написать $\mathbb{E}[\varphi(\mu)]$ или $\varphi(\mathbb{E}[\varphi(X)])$ — типичный источник путаницы.
+- **Условный Йенсен.** Йенсен работает и под условным ожиданием: $\varphi(\mathbb{E}[X \mid \mathcal{F}]) \le \mathbb{E}[\varphi(X) \mid \mathcal{F}]$ для выпуклой $\varphi$. Полезно в рассуждениях с повторным ожиданием.
 
 ## Sources
 
-- [[sources/elbo-and-vae-lecture]] — applies Jensen with concave $\log$ to derive the ELBO lower bound.
+- [[sources/elbo-and-vae-lecture]] — применяет Йенсена с вогнутым $\log$ для вывода нижней границы ELBO.

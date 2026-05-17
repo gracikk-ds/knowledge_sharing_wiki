@@ -10,81 +10,81 @@ status: draft
 
 # Consistency Training (CT)
 
-> Train a [[ml_concepts/consistency-function]] from scratch — no diffusion teacher needed — by using the straight reference path $x_t = x_0 + t\,\epsilon$ and reusing the *same* $\epsilon$ for both ends of a trajectory pair.
+> Обучить [[ml_concepts/consistency-function]] с нуля — без diffusion-учителя — используя прямой reference-путь $x_t = x_0 + t\,\epsilon$ и переиспользуя *одинаковый* $\epsilon$ для обоих концов пары на траектории.
 
 ## Motivation
 
-[[methods/consistency-distillation]] needs a pre-trained [[ml_concepts/diffusion-model]] to produce matched trajectory pairs $(x_t, \hat{x}_{t-\Delta})$. That is a heavy prerequisite: you pay the full cost of training a multi-step teacher before you ever start training the one-step student. The question is whether you can skip the teacher and still train a [[ml_concepts/consistency-function]] that obeys trajectory invariance.
+[[methods/consistency-distillation]] требует предобученной [[ml_concepts/diffusion-model]], чтобы строить согласованные пары на траекториях $(x_t, \hat{x}_{t-\Delta})$. Это тяжёлая предпосылка: нужно полностью оплатить обучение multi-step учителя, прежде чем приступать к обучению one-step student'а. Вопрос — можно ли обойтись без учителя и всё равно обучить [[ml_concepts/consistency-function]], сохраняющую инвариантность вдоль траектории.
 
-The blocker is the pairing itself. To enforce $f_\theta(x_t, t) = f_\theta(x_s, s)$ you need two points on the *same* ODE trajectory. The teacher was the only thing that knew which $x_s$ matches a given $x_t$, because the trajectory bends through the data manifold in a complicated way that depends on the learned [[ml_concepts/score-function]]. Sample a fresh $\epsilon$ at each time and the two points sit on *different* trajectories — the invariance constraint becomes noise.
+Препятствие — само построение пары. Чтобы обеспечить $f_\theta(x_t, t) = f_\theta(x_s, s)$, нужны две точки на *одной* ODE-траектории. Только учитель знал, какой $x_s$ соответствует данному $x_t$, потому что траектория сворачивает по data manifold сложным образом, зависящим от обученной [[ml_concepts/score-function]]. Сэмплируем свежий $\epsilon$ для каждого момента — и две точки оказываются на *разных* траекториях; ограничение инвариантности превращается в шум.
 
-CT escapes this by changing which ODE the consistency function is supposed to track. If you approximate the score by the conditional score at one data point, the [[ml_concepts/probability-flow-ode]] collapses to a straight line $x_t = x_0 + t \epsilon$, and the pairing becomes trivial: pick one $\epsilon$, evaluate the line at two times, you have a matched pair. The student now learns the consistency function of a *straightened* trajectory, which is also what one-step samplers want anyway — a straight ODE is exactly the one a single Euler step can solve without error. Two forward passes per training step, no teacher, no solver call. The trade is that the underlying ODE is no longer the real diffusion ODE; CT inherits whatever bias the straight-path approximation introduces.
+CT выходит из положения, меняя сам ODE, который consistency function должна отслеживать. Если приблизить score conditional score'ом в одной data-точке, [[ml_concepts/probability-flow-ode]] схлопывается в прямую $x_t = x_0 + t \epsilon$, и спаривание становится тривиальным: берём один $\epsilon$, считаем прямую в двух моментах — пара готова. Student теперь учит consistency function *спрямлённой* траектории, что заодно и есть то, что нужно one-step сэмплерам — прямой ODE как раз тот, что один шаг Эйлера решает без ошибки. Два forward pass'а на шаг обучения, ни учителя, ни вызова солвера. Цена — нижележащий ODE уже не настоящий diffusion ODE; CT наследует любой bias, привнесённый приближением прямого пути.
 
 ## Problem setting
 
-You do not have a pre-trained diffusion model, or you do not want to pay the cost of training one first. You still want a consistency function.
+Нет предобученной diffusion-модели, либо не хочется платить за её обучение. Consistency function всё равно нужна.
 
 ## The trick
 
-Consistency distillation needs trajectory pairs $(x_n, x_{n-1})$ on the *same* ODE trajectory. Without a teacher, where do they come from?
+Consistency distillation требует пар $(x_n, x_{n-1})$ на *одной* ODE-траектории. Без учителя — откуда их брать?
 
-CT uses a clean observation. If the underlying score-based ODE is
+CT опирается на одно простое наблюдение. Если нижележащий score-based ODE —
 
 $$
 \mathrm{d}x \;=\; -\,t\,\nabla_x \log p_t(x)\,\mathrm{d}t,
 $$
 
-and you approximate the score by the conditional score at a single sample,
+и заменить score conditional score'ом в одном сэмпле,
 
 $$
 \nabla_x \log p_t(x) \;\approx\; -\,\frac{1}{t^2}\,(x - x_0),
 $$
 
-the ODE becomes the **straight line**
+ODE превращается в **прямую**
 
 $$
 \mathrm{d}x \;=\; \frac{1}{t}(x - x_0)\,\mathrm{d}t,
 $$
 
-whose closed-form solution is $x_t = x_0 + t\,\epsilon$ with a single $\epsilon \sim \mathcal{N}(0, I)$. So a pair $(x_n, x_{n-1})$ lies on the same *straightened* trajectory if and only if it is built from the **same $\epsilon$** at two times $t_n$, $t_{n-1}$.
+с закрытым решением $x_t = x_0 + t\,\epsilon$, $\epsilon \sim \mathcal{N}(0, I)$. Тогда пара $(x_n, x_{n-1})$ лежит на одной *спрямлённой* траектории тогда и только тогда, когда она построена из **одного и того же $\epsilon$** в двух моментах $t_n$, $t_{n-1}$.
 
 ## Algorithm
 
-Discretise time as $t_0 < t_1 < \ldots < t_N$. One training step:
+Дискретизируем время: $t_0 < t_1 < \ldots < t_N$. Один шаг обучения:
 
-1. Sample $x_0 \sim p_{\text{data}}$, $n \sim \mathcal{U}\{1, \ldots, N\}$, $\epsilon \sim \mathcal{N}(0, I)$.
-2. Build the pair from the **same $\epsilon$**:
+1. Сэмплируем $x_0 \sim p_{\text{data}}$, $n \sim \mathcal{U}\{1, \ldots, N\}$, $\epsilon \sim \mathcal{N}(0, I)$.
+2. Строим пару из **одного $\epsilon$**:
    $$x_n \;=\; x_0 + t_n\,\epsilon,\qquad x_{n-1} \;=\; x_0 + t_{n-1}\,\epsilon.$$
-3. Apply the student to both and minimise:
+3. Применяем student'а к обеим точкам и минимизируем:
    $$\mathcal{L}_{\text{CT}}(\theta) \;=\; \mathbb{E}\big\lVert f_\theta(x_{n-1}, t_{n-1}) - f_\theta(x_n, t_n) \big\rVert_2^2.$$
-4. Enforce the boundary $f_\theta(x_0, t_0) = x_0$ via the skip-connection parametrisation.
+4. Обеспечиваем границу $f_\theta(x_0, t_0) = x_0$ через skip-connection параметризацию.
 
-The whole training reduces to two forward passes per step (plus an EMA-target network branch in practice).
+Всё обучение сводится к двум forward pass'ам на шаг (плюс ветвь EMA-target сети на практике).
 
 ## Why it works
 
-CT does not approximate the *real* diffusion trajectory — it approximates a **straightened** version of it. The lecture notes this explicitly: "Consistency Training forces the trajectories to be straight." The optimal $f_\theta$ under CT is the consistency function of a flow-matching-style straight ODE, which conveniently is also a valid generative model when $\epsilon$'s distribution matches the noise distribution used at inference.
+CT не приближает *настоящую* diffusion-траекторию — он приближает её **спрямлённую** версию. Лекция говорит это явно: «Consistency Training forces the trajectories to be straight.» Оптимальный $f_\theta$ под CT — это consistency function flow-matching-стиля прямого ODE, который, кстати, тоже является корректной генеративной моделью, когда распределение $\epsilon$ совпадает с распределением шума, используемого на inference.
 
-In other words, CT trains a flow-map for the **rectified-flow** ODE instead of for the diffusion ODE. This is also why the resulting samples can come out sharp in one step: the underlying ODE is, by construction, a straight line.
+Иначе говоря, CT обучает flow-map для **rectified-flow** ODE, а не для diffusion ODE. По этой же причине его сэмплы могут получаться чёткими за один шаг: лежащий под ним ODE по построению прямой.
 
 ## Properties
 
-- **Step count at inference:** 1 step (greedy) or 4–5 stochastic steps, same as CD.
-- **Teacher needed:** no.
-- **Training cost:** two forward passes per step; no extra solver call.
-- **Caveat:** the straight-path approximation is exact only in the limit of an infinite straightening procedure (rectified flow). With finite data the optimal flow map is not literally the diffusion flow map — but the lecture argues this is a feature, not a bug, since straight trajectories are exactly what one-step samplers want.
+- **Число шагов на inference:** 1 шаг (greedy) или 4–5 стохастических, как и у CD.
+- **Учитель нужен:** нет.
+- **Стоимость обучения:** два forward pass'а на шаг; никаких дополнительных вызовов солвера.
+- **Caveat:** приближение прямого пути точно только в пределе бесконечного процесса спрямления (rectified flow). На конечных данных оптимальный flow map не буквально diffusion flow map — но лекция аргументирует, что это фича, а не баг, потому что прямые траектории — именно то, что нужно one-step сэмплерам.
 
 ## Variants and successors
 
-- "Consistency Models Made Easy" (2024) — variance reduction.
-- "Consistency Flow Matching" (2024) — explicit straight-flow target.
-- [[methods/consistency-distillation]] — the teacher-based counterpart.
+- «Consistency Models Made Easy» (2024) — variance reduction.
+- «Consistency Flow Matching» (2024) — явный straight-flow target.
+- [[methods/consistency-distillation]] — teacher-based аналог.
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — derivation of the straight-path trick from the score-based ODE, and the loss.
+- [[sources/flow-map-models-lecture]] — вывод трюка с прямым путём из score-based ODE и сам loss.
 
 ## Up next
 
-- [[methods/consistency-distillation]] — the teacher-based counterpart; comparing the two clarifies what the teacher was buying.
-- [[topics/few-step-generative-models]] — broader landscape of one-step samplers; CT slots in next to shortcut models and mean flow.
+- [[methods/consistency-distillation]] — teacher-based аналог; сравнение двух методов проясняет, что именно покупал учитель.
+- [[topics/few-step-generative-models]] — более широкий ландшафт one-step сэмплеров; CT стоит рядом с shortcut models и mean flow.

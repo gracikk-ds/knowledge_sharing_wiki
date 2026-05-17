@@ -10,51 +10,51 @@ status: draft
 
 # Mean Flow
 
-> Train a [[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$ to match the **average velocity** over $[t, s]$, using the [[math_concepts/mean-flow-identity]] to express that average via the instantaneous velocity and a time derivative of $F_\theta$ itself.
+> Обучить [[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$ соответствовать **средней скорости** на $[t, s]$, выразив это среднее через мгновенную скорость и производную $F_\theta$ по времени по [[math_concepts/mean-flow-identity]].
 
 ## Motivation
 
-The shared goal of [[methods/shortcut-model]] and Mean Flow is the same: one [[ml_concepts/flow-map]] network $F_\theta(x_t, t, s)$ that can jump from any time $t$ to any time $s$ in a single forward pass, trained without a separate teacher. The question is what self-consistency to enforce.
+Цель у [[methods/shortcut-model]] и Mean Flow общая: одна сеть-[[ml_concepts/flow-map]] $F_\theta(x_t, t, s)$, способная прыгать с любого момента $t$ в любой момент $s$ за один forward pass и обучаемая без отдельного учителя. Вопрос — какую self-consistency накладывать.
 
-ShortCut uses interval additivity: $F(t \to s) = F(t \to r \to s)$. This is correct but couples two evaluations of the network at *different intervals*. The training signal at the longer interval $[t, s]$ depends on the network's prediction at the shorter $[t, r]$, which is itself only as accurate as the network has learned to be. Errors propagate as the integrals grow longer, and the signal at short intervals — where the [[ml_concepts/flow-matching]] head anchors $F$ — has to travel through nested compositions to reach far-apart $(t, s)$ pairs.
+ShortCut использует interval additivity: $F(t \to s) = F(t \to r \to s)$. Это корректно, но связывает две оценки сети на *разных интервалах*. Сигнал обучения на длинном интервале $[t, s]$ зависит от предсказания сети на коротком $[t, r]$, а тот сам так точен, как успела выучить сеть. Ошибки множатся по мере увеличения интервалов, и сигнал на коротких интервалах — там, где [[ml_concepts/flow-matching]]-голова якорит $F$ — должен пройти через вложенные композиции, чтобы дотянуться до далёких пар $(t, s)$.
 
-Mean Flow swaps the integral identity for a *differential* one. Define $F_\theta$ directly as the average velocity over $[t, s]$, multiply through by $(s - t)$, differentiate, and rearrange. The result is $F_\theta(x_t, t, s) = v(x_t, t) - (s - t)\,\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)$. The right-hand side ties $F$ to the instantaneous velocity at the *single* point $(x_t, t)$ plus a correction computed as a JVP through $F_\theta$ itself. No second composition pass through the network. The identity is pointwise in $(x_t, t)$, so the supervision signal at every $(t, s)$ pair grounds out directly in the FM-trained velocity head — closer to a local constraint, further from the error-propagation pattern of nested integrals.
+Mean Flow меняет интегральное тождество на *дифференциальное*. Определим $F_\theta$ напрямую как среднюю скорость на $[t, s]$, домножим на $(s - t)$, продифференцируем и перенесём. Получится $F_\theta(x_t, t, s) = v(x_t, t) - (s - t)\,\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)$. Правая часть связывает $F$ с мгновенной скоростью в *одной* точке $(x_t, t)$ плюс поправкой, считаемой как JVP через сам $F_\theta$. Второго композиционного прохода через сеть нет. Тождество поточечно по $(x_t, t)$, поэтому supervision-сигнал в каждой паре $(t, s)$ ложится прямо на FM-обученную velocity-голову — ближе к локальному ограничению, дальше от паттерна error-propagation вложенных интегралов.
 
 ## Problem setting
 
-Same as [[methods/shortcut-model]]: one network, any number of inference steps, no separate teacher network. Mean Flow gives a different self-consistency derived from a *differential* identity rather than from interval additivity.
+То же, что в [[methods/shortcut-model]]: одна сеть, произвольное число шагов inference, отдельного учителя нет. Mean Flow задаёт другой self-consistency, выведенный из *дифференциального* тождества, а не из interval additivity.
 
 ## The parametrisation
 
-Mean Flow defines
+Mean Flow определяет
 
 $$
 F_\theta(x_t, t, s) \;\approx\; \frac{1}{s - t}\int_t^s v(x_u, u)\,\mathrm{d}u,
 $$
 
-i.e. $F_\theta$ is the **average instantaneous velocity** over $[t, s]$. The corresponding sampling step is
+то есть $F_\theta$ — **средняя мгновенная скорость** на $[t, s]$. Соответствующий шаг сэмплирования:
 
 $$
 \Psi_{t \to s}(x_t) \;\approx\; x_t + (s - t)\,F_\theta(x_t, t, s).
 $$
 
-At $s = t$ the average degenerates to the instantaneous velocity: $F_\theta(x_t, t, t) = v(x_t, t)$. This is the boundary condition.
+При $s = t$ среднее вырождается в мгновенную скорость: $F_\theta(x_t, t, t) = v(x_t, t)$. Это и есть граничное условие.
 
 ## The Mean Flow Identity
 
-Multiply both sides by $(s - t)$ and differentiate w.r.t. $t$. The calculation, walked through in [[math_concepts/mean-flow-identity]], yields
+Домножаем обе части на $(s - t)$ и дифференцируем по $t$. Подробный вывод проходится в [[math_concepts/mean-flow-identity]] и даёт
 
 $$
 \boxed{\;F_\theta(x_t, t, s) \;=\; v(x_t, t) \;-\; (s - t)\,\frac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)\;}
 $$
 
-This is the central training signal: the LHS is the network's output; the RHS uses the instantaneous velocity $v$ (from a flow-matching head) plus a time-derivative of $F_\theta$ itself. The $\mathrm{d}/\mathrm{d}t$ is the **total** derivative along the trajectory, so
+Это и есть центральный обучающий сигнал: слева — выход сети; справа — мгновенная скорость $v$ (от flow-matching головы) плюс производная $F_\theta$ по времени. $\mathrm{d}/\mathrm{d}t$ — **полная** производная вдоль траектории, поэтому
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s) \;=\; \partial_t F_\theta + (\partial_x F_\theta)\,v(x_t, t),
 $$
 
-computable from one JVP through the network (with $v$ providing the direction in $x$).
+что считается одним JVP через сеть (направление в $x$ задаёт $v$).
 
 ## Training objective
 
@@ -62,40 +62,40 @@ $$
 \mathcal{L}_{\text{MF}}(\theta) \;=\; \big\lVert F_\theta(x_t, t, s) - \operatorname{sg}\big(v_\theta(x_t, t) - (s - t)\,\tfrac{\mathrm{d}}{\mathrm{d}t} F_\theta(x_t, t, s)\big) \big\rVert_2^2 \;+\; \mathcal{L}_{\text{FM}}.
 $$
 
-Components:
+Компоненты:
 
-- The squared term is the Mean Flow Identity, used as a stop-gradient target: the network's $F_\theta$ should agree with the identity's RHS.
-- $\mathcal{L}_{\text{FM}}$ is the standard flow-matching loss applied to $v_\theta(x_t, t) = F_\theta(x_t, t, t)$ — the diagonal of the flow map serves as the velocity head, so the same network outputs both $v$ and $F$.
+- Квадратичный член — Mean Flow Identity как stop-gradient таргет: $F_\theta$ сети должен согласоваться с правой частью.
+- $\mathcal{L}_{\text{FM}}$ — стандартный flow-matching loss, применённый к $v_\theta(x_t, t) = F_\theta(x_t, t, t)$. Диагональ flow map работает как velocity-голова, и та же сеть выдаёт и $v$, и $F$.
 
-At inference: same as ShortCut. Pick a schedule, step $x_{n-1} = x_n + (t_{n-1} - t_n)\,F_\theta(x_n, t_n, t_{n-1})$. 1 step works; more steps help quality.
+На inference: то же, что в ShortCut. Берём расписание, шагаем $x_{n-1} = x_n + (t_{n-1} - t_n)\,F_\theta(x_n, t_n, t_{n-1})$. 1 шаг работает; больше шагов улучшает качество.
 
 ## Mean Flow vs ShortCut
 
-Both train a flow map $F(x_t, t, s)$ with stop-gradient self-consistency. The difference is which identity is enforced:
+Оба обучают flow map $F(x_t, t, s)$ через self-consistency со stop-gradient. Разница — какое тождество накладывают:
 
 | Method                | Identity used                                                                       | Extra cost during training |
 |-----------------------|-------------------------------------------------------------------------------------|----------------------------|
-| [[methods/shortcut-model]] | Integral: $F(t, s) \approx F(F(t, r), r, s)$ — one extra forward pass            | 1 extra forward            |
-| [[methods/mean-flow]] | Differential: $F = v - (s - t)\,\mathrm{d}F/\mathrm{d}t$ — one JVP through the net | 1 JVP                      |
+| [[methods/shortcut-model]] | Интегральное: $F(t, s) \approx F(F(t, r), r, s)$ — один лишний forward pass    | 1 лишний forward           |
+| [[methods/mean-flow]] | Дифференциальное: $F = v - (s - t)\,\mathrm{d}F/\mathrm{d}t$ — один JVP через сеть | 1 JVP                      |
 
-The differential identity gives a closer-to-pointwise signal; the integral identity gives a more "global" coupling between intervals.
+Дифференциальное тождество даёт более поточечный сигнал; интегральное — более «глобальную» связь между интервалами.
 
 ## Properties
 
-- **Step count at inference:** 1–4 typically.
-- **Boundary:** $F_\theta(x_t, t, t) = v_\theta(x_t, t)$, enforced jointly with FM.
-- **Compute:** training needs JVP capability (PyTorch `torch.func.jvp` or equivalent); inference is one forward pass per step.
+- **Число шагов на inference:** обычно 1–4.
+- **Граница:** $F_\theta(x_t, t, t) = v_\theta(x_t, t)$, обеспечивается совместно с FM.
+- **Compute:** обучение требует JVP-возможностей (PyTorch `torch.func.jvp` или аналог); inference — один forward pass на шаг.
 
 ## Variants and successors
 
-- [[methods/shortcut-model]] — integral-identity counterpart.
-- "Mean Flows for One-step Generative Modeling" (Geng et al., 2025) — the paper this lecture refers to.
+- [[methods/shortcut-model]] — аналог через интегральное тождество.
+- «Mean Flows for One-step Generative Modeling» (Geng et al., 2025) — статья, на которую ссылается лекция.
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — definition, Mean Flow Identity, training objective, and the diagram of $v$, $F$, and the correction term $-(s - t)\,\mathrm{d}F/\mathrm{d}t$.
+- [[sources/flow-map-models-lecture]] — определение, Mean Flow Identity, цель обучения и диаграмма $v$, $F$ и поправочного члена $-(s - t)\,\mathrm{d}F/\mathrm{d}t$.
 
 ## Up next
 
-- [[methods/shortcut-model]] — the integral-identity counterpart; comparing the two pinpoints what the differential identity buys.
-- [[topics/few-step-generative-models]] — situates Mean Flow among consistency models, shortcut models, and progressive distillation.
+- [[methods/shortcut-model]] — аналог через интегральное тождество; сравнение проясняет, что покупает дифференциальное.
+- [[topics/few-step-generative-models]] — место Mean Flow среди consistency models, shortcut models и progressive distillation.

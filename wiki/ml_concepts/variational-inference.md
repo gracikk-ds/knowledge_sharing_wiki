@@ -10,79 +10,79 @@ status: draft
 
 # Variational Inference
 
-> A framework for approximating an intractable posterior $p(z \mid x, \theta)$ by an easier distribution $q(z)$ chosen from a tractable family, with the approximation quality measured by $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$.
+> Фреймворк для аппроксимации труднообъемного posterior $p(z \mid x, \theta)$ более простым распределением $q(z)$ из трактуемого семейства; качество приближения измеряется $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$.
 
 ## Motivation
 
-In a [[ml_concepts/latent-variable-model]] we keep needing the posterior $p(z \mid x, \theta)$ — for predictions, for evaluating expectations that show up in training objectives, for analysing what the model has learned. Bayes' rule writes it down:
+В [[ml_concepts/latent-variable-model]] нам постоянно нужен posterior $p(z \mid x, \theta)$ — для предсказаний, для ожиданий, возникающих в целях обучения, для анализа того, чему модель научилась. Правило Байеса его выписывает:
 
 $$
 p(z \mid x, \theta) \;=\; \frac{p(x \mid z, \theta)\,p(z)}{p(x \mid \theta)}.
 $$
 
-The denominator is the marginal likelihood, the same integral we already cannot compute. So the posterior is known up to a normaliser we have no way to evaluate. Plugging in MCMC samples is one route but is slow, mixes poorly in high dimensions, and is hard to amortise across many examples.
+В знаменателе — маргинальное правдоподобие, тот самый интеграл, который мы посчитать не можем. То есть posterior известен с точностью до неизвестной нормализующей константы. Один путь — подставлять MCMC-сэмплы, но это медленно, плохо смешивается в высокой размерности и плохо амортизируется по многим примерам.
 
-Variational inference replaces inference with optimisation. Pick a tractable family $\mathcal{Q} = \{q\}$ — diagonal Gaussians, mean-field factorisations, more elaborate parametric families — and search within it for the $q$ closest to the true posterior, measured by [[math_concepts/kl-divergence]]. The chosen $q^*$ is then used as a proxy: expectations under the true posterior get replaced by expectations under $q^*$, which we can compute because $q^*$ was picked from a tractable family.
+Variational inference заменяет inference на оптимизацию. Берём трактуемое семейство $\mathcal{Q} = \{q\}$ — диагональные гауссианы, mean-field факторизации, более сложные параметрические семейства — и ищем внутри него $q$, ближайший к истинному posterior, по [[math_concepts/kl-divergence]]. Найденный $q^*$ используется как прокси: ожидания под истинным posterior заменяются ожиданиями под $q^*$, и эти последние мы посчитать можем, потому что $q^*$ взят из трактуемого семейства.
 
-A direct attempt to minimise $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$ runs into the same wall as before, because the KL contains $\log p(z \mid x, \theta)$ and that requires the same unknown normaliser. The workaround is the identity $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q \,\|\, p(z \mid x, \theta))$. The left-hand side does not depend on $q$, so minimising the KL over $q$ is exactly the same problem as maximising the [[ml_concepts/elbo|ELBO]] over $q$. The ELBO needs only the joint $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$, which we have. This is the foundational move of VI: the intractable objective and a tractable surrogate differ by a constant in $q$, so optimising the surrogate is equivalent to optimising the real thing.
+Прямая попытка минимизировать $\mathrm{KL}(q \,\|\, p(z \mid x, \theta))$ упирается в ту же стену, что и раньше: KL содержит $\log p(z \mid x, \theta)$, а это та же неизвестная нормировка. Выход — тождество $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q \,\|\, p(z \mid x, \theta))$. Левая часть от $q$ не зависит, поэтому минимизировать KL по $q$ — это в точности то же, что максимизировать [[ml_concepts/elbo|ELBO]] по $q$. ELBO нуждается только в joint $p(x, z \mid \theta) = p(x \mid z, \theta)\,p(z)$, который у нас есть. Это и есть базовый ход VI: трудный объект и трактуемый суррогат различаются на константу по $q$, поэтому оптимизация суррогата эквивалентна оптимизации настоящей величины.
 
-The remaining design choice is the family $\mathcal{Q}$. A richer family lands closer to the true posterior but harder to optimise, with higher-variance gradient estimators. Mean-field $q(z) = \prod_j q_j(z_j)$ is the classical default; diagonal Gaussians dominate amortised settings. This trade-off — bias from $\mathcal{Q}$ versus optimisation cost — is the main knob a VI practitioner turns.
+Остаётся выбор дизайна — семейство $\mathcal{Q}$. Богаче семейство — ближе к истинному posterior, но сложнее в оптимизации и выше дисперсия градиентных оценок. Mean-field $q(z) = \prod_j q_j(z_j)$ — классический default; диагональные гауссианы доминируют в amortized-постановках. Этот компромисс — bias от $\mathcal{Q}$ против стоимости оптимизации — главная ручка, которую крутит VI-практик.
 
 ## Formal description
 
-For fixed $x$ and $\theta$, VI solves
+Для фиксированных $x$ и $\theta$ VI решает
 
 $$
 q^* \;=\; \arg\min_{q \in \mathcal{Q}}\,\mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big).
 $$
 
-The KL is intractable directly (it contains $\log p(z \mid x, \theta)$), but we can sidestep this using the identity
+KL напрямую нерасчётен (содержит $\log p(z \mid x, \theta)$), но можно обойти это через тождество
 
 $$
 \log p(x \mid \theta) \;=\; \mathrm{ELBO}(q, \theta) \;+\; \mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big).
 $$
 
-The left-hand side does not depend on $q$. Therefore, at fixed $\theta$:
+Левая часть от $q$ не зависит. Поэтому при фиксированном $\theta$:
 
 $$
 \arg\min_{q} \mathrm{KL}\!\big(q(z) \,\|\, p(z \mid x, \theta)\big) \;\equiv\; \arg\max_{q} \mathrm{ELBO}(q, \theta).
 $$
 
-So we never need the true posterior to fit $q$ — maximising the [[ml_concepts/elbo|ELBO]] over $q$ is exactly the same optimisation as minimising the KL to the posterior. This is the foundational identity of VI.
+Истинный posterior для подгонки $q$ не нужен — максимизация [[ml_concepts/elbo|ELBO]] по $q$ — та же оптимизация, что минимизация KL к posterior. Это базовое тождество VI.
 
 ## Why reverse KL (not forward)
 
-VI minimises $\mathrm{KL}(q \,\|\, p)$, not $\mathrm{KL}(p \,\|\, q)$. The asymmetry matters:
+VI минимизирует $\mathrm{KL}(q \,\|\, p)$, а не $\mathrm{KL}(p \,\|\, q)$. Асимметрия играет роль:
 
-- $\mathrm{KL}(q \,\|\, p)$ is "mode-seeking": $q$ pays a large penalty when it puts mass where $p$ is near zero, but not vice versa. The optimiser tends to fit $q$ to one mode of a multimodal posterior.
-- $\mathrm{KL}(p \,\|\, q)$ is "mass-covering": $q$ must cover all the support of $p$ to avoid blow-up. Hard to compute since expectation is under $p$.
+- $\mathrm{KL}(q \,\|\, p)$ «mode-seeking»: $q$ платит большой штраф за массу там, где $p$ почти ноль, но не наоборот. Оптимизатор склонен подгонять $q$ к одной моде многомодального posterior.
+- $\mathrm{KL}(p \,\|\, q)$ «mass-covering»: $q$ должен покрыть весь носитель $p$, иначе оценка взрывается. Считать тяжело — ожидание под $p$.
 
-Reverse KL is chosen because $q$ is the proposal we can sample from — expectations under $q$ are tractable. See [[math_concepts/kl-divergence]] for the asymmetry in detail.
+Reverse KL выбран потому, что $q$ — это proposal, из которого мы сэмплируем; ожидания под $q$ трактуемы. Детали асимметрии — на [[math_concepts/kl-divergence]].
 
 ## Choosing the family
 
-The classical choice is the **mean-field** family: $q(z) = \prod_j q_j(z_j)$, each factor in some simple parametric family. Fully factorised, easy to sample, but cannot represent correlations between latents.
+Классический выбор — **mean-field** семейство: $q(z) = \prod_j q_j(z_j)$, каждый множитель в простом параметрическом семействе. Полностью факторизованное, легко сэмплируется, но не выражает корреляций между латентами.
 
-For amortised settings (one inference network for all $x$), the typical choice is the **diagonal Gaussian** $q(z \mid x, \phi) = \mathcal{N}(\mu_\phi(x), \mathrm{diag}(\sigma_\phi^2(x)))$, with $\mu_\phi, \sigma_\phi$ outputs of a neural network. This is what [[methods/vae]] uses. Richer families exist (normalising flows for $q$, structured posteriors) at additional cost.
+Для amortized-постановок (одна inference-сеть на все $x$) типичный выбор — **диагональный гауссиан** $q(z \mid x, \phi) = \mathcal{N}(\mu_\phi(x), \mathrm{diag}(\sigma_\phi^2(x)))$ с $\mu_\phi, \sigma_\phi$ как выходами нейросети. Это и есть выбор [[methods/vae]]. Более богатые семейства существуют (normalising flows для $q$, structured posteriors) ценой дополнительной сложности.
 
 ## Variations and related concepts
 
-- [[ml_concepts/elbo]] — the surrogate optimised in place of the intractable KL.
-- [[ml_concepts/amortized-variational-inference]] — share one $q(z \mid x, \phi)$ across all examples.
-- [[ml_concepts/reparameterization-trick]] — backprop through $\nabla_\phi \mathbb{E}_{q}[\cdot]$.
-- [[methods/variational-em]] — alternate VI ($q$ updates) with model updates.
-- [[methods/vae]] — VI parameterised end-to-end as a deep autoencoder.
-- [[math_concepts/kl-divergence]] — the measure of "closeness" being minimised.
+- [[ml_concepts/elbo]] — суррогат, оптимизируемый вместо нерасчётного KL.
+- [[ml_concepts/amortized-variational-inference]] — общая $q(z \mid x, \phi)$ на все примеры.
+- [[ml_concepts/reparameterization-trick]] — backprop через $\nabla_\phi \mathbb{E}_{q}[\cdot]$.
+- [[methods/variational-em]] — чередовать VI ($q$-обновления) с обновлениями модели.
+- [[methods/vae]] — VI, end-to-end параметризованная как глубокий автоэнкодер.
+- [[math_concepts/kl-divergence]] — мера «близости», которую минимизируем.
 
 ## Open questions
 
-- {none}
+- {нет}
 
 ## Sources
 
-- [[sources/elbo-and-vae-lecture]] — derivation that minimising KL to the posterior is the same problem as maximising ELBO, plus the EM-style optimisation path.
+- [[sources/elbo-and-vae-lecture]] — вывод того, что минимизация KL к posterior — та же задача, что максимизация ELBO, плюс EM-путь оптимизации.
 
 ## Up next
 
-- [[ml_concepts/elbo]] — the surrogate objective that turns intractable KL minimisation into a tractable maximisation problem.
-- [[ml_concepts/amortized-variational-inference]] — share one neural network across all $x$ instead of fitting $q$ per example.
+- [[ml_concepts/elbo]] — суррогатная цель, превращающая нерасчётную KL-минимизацию в трактуемую задачу максимизации.
+- [[ml_concepts/amortized-variational-inference]] — общая нейросеть на все $x$ вместо per-example подгонки $q$.

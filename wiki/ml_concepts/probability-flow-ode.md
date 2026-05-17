@@ -10,18 +10,18 @@ status: stub
 
 # Probability-Flow ODE
 
-> The deterministic ODE whose marginal distributions match those of a diffusion SDE, used at inference because it is solvable with standard ODE integrators and is reproducible from a fixed noise sample.
+> Детерминированный ODE, чьи маргинальные распределения совпадают с маргиналами diffusion SDE; используется на inference, потому что решается стандартными ODE-солверами и воспроизводим из фиксированного шумового сэмпла.
 
-Stub. The current wiki uses the probability-flow ODE only as the curve along which a [[ml_concepts/consistency-function]] is defined. In the common parametrisation (EDM-style),
+Стаб. Текущая вики использует probability-flow ODE только как кривую, вдоль которой определена [[ml_concepts/consistency-function]]. В типичной параметризации (EDM-стиль):
 
 $$
 \mathrm{d}x \;=\; -\,t\,\nabla_x \log p_t(x)\,\mathrm{d}t.
 $$
 
-Together with the conditional-score approximation $\nabla_x \log p_t(x) \approx -(x - \mathbb{E}[x_0 \mid x])/t^2$, this is the ODE that [[methods/consistency-training]] linearises into a straight reference path.
+Вместе с приближением условного score $\nabla_x \log p_t(x) \approx -(x - \mathbb{E}[x_0 \mid x])/t^2$ это и есть ODE, который [[methods/consistency-training]] линеаризует в прямой reference-путь.
 
-A proper draft awaits ingest of Song et al. 2020 ("Score-based generative modeling through SDEs") or EDM (Karras et al. 2022).
+Полноценный draft ждёт ингеста Song et al. 2020 («Score-based generative modeling through SDEs») или EDM (Karras et al. 2022).
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — equation reproduced; concept used as background.
+- [[sources/flow-map-models-lecture]] — уравнение приведено, концепт используется как фон.

@@ -12,47 +12,47 @@ status: draft
 
 # ELBO and VAE — lecture
 
-> A self-contained lecture deriving ELBO from first principles, decomposing it into reconstruction and regularisation, and walking through the full VAE training story including the reparameterization trick and the closed-form Gaussian KL.
+> Самодостаточная лекция: ELBO выводится с нуля, разлагается на reconstruction и regularisation, и проходится полный сюжет обучения VAE, включая reparameterization trick и закрытую форму гауссовского KL.
 
 ## Key takeaways
 
-- **Why MLE alone is not enough.** Forward KL minimisation $\mathrm{KL}(\pi \,\|\, p_\theta)$ reduces to maximising $\mathbb{E}_\pi[\log p(x \mid \theta)]$. Even if we learn $p(x \mid \theta)$ as a parametric density, sampling from it can remain hard — motivating the latent-variable structure.
-- **Latent-variable models** factor $p(x \mid \theta) = \int p(x \mid z, \theta) p(z) dz$. Sampling becomes trivial; the marginal can be arbitrarily complex even from simple components.
-- **Naïve Monte Carlo over the prior fails.** For any specific $x$, only the few $z$ that explain it matter; prior samples are nearly all irrelevant. Required sample count grows with the prior–posterior mismatch.
-- **ELBO via Jensen.** Insert $q(z)/q(z)$, apply Jensen on concave $\log$: $\log p(x \mid \theta) \ge \mathbb{E}_q[\log p(x, z \mid \theta)/q(z)]$. The bound holds for any valid $q$.
-- **ELBO via Bayes.** Using $p(x, z) = p(z \mid x) p(x)$ gives the exact identity $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q(z) \,\|\, p(z \mid x, \theta))$. The gap is exactly the KL from $q$ to the true posterior; equality iff $q = p(z \mid x, \theta)$.
-- **Decomposition into reconstruction + regularisation.** Splitting $p(x, z) = p(x \mid z) p(z)$ gives $\mathrm{ELBO} = \mathbb{E}_q[\log p(x \mid z, \theta)] - \mathrm{KL}(q(z) \,\|\, p(z))$ — the VAE loss.
-- **Variational EM.** Alternate: E-step at fixed $\theta$ maximises ELBO over $q$ (equivalent to minimising KL to the posterior); M-step at fixed $q$ maximises ELBO over $\theta$.
-- **Amortised inference.** Replace per-example $q$ with a network $q(z \mid x, \phi)$ to handle two problems at once: intractability of the exact posterior, and the need for a different $q$ per $x$.
-- **Reparameterization trick.** Rewrite $z \sim q(z \mid x, \phi)$ as $z = g_\phi(x, \varepsilon)$ with $\varepsilon \sim p(\varepsilon)$ fixed. By LOTUS the expectation is now over a $\phi$-independent measure; gradients flow through $g_\phi$. The score-function alternative is unbiased but high-variance.
-- **Final VAE loss.** With Gaussian encoder and $\mathcal{N}(0, I)$ prior, the KL is closed-form (sum of $\mu_j^2 + \sigma_j^2 - \log\sigma_j^2 - 1$ over latent dims). Reconstruction term uses one reparameterized sample; whole loss is one SGD step on $(\phi, \theta)$.
+- **Why MLE alone is not enough.** Минимизация forward KL $\mathrm{KL}(\pi \,\|\, p_\theta)$ сводится к максимизации $\mathbb{E}_\pi[\log p(x \mid \theta)]$. Даже если выучить $p(x \mid \theta)$ как параметрическую плотность, сэмплировать из неё всё ещё может быть тяжело — отсюда и мотивация для латентной структуры.
+- **Latent-variable models** факторизуют $p(x \mid \theta) = \int p(x \mid z, \theta) p(z) dz$. Сэмплирование становится тривиальным; маргинал может быть сколь угодно сложным даже из простых компонент.
+- **Naïve Monte Carlo over the prior fails.** Для конкретного $x$ значение имеют только те $z$, что его объясняют; почти все сэмплы из prior к делу не относятся. Нужное число сэмплов растёт вместе с расхождением между prior и posterior.
+- **ELBO via Jensen.** Вставляем $q(z)/q(z)$, применяем Jensen к вогнутому $\log$: $\log p(x \mid \theta) \ge \mathbb{E}_q[\log p(x, z \mid \theta)/q(z)]$. Граница работает для любого допустимого $q$.
+- **ELBO via Bayes.** Через $p(x, z) = p(z \mid x) p(x)$ получается точное тождество $\log p(x \mid \theta) = \mathrm{ELBO}(q, \theta) + \mathrm{KL}(q(z) \,\|\, p(z \mid x, \theta))$. Зазор — это в точности KL от $q$ до истинного posterior; равенство iff $q = p(z \mid x, \theta)$.
+- **Decomposition into reconstruction + regularisation.** Разложение $p(x, z) = p(x \mid z) p(z)$ даёт $\mathrm{ELBO} = \mathbb{E}_q[\log p(x \mid z, \theta)] - \mathrm{KL}(q(z) \,\|\, p(z))$ — функционал потерь VAE.
+- **Variational EM.** Поочерёдно: E-step при фиксированном $\theta$ максимизирует ELBO по $q$ (эквивалентно минимизации KL до posterior); M-step при фиксированном $q$ максимизирует ELBO по $\theta$.
+- **Amortised inference.** Заменяем per-example $q$ сетью $q(z \mid x, \phi)$, чтобы закрыть две проблемы разом: труднообъемность точного posterior и необходимость отдельного $q$ под каждый $x$.
+- **Reparameterization trick.** Переписываем $z \sim q(z \mid x, \phi)$ как $z = g_\phi(x, \varepsilon)$ с фиксированным $\varepsilon \sim p(\varepsilon)$. По LOTUS ожидание теперь по $\phi$-независимой мере; градиенты текут через $g_\phi$. Альтернатива через score-function unbiased, но с высокой дисперсией.
+- **Final VAE loss.** С гауссовским энкодером и prior $\mathcal{N}(0, I)$ KL берётся в закрытой форме (сумма $\mu_j^2 + \sigma_j^2 - \log\sigma_j^2 - 1$ по latent-измерениям). Reconstruction-член использует один reparameterized сэмпл; вся loss — один SGD-шаг по $(\phi, \theta)$.
 
 ## Concepts touched
 
-- [[ml_concepts/elbo]] — central concept of the lecture; derived two ways (Jensen and Bayes), decomposed three ways (raw, with posterior gap, reconstruction+regularisation). New page.
-- [[ml_concepts/latent-variable-model]] — the setup; analogy with the law of total probability; naïve Monte Carlo failure mode. New page.
-- [[ml_concepts/variational-inference]] — framework; the identity that lets us optimise ELBO without ever computing the true KL. New page.
-- [[ml_concepts/amortized-variational-inference]] — encoder as a network mapping $x$ to posterior parameters; motivated by intractability and the "different $q$ per $x$" problem. New page.
-- [[ml_concepts/reparameterization-trick]] — LOTUS-based derivation; canonical Gaussian instance; contrast with score-function estimator. New page.
-- [[math_concepts/kl-divergence]] — defining the bound's gap; closed-form Gaussian KL used in the VAE loss; non-negativity proof. New page.
-- [[math_concepts/jensens-inequality]] — used to turn $\log \mathbb{E}_q[\cdot]$ into $\mathbb{E}_q[\log \cdot]$. New page.
-- [[methods/vae]] — algorithm, architecture, why one joint optimiser instead of EM. New page.
-- [[methods/variational-em]] — alternation framework, equivalence "max ELBO in $q$ ≡ min KL to posterior", why VAE doesn't do strict EM. New page.
+- [[ml_concepts/elbo]] — центральный концепт лекции; выведен двумя способами (Jensen и Bayes), разложен тремя способами (исходный, с зазором до posterior, reconstruction+regularisation). Новая страница.
+- [[ml_concepts/latent-variable-model]] — постановка; аналогия с законом полной вероятности; режим отказа наивного Монте-Карло. Новая страница.
+- [[ml_concepts/variational-inference]] — фреймворк; тождество, позволяющее оптимизировать ELBO, не вычисляя истинный KL. Новая страница.
+- [[ml_concepts/amortized-variational-inference]] — энкодер как сеть, отображающая $x$ в параметры posterior; мотивация — труднообъемность и проблема «отдельный $q$ под каждый $x$». Новая страница.
+- [[ml_concepts/reparameterization-trick]] — вывод через LOTUS; канонический гауссовский случай; контраст со score-function оценкой. Новая страница.
+- [[math_concepts/kl-divergence]] — задаёт зазор bound; закрытая форма гауссовского KL, используемая в loss VAE; доказательство неотрицательности. Новая страница.
+- [[math_concepts/jensens-inequality]] — позволяет превратить $\log \mathbb{E}_q[\cdot]$ в $\mathbb{E}_q[\log \cdot]$. Новая страница.
+- [[methods/vae]] — алгоритм, архитектура, почему один совместный оптимизатор вместо EM. Новая страница.
+- [[methods/variational-em]] — фреймворк чередования, эквивалентность «max ELBO по $q$ ≡ min KL до posterior», почему VAE не делает строгий EM. Новая страница.
 
 ## Contradictions and revisions
 
-None. This is the first ingest in the variational-inference region of the wiki; nothing existing to contradict.
+Нет. Это первый ингест в области variational inference; противоречить пока нечему.
 
 ## Questions raised
 
-None surfaced yet. Possible follow-ups for later sources: the amortization gap (quantitative effect), posterior collapse (why some decoders trigger it), tighter bounds (IWAE), and the role of forward vs reverse KL in different generative-modelling paradigms.
+Пока никаких. Возможные продолжения для будущих источников: amortization gap (количественный эффект), posterior collapse (почему некоторые декодеры его триггерят), более тугие bound'ы (IWAE), и роль forward vs reverse KL в разных парадигмах генеративного моделирования.
 
 ## Notes
 
-- The lecture uses Russian-language prose with English-language formulas. Concepts and notation are standard.
-- It cross-references its own sub-sections via Notion-style links; these refer to internal structure of the source and do not require wiki pages.
-- The naïve Monte Carlo example ($x = 10$, $z \sim \mathcal{N}(0, 1)$, $\sigma = 0.1$) is a concrete illustration of prior–posterior mismatch — captured on [[ml_concepts/latent-variable-model]] in the "Why naïve Monte Carlo fails" section.
-- The score-function estimator is mentioned only as a high-variance alternative to reparameterization and not derived; covered briefly on [[ml_concepts/reparameterization-trick]]. A dedicated source could expand it into its own page.
+- Лекция написана русской прозой с английскими формулами. Концепты и обозначения стандартные.
+- В лекции есть кросс-ссылки между подсекциями в стиле Notion; они указывают на внутреннюю структуру самого источника и не требуют отдельных страниц вики.
+- Пример отказа наивного Монте-Карло ($x = 10$, $z \sim \mathcal{N}(0, 1)$, $\sigma = 0.1$) — конкретная иллюстрация расхождения prior–posterior; зафиксирован на [[ml_concepts/latent-variable-model]] в секции «Why naïve Monte Carlo fails».
+- Score-function оценка упоминается только как высокодисперсная альтернатива reparameterization и не выводится подробно; кратко описана на [[ml_concepts/reparameterization-trick]]. Отдельный источник мог бы развернуть её в собственную страницу.
 
 ## Pointer back to raw
 

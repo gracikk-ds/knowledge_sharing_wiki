@@ -12,40 +12,40 @@ status: draft
 
 # Few-step Generative Models — lecture
 
-> A 31-slide lecture covering why diffusion is slow, why knowledge distillation is fast, and the modern toolkit of flow-map methods (Consistency Models, Multistep CMs, ShortCut, Mean Flow).
+> Лекция из 31 слайда: почему diffusion работает медленно, почему knowledge distillation работает быстро, и обзор современного инструментария flow-map методов (Consistency Models, Multistep CMs, ShortCut, Mean Flow).
 
 ## Key takeaways
 
-- **Why diffusion is slow.** The probability-flow ODE has curved trajectories; a 1-step Euler approximation lands far from data. Practically you need 50–200 forward passes.
-- **Why distillation is fast.** Diffusion's training objective is **one-to-many** (one $x_t$ is consistent with many $x_0$), so the network's optimum at high noise is a blurry conditional mean. Distillation replaces this with a **one-to-one** target from the teacher's deterministic solver, which a single forward pass can match.
-- **Flow map unifies the modern toolkit.** Instead of learning the velocity $v(x, t)$, learn the integrated solution $F(x, t, s)$ directly. CMs, ShortCut, and Mean Flow are all flow maps under different self-consistency principles.
-- **Consistency function** $f(x_t, t) \mapsto x_0$ with self-consistency $f(x_t, t) = f(x_s, s)$ along a trajectory. Two training recipes: CD (uses a teacher) and CT (uses a straight reference path with shared $\epsilon$).
-- **CMs are not vector fields.** They cannot be plugged into ODE solvers — sampling uses stochastic multistep (project to $x_0$, re-noise, project again, ~4–5 rounds).
-- **Multistep CMs** sidestep "approximate the whole interval" by splitting $[0, \sigma]$ into $N$ boundaries and learning a CM per interval. 4 steps $\approx$ 50-step teacher in the lecture's qualitative comparison.
-- **Shortcut models** train $F(x_t, t, s)$ with stop-gradient interval-additivity: $F(t, s) \approx F(F(t, r), r, s)$.
-- **Mean Flow (2025)** trains $F(x_t, t, s)$ to match the *average* velocity over $[t, s]$. The **Mean Flow Identity** $F = v(x_t, t) - (s - t)\,\mathrm{d}F/\mathrm{d}t$ is the training signal, with the total derivative implemented as a JVP.
+- **Why diffusion is slow.** У probability-flow ODE искривлённые траектории; 1-шаговая аппроксимация Эйлера приземляется далеко от данных. На практике нужно 50–200 forward pass'ов.
+- **Why distillation is fast.** Цель обучения diffusion — **one-to-many** (один $x_t$ согласован со многими $x_0$), поэтому оптимум сети на высокой шумности — размытое условное среднее. Distillation заменяет это на **one-to-one** target от детерминированного солвера учителя, и один forward pass способен его повторить.
+- **Flow map unifies the modern toolkit.** Вместо velocity $v(x, t)$ обучаем напрямую проинтегрированное решение $F(x, t, s)$. CMs, ShortCut и Mean Flow — все это flow-map'ы под разными принципами self-consistency.
+- **Consistency function** $f(x_t, t) \mapsto x_0$ с self-consistency $f(x_t, t) = f(x_s, s)$ вдоль траектории. Два рецепта обучения: CD (с учителем) и CT (с прямым reference path и общим $\epsilon$).
+- **CMs are not vector fields.** Их нельзя подсунуть в ODE-солверы — сэмплирование идёт стохастическим multistep'ом (проекция в $x_0$, повторное зашумление, новая проекция, ~4–5 раундов).
+- **Multistep CMs** обходят задачу «аппроксимировать весь интервал», разбивая $[0, \sigma]$ на $N$ границ и обучая по CM на каждый интервал. 4 шага $\approx$ 50-шаговый учитель в качественном сравнении лекции.
+- **Shortcut models** обучают $F(x_t, t, s)$ с stop-gradient interval-additivity: $F(t, s) \approx F(F(t, r), r, s)$.
+- **Mean Flow (2025)** обучает $F(x_t, t, s)$ соответствовать *средней* velocity на $[t, s]$. **Mean Flow Identity** $F = v(x_t, t) - (s - t)\,\mathrm{d}F/\mathrm{d}t$ — сигнал обучения, причём полная производная реализована через JVP.
 
 ## Concepts touched
 
-- [[ml_concepts/flow-map]] — the unifying organising concept of the lecture; new wiki page.
-- [[ml_concepts/consistency-function]] — definition, self-consistency, boundary condition; new wiki page.
-- [[ml_concepts/step-distillation]] — one-to-many vs one-to-one explanation, one-step vs multi-step KD; new wiki page.
-- [[ml_concepts/diffusion-model]] — referenced as the slow teacher; stub.
-- [[ml_concepts/flow-matching]] — referenced as the instantaneous-velocity baseline; stub.
-- [[ml_concepts/probability-flow-ode]] — the ODE the trajectory lives on; stub.
-- [[ml_concepts/score-function]] — used in CT derivation; stub.
-- [[methods/consistency-distillation]] — full algorithm; new wiki page.
-- [[methods/consistency-training]] — straight-path derivation; new wiki page.
-- [[methods/multistep-consistency-model]] — multi-boundary CM definition and objective; new wiki page.
-- [[methods/shortcut-model]] — interval-additivity loss; new wiki page.
-- [[methods/mean-flow]] — Mean Flow Identity and objective; new wiki page.
-- [[methods/progressive-distillation]] — mentioned as multi-step KD; stub.
-- [[math_concepts/mean-flow-identity]] — derivation walked through; new wiki page.
-- [[topics/few-step-generative-models]] — umbrella; new wiki page.
+- [[ml_concepts/flow-map]] — объединяющий организующий концепт лекции; новая страница.
+- [[ml_concepts/consistency-function]] — определение, self-consistency, граничное условие; новая страница.
+- [[ml_concepts/step-distillation]] — объяснение one-to-many vs one-to-one, one-step vs multi-step KD; новая страница.
+- [[ml_concepts/diffusion-model]] — упоминается как медленный учитель; stub.
+- [[ml_concepts/flow-matching]] — упоминается как instantaneous-velocity baseline; stub.
+- [[ml_concepts/probability-flow-ode]] — ODE, в котором живёт траектория; stub.
+- [[ml_concepts/score-function]] — используется при выводе CT; stub.
+- [[methods/consistency-distillation]] — полный алгоритм; новая страница.
+- [[methods/consistency-training]] — вывод через прямой путь; новая страница.
+- [[methods/multistep-consistency-model]] — определение и цель multi-boundary CM; новая страница.
+- [[methods/shortcut-model]] — interval-additivity loss; новая страница.
+- [[methods/mean-flow]] — Mean Flow Identity и цель; новая страница.
+- [[methods/progressive-distillation]] — упомянут как multi-step KD; stub.
+- [[math_concepts/mean-flow-identity]] — вывод проходится шаг за шагом; новая страница.
+- [[topics/few-step-generative-models]] — общая зонтичная тема; новая страница.
 
 ## Contradictions and revisions
 
-None. This is the wiki's first content ingest, so there is nothing to contradict yet.
+Нет. Это первый содержательный ингест в вики, противоречить пока нечему.
 
 ## Questions raised
 
@@ -55,8 +55,8 @@ None. This is the wiki's first content ingest, so there is nothing to contradict
 
 ## Notes
 
-- The final slide is a Russian-language meme ("Айтишники всё!") — a humorous sign-off, not technical content. Not ingested.
-- The slide deck name-drops a longer reading list including "Stable Consistency Tuning", "Consistency Models Made Easy", "One-step Diffusion via Shortcut Models", "Mean Flows for One-step Generative Modeling", "Inductive Moment Matching", and "Align Your Flow". Added to the reading queue on [[topics/few-step-generative-models]].
+- Последний слайд — русскоязычный мем («Айтишники всё!»), юмористическая концовка, не технический контент. Не ингестировался.
+- В слайдах упоминается более длинный reading list: «Stable Consistency Tuning», «Consistency Models Made Easy», «One-step Diffusion via Shortcut Models», «Mean Flows for One-step Generative Modeling», «Inductive Moment Matching» и «Align Your Flow». Добавлены в reading queue на [[topics/few-step-generative-models]].
 
 ## Pointer back to raw
 

@@ -2,12 +2,12 @@
 title: Wiki Index
 type: index
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 ---
 
 # Wiki Index
 
-_Last updated: 2026-05-15_
+_Last updated: 2026-05-17_
 
 ## Start here
 
@@ -15,6 +15,7 @@ Topic primers are the entry points for sequential study — each walks through a
 
 - [[topics/variational-inference]] — latent-variable generative modelling trained by approximating the intractable posterior and maximising the ELBO. Path: latent-variable-model → variational-inference → ELBO → variational-em → amortized-vi → reparameterization → VAE.
 - [[topics/few-step-generative-models]] — turning slow many-step ODE generators (diffusion, flow matching) into 1–4-step samplers via flow maps and step distillation. Path: probability-flow-ODE → flow-map → consistency-function → step-distillation → progressive-distillation → CMs → multistep-CMs → shortcut → mean-flow.
+- [[topics/positional-encoding]] — injecting position into self-attention. Path: self-attention → positional-encoding → rotation-matrix-2d → RoPE → sinusoidal/learned-absolute → RoPE method (1D/2D/3D) → PI → NTK-Aware → YaRN → DyPE.
 
 The catalog below is alphabetical by type, optimised for refresh and lookup.
 
@@ -27,9 +28,12 @@ The catalog below is alphabetical by type, optimised for refresh and lookup.
 - [[ml_concepts/flow-map]] — the integrated solution of a generative ODE, learnt directly instead of its derivative.
 - [[ml_concepts/flow-matching]] — framework that learns a velocity field of an ODE transporting prior to data (stub).
 - [[ml_concepts/latent-variable-model]] — generative model that samples $z \sim p(z)$ then $x \sim p(x \mid z, \theta)$; marginalising builds complex distributions from simple parts.
+- [[ml_concepts/positional-encoding]] — mechanism for injecting token position into self-attention; key axis is additive vs multiplicative.
 - [[ml_concepts/probability-flow-ode]] — deterministic ODE whose marginals match those of a diffusion SDE (stub).
 - [[ml_concepts/reparameterization-trick]] — rewrite $z \sim q(z \mid x, \phi)$ as $z = g_\phi(x, \varepsilon)$ so gradients flow through a deterministic transform.
+- [[ml_concepts/rotary-position-embedding]] — encode position by rotating $q, k$ at angles proportional to position so that $q_m^\top k_n$ depends only on content and $(n - m)$.
 - [[ml_concepts/score-function]] — gradient of the log-density of the noised marginal, used by score-based models (stub).
+- [[ml_concepts/self-attention]] — transformer attention layer; permutation-equivariant without positional encoding (stub).
 - [[ml_concepts/step-distillation]] — train a fast student to mimic a slow multi-step teacher's deterministic ODE output.
 - [[ml_concepts/variational-inference]] — approximate an intractable posterior by the closest distribution in a tractable family under reverse KL.
 
@@ -38,27 +42,37 @@ The catalog below is alphabetical by type, optimised for refresh and lookup.
 - [[math_concepts/jensens-inequality]] — for convex $\varphi$, $\varphi(\mathbb{E}[X]) \le \mathbb{E}[\varphi(X)]$; concave flips the sign.
 - [[math_concepts/kl-divergence]] — non-negative asymmetric measure $\mathrm{KL}(q \,\|\, p) = \mathbb{E}_q[\log q/p]$ of how much $q$ differs from $p$.
 - [[math_concepts/mean-flow-identity]] — $F(x_t, t, s) = v(x_t, t) - (s - t)\,\mathrm{d}F/\mathrm{d}t$ relating average velocity to instantaneous velocity.
+- [[math_concepts/rotation-matrix-2d]] — $R(\theta) \in \mathbb{R}^{2 \times 2}$; ortho, composition $R(\alpha)R(\beta)=R(\alpha+\beta)$, $R^\top=R^{-1}=R(-\theta)$.
 
 ## Methods
 
 - [[methods/consistency-distillation]] — train a consistency function using one teacher solver step per pair.
 - [[methods/consistency-training]] — train a consistency function without a teacher via a same-$\epsilon$ straight-path pair.
+- [[methods/dype]] — dynamic RoPE extrapolation for diffusion: $\kappa(t)$-scaled PI/NTK/YaRN that fades to identity on late sampling steps.
+- [[methods/learned-absolute-position-embedding]] — trainable $E \in \mathbb{R}^{L_\max \times d}$ added to token embedding; hard length cap.
 - [[methods/mean-flow]] — flow map trained to match the average velocity over $[t, s]$ via the Mean Flow Identity.
 - [[methods/multistep-consistency-model]] — split $[0, \sigma]$ into intervals and learn one consistency function per interval.
+- [[methods/ntk-aware-interpolation]] — scale RoPE base $b \to b \cdot s^{d/(d-2)}$; non-uniform compression preserves fast pairs.
+- [[methods/position-interpolation]] — scale RoPE positions $m \to m/s$ to fit angles back into the trained range; uniform compression.
 - [[methods/progressive-distillation]] — iteratively halve sampling steps by distilling 2-step teacher behaviour into 1-step student (stub).
+- [[methods/rope]] — block-diagonal $d/2$ 2D rotations with frequency schedule $\theta_i = 10000^{-2i/d}$; 1D, 2D (ViT), and 3D (video) variants.
 - [[methods/shortcut-model]] — flow map trained with a stop-gradient interval-additivity self-consistency loss.
+- [[methods/sinusoidal-position-encoding]] — fixed sine/cosine PE added to token embedding (Vaswani et al., 2017).
 - [[methods/vae]] — latent-variable generative model trained by maximising ELBO with a Gaussian amortised encoder and the reparameterization trick.
 - [[methods/variational-em]] — alternate E-step (update $q$ at fixed $\theta$) and M-step (update $\theta$ at fixed $q$) to maximise ELBO.
+- [[methods/yarn]] — three-zone RoPE context extension by wavelength + softmax temperature correction.
 
 ## Topics
 
 - [[topics/few-step-generative-models]] — design space of generators that sample in 1–4 forward passes.
+- [[topics/positional-encoding]] — how to inject token position into self-attention, from additive baselines to RoPE and its context-extension methods.
 - [[topics/variational-inference]] — latent-variable generative modelling trained via ELBO maximisation and approximate posteriors.
 
 ## Sources
 
 - [[sources/elbo-and-vae-lecture]] — lecture deriving ELBO and walking through the full VAE training story with reparameterization.
 - [[sources/flow-map-models-lecture]] — lecture covering CMs, multistep CMs, ShortCut, and Mean Flow under the unifying flow-map view.
+- [[sources/rope-lecture]] — 5-part lecture: PE motivation, RoPE 2D intuition, $d$-dim algorithm, 2D/3D variants, context extension (PI/NTK/YaRN/DyPE).
 
 ## Questions
 

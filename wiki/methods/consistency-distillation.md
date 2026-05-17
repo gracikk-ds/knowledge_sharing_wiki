@@ -10,58 +10,58 @@ status: draft
 
 # Consistency Distillation (CD)
 
-> Train a [[ml_concepts/consistency-function]] by using a pre-trained diffusion teacher to generate trajectory pairs, then enforcing the self-consistency loss on them.
+> Обучить [[ml_concepts/consistency-function]], используя предобученного diffusion-учителя для построения пар на траектории, и наложить self-consistency loss на эти пары.
 
 ## Motivation
 
-We have a [[ml_concepts/diffusion-model]] that samples well but needs 30–80 [[ml_concepts/probability-flow-ode]] steps per image. The goal is a student that takes one step, or at most a handful. The shape of student we want is a [[ml_concepts/consistency-function]] $f_\theta(x_t, t)$ that maps any noisy point on a trajectory to its clean endpoint $x_0$. The defining property is invariance along the trajectory: $f_\theta(x_t, t) = f_\theta(x_s, s)$ for any two times $t, s$ on the same path. Train that, sample in one step.
+Есть [[ml_concepts/diffusion-model]], которая хорошо сэмплирует, но требует 30–80 шагов [[ml_concepts/probability-flow-ode]] на изображение. Цель — student, делающий один шаг или максимум несколько. Форма student'а, которая нам нужна, — это [[ml_concepts/consistency-function]] $f_\theta(x_t, t)$, отображающий любую зашумлённую точку на траектории в её чистый endpoint $x_0$. Определяющее свойство — инвариантность вдоль траектории: $f_\theta(x_t, t) = f_\theta(x_s, s)$ для любых двух моментов $t, s$ на одной траектории. Обучить такое — и сэмплировать в один шаг.
 
-The naive way to enforce it is to pick a noise level $t$, ask the network for $f_\theta(x_t, t)$, and supervise it with the ground-truth $x_0$. This works in principle but throws away the structure that makes consistency models cheap. The loss only ties $x_t$ to $x_0$ — it never asks the network to be invariant *between two nearby noisy points on the same trajectory*. Without that pairing the network is doing one-shot regression from arbitrary noise to clean data, which is exactly what diffusion teachers needed many steps to learn.
+Наивный способ это обеспечить — выбрать уровень шума $t$, попросить сеть выдать $f_\theta(x_t, t)$ и супервизировать ground-truth значением $x_0$. В принципе работает, но выбрасывает структуру, которая делает consistency models дешёвыми. Loss связывает только $x_t$ с $x_0$ — он никогда не просит сеть быть инвариантной *между двумя близкими зашумлёнными точками на одной траектории*. Без этого спаривания сеть делает one-shot регрессию из произвольного шума в чистые данные — а это ровно то, под что diffusion-учителям и понадобилось много шагов.
 
-To get the pairing we need two points on the same trajectory. The forward noising process gives $x_t$ easily, but where does the matched $x_{t-\Delta}$ come from? A pre-trained teacher solves it. One step of the teacher's deterministic ODE solver, started at $(x_t, t)$, returns $\hat{x}_{t-\Delta}$ — the next point on the same trajectory, up to the solver's truncation error. Consistency distillation is exactly that: noise to $x_t$, run one teacher step to get $\hat{x}_{t-\Delta}$, apply the student to both points, push the two outputs together. The teacher contributes structure only — not labels — and the student inherits its trajectory geometry compressed into one network call.
+Чтобы получить пару, нужны две точки на одной траектории. Forward noising легко даёт $x_t$, но откуда взять подходящий $x_{t-\Delta}$? Эту задачу решает предобученный учитель. Один шаг детерминированного ODE-солвера учителя, стартовав из $(x_t, t)$, возвращает $\hat{x}_{t-\Delta}$ — следующую точку на той же траектории с точностью до truncation-ошибки солвера. Consistency distillation — ровно это: зашумить до $x_t$, прогнать один шаг учителя, чтобы получить $\hat{x}_{t-\Delta}$, применить student'а к обеим точкам, и подтянуть их выходы друг к другу. Учитель даёт только структуру — не метки — а student наследует его геометрию траектории, сжатую в один вызов сети.
 
 ## Problem setting
 
-A pre-trained diffusion (or flow-matching) model $\Phi(\cdot \mid \phi)$ is available; you want a student $f_\theta$ that can sample in 1–4 steps.
+Доступна предобученная diffusion (или flow-matching) модель $\Phi(\cdot \mid \phi)$; нужен student $f_\theta$, способный сэмплировать за 1–4 шага.
 
 ## Algorithm
 
-Discretise the time horizon into $t_0 < t_1 < \ldots < t_N$ (with $t_0 = \epsilon$ small but positive). One training step:
+Дискретизируем временной горизонт: $t_0 < t_1 < \ldots < t_N$ (с $t_0 = \epsilon$ малым, но положительным). Один шаг обучения:
 
-1. Sample $x_0 \sim p_{\text{data}}$ and $n \sim \mathcal{U}\{1, \ldots, N\}$.
-2. Forward-noise to time $t_n$: $x_n = x_0 + t_n\,\xi$, $\xi \sim \mathcal{N}(0, I)$. So $x_n \sim \mathcal{N}(x_0, t_n^2 I)$.
-3. Run **one step** of the teacher's ODE solver to get the trajectory's previous point:
+1. Сэмплируем $x_0 \sim p_{\text{data}}$ и $n \sim \mathcal{U}\{1, \ldots, N\}$.
+2. Forward-noise до момента $t_n$: $x_n = x_0 + t_n\,\xi$, $\xi \sim \mathcal{N}(0, I)$. То есть $x_n \sim \mathcal{N}(x_0, t_n^2 I)$.
+3. Прогоняем **один шаг** ODE-солвера учителя, чтобы получить предыдущую точку траектории:
    $$\hat{x}_{n-1} \;=\; \Phi(x_n,\, t_n,\, t_{n-1} \mid \phi).$$
-4. Apply the student to both points and minimise the squared difference:
+4. Применяем student'а к обеим точкам и минимизируем квадратичную разность:
    $$\mathcal{L}_{\text{CD}}(\theta) \;=\; \mathbb{E}\big\lVert f_\theta(\hat{x}_{n-1}, t_{n-1}) - f_\theta(x_n, t_n) \big\rVert_2^2.$$
-5. Enforce the boundary $f_\theta(x_0, t_0) = x_0$ by parametrising $f_\theta(x, t) = c_{\text{skip}}(t) \cdot x + c_{\text{out}}(t) \cdot F_\theta(x, t)$ with $c_{\text{skip}}(t_0) = 1$, $c_{\text{out}}(t_0) = 0$.
+5. Обеспечиваем граничное условие $f_\theta(x_0, t_0) = x_0$ параметризацией $f_\theta(x, t) = c_{\text{skip}}(t) \cdot x + c_{\text{out}}(t) \cdot F_\theta(x, t)$ с $c_{\text{skip}}(t_0) = 1$, $c_{\text{out}}(t_0) = 0$.
 
-A target network (EMA of $\theta$) is typically used on the $\hat{x}_{n-1}$ branch to stabilise training, similar to BYOL/TD-learning.
+На ветви $\hat{x}_{n-1}$ обычно ставят target-сеть (EMA $\theta$) для стабильности обучения — по образцу BYOL/TD-learning.
 
 ## Why it works
 
-The teacher's deterministic ODE provides the only missing ingredient: neighbouring points on the *same* trajectory. Without that, "self-consistency along a trajectory" cannot be enforced because you have no way to pair a point at $t_n$ with the corresponding point at $t_{n-1}$. The forward noising process gives $x_n$; the teacher's one solver step gives $\hat{x}_{n-1}$. Together they are a valid trajectory pair (up to the solver's truncation error).
+Детерминированный ODE учителя даёт единственный недостающий ингредиент — соседние точки на *одной* траектории. Без них «self-consistency вдоль траектории» нельзя обеспечить, потому что нет способа подобрать к точке в момент $t_n$ соответствующую точку в момент $t_{n-1}$. Forward noising даёт $x_n$; один шаг солвера учителя — $\hat{x}_{n-1}$. Вместе они образуют корректную пару на траектории (с точностью до truncation-ошибки солвера).
 
-The boundary condition rules out the trivial $f_\theta \equiv 0$ (which would minimise the self-consistency loss without learning anything useful).
+Граничное условие отсекает тривиальный $f_\theta \equiv 0$ (который иначе минимизировал бы self-consistency loss, ничего не выучив).
 
 ## Properties
 
-- **Step count at inference:** 1 step (greedy) or 4–5 stochastic steps.
-- **Quality vs teacher:** loses some quality at 1 step, comparable at 4 steps.
-- **Compute cost during training:** one teacher call per training step (the one solver step). Negligible compared to retraining the teacher.
-- **Failure modes:** target collapse if the boundary is mis-parametrised; numerical issues if the teacher's solver step is too coarse.
+- **Число шагов на inference:** 1 шаг (greedy) или 4–5 стохастических.
+- **Качество vs учитель:** теряет немного качества на 1 шаге, сравнимо на 4 шагах.
+- **Compute-стоимость при обучении:** один вызов учителя на шаг обучения (тот самый один шаг солвера). Пренебрежимо мала по сравнению с переобучением учителя.
+- **Failure modes:** target collapse при неправильной параметризации границы; численные проблемы, если шаг солвера учителя слишком грубый.
 
 ## Variants and successors
 
-- [[methods/consistency-training]] — drop the teacher; use a straight reference path instead.
-- [[methods/multistep-consistency-model]] — relax "always project to 0" to "project to the next boundary".
-- "Improved Techniques for Training Consistency Models" — variance-reduction and schedule tricks (not in this source).
+- [[methods/consistency-training]] — выкинуть учителя; использовать прямой reference-путь.
+- [[methods/multistep-consistency-model]] — ослабить «всегда проецируй в 0» до «проецируй в следующую границу».
+- «Improved Techniques for Training Consistency Models» — variance-reduction и трюки с расписанием (не в этом источнике).
 
 ## Sources
 
-- [[sources/flow-map-models-lecture]] — derivation of the CD loss, boundary condition trick, and motivation.
+- [[sources/flow-map-models-lecture]] — вывод CD-loss, трюк с граничным условием и мотивация.
 
 ## Up next
 
-- [[methods/multistep-consistency-model]] — relax "always project to $t=0$" to "project to the next boundary"; recovers most of the teacher's quality with 4 inference steps.
-- [[topics/few-step-generative-models]] — the broader area: flow maps, shortcut models, mean flow, and how CD sits among them.
+- [[methods/multistep-consistency-model]] — ослабить «всегда проецируй в $t=0$» до «проецируй в следующую границу»; возвращает большую часть качества учителя при 4 шагах inference.
+- [[topics/few-step-generative-models]] — более широкая область: flow map, shortcut models, mean flow и место CD среди них.
