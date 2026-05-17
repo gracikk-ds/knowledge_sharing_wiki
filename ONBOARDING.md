@@ -1,88 +1,91 @@
-# Onboarding — ML Notes Wiki
+# Онбординг — ML Notes Wiki
 
-A personal LLM-maintained wiki on machine learning. Sources go in `raw/`, structured explanations go in `wiki/`. The site deploys via Quartz + Vercel.
+Текстовая шпаргалка для нового человека на репо. Если хочешь, чтобы тебя провели по тем же шагам интерактивно — запусти `/onboard` в Claude Code.
 
-## First day — 30 minutes
+## Что это вообще такое
 
-1. Read `CLAUDE.md` (5 min) — repo map and principles.
-2. Read `.claude/role.md` (5 min) — how the LLM writes.
-3. Open `wiki/index.md` and browse one breakdown under `wiki/papers/` or `wiki/knowledge-sharings/` (10 min) — see the output you are working toward.
-4. Open `.autodoc/index.md` (5 min) — see how session insights look.
-5. Read this file to the end (5 min).
+Личный LLM-поддерживаемый wiki по машинному обучению. Складываешь papers, лекции, статьи, записи KS в `raw/`, Claude через скилл `/wiki-ingest` разбирает их по единому шаблону. Со временем — сеть связанных страниц по тегам, по которой быстро находишь нужное. Сайт собирается Quartz, деплоится на Vercel из `main`.
 
-## Your daily loop
-
-| Situation | What you do |
-|---|---|
-| You found an article / paper / lecture | Drop the file into `raw/{papers\|clips\|lectures\|scratch}/<filename>` |
-| You want a structured breakdown of it | `/wiki-ingest raw/<kind>/<filename>` |
-| You want to find something in the wiki | `/wiki-query "<your question>"` |
-| You are about to commit | `/wiki-lint` |
-| You want to test your memory | `/wiki-quiz <topic>` |
-| You are closing the session and learned something | `/autodoc` |
-
-## Gates where Claude stops and waits for you
-
-- After **takeaways** (phase 4 of `/wiki-ingest`) — Claude shows what it plans to write; you approve or steer.
-- Before any **commit** — Claude proposes the message; you approve.
-- In `/autodoc` — Claude proposes draft insights before appending.
-
-## What Claude never does on its own
-
-- `git push` — push is your action, always.
-- Edit or delete files in `raw/`.
-- AI-generate images. Only mermaid, matplotlib, or attributed source cut-outs are allowed.
-- Commit more than 300 lines in one commit — it splits into atomic commits instead.
-
-## Structure quick map
+## Layout
 
 ```
-wiki/papers/             # paper breakdowns:  su-2021-roformer.md
-wiki/lectures/           # lecture breakdowns: karpathy-makemore-3.md
-wiki/clips/              # blog/article breakdowns: illustrated-transformer-jay-alammar.md
-wiki/knowledge-sharings/ # KS meeting breakdowns: 2026-05-15-attention-deep-dive-by-grigoriy.md
-wiki/index.md            # entry point: recent / by kind / by tag
-wiki/log.md              # append-only chronological event log
+raw/                  # исходники (read-only после коммита)
+  papers/  lectures/  clips/  knowledge-sharings/  scratch/
+wiki/                 # разборы
+  papers/  lectures/  clips/  knowledge-sharings/
+  static/figures/     # все картинки одной плоской папкой: <slug>-<figure>.png
+  index.md            # лендинг + Recent / by-kind / by-tag
+  tags.md             # реестр тегов с определениями
+  log.md              # хронологический журнал
+publish/              # Quartz, деплоится на Vercel
+.claude/              # инструкции, правила, агенты, скиллы
+  CLAUDE.md  role.md  rules/  agents/  skills/
 ```
 
-One page per source. Concepts live *inside* the breakdown; there are no separate concept pages.
+Правило простое:
+- `raw/` — твоё, Claude только читает.
+- `wiki/` — Claude пишет, ты ревьюишь и коммитишь.
+- `.claude/` — конфигурация, читай свободно.
 
-To find «everything about RoPE», open `wiki/index.md`, scroll to «By tag», find the line for `positional-encoding`. It lists every breakdown that touches the concept.
+## Скиллы
 
-## Worked example
-
-See `docs/superpowers/specs/2026-05-18-wiki-source-breakdowns-design.md` §9 for a full example of a paper breakdown (the RoFormer/RoPE paper). It shows the template on a real source — what each section actually looks like, what kind of mermaid diagram qualifies as «идея в одной картинке», how `где: …` lists work under formulas, how «Связанные разборы» links work.
-
-## Where to edit the rules
-
-| You want to change | Edit |
+| Команда | Что делает |
 |---|---|
-| The voice / how Claude writes | `.claude/role.md` |
-| Language policy (banned phrases, calques) | `.claude/rules/01-language-policy.md` |
-| Commit policy | `.claude/rules/02-commit-policy.md` |
-| Illustration policy | `.claude/rules/03-illustration-policy.md` |
-| Frontmatter schema | `.claude/rules/04-frontmatter-schema.md` |
-| Page templates | `.claude/skills/_shared/page-templates.md` |
-| Russian style guide | `.claude/skills/_shared/russian-style.md` |
-| Illustration manual (deep) | `.claude/skills/_shared/illustration-policy.md` |
-| The ingest workflow | `.claude/skills/wiki-ingest/SKILL.md` |
+| `/wiki-ingest raw/<path>` | Разобрать один источник в одну страницу. 9 фаз: pre-flight → читает исходник → извлекает картинки → опционально исследует пробел → согласует план с тобой → пишет страницу → делает картинки → проверяет стиль → обновляет index/tags/log → предлагает коммит. |
+| `/wiki-query "<вопрос>"` | Ответ на вопрос по wiki: ищет разборы по тегам, синтезирует с цитатами. |
+| `/wiki-lint` | Аудит: orphan-страницы, битые ссылки, ошибки frontmatter, неконсистентные теги. |
+| `/wiki-quiz <тема>` | Сгенерить тест по теме для самопроверки. |
+| `/autodoc` | Записать сессионные инсайты в `.autodoc/`. |
+| `/onboard` | Этот гид в интерактивном режиме. |
 
-## Local preview
+Подробности по каждому — в `.claude/skills/<skill>/SKILL.md`.
+
+## Типичный день
+
+1. Положи исходник в `raw/<нужная подпапка>/`. PDF → `papers/`, видео-лекция или markdown с расшифровкой → `lectures/`, статья из блога → `clips/`, запись внутреннего KS → `knowledge-sharings/`. Имя любое.
+2. Запусти `/wiki-ingest raw/<kind>/<file>`. Claude пройдёт по 9 фазам. На фазе 5 покажет план — TL;DR, теги, какие картинки сделает. Подтверди или попроси скорректировать.
+3. Когда страница готова, Claude предложит коммит-сообщение. Подтверди — Claude сделает `git commit`. Правило: один коммит ≤ 300 строк; большие разборы Claude сам разделит на атомарные коммиты.
+4. Когда готов опубликовать — прогоняй `/wiki-lint`, потом `git push origin main`. Vercel автоматически задеплоит.
+
+**Claude никогда не делает `git push` сам.** Push — только ручное действие пользователя.
+
+## Что внутри разбора
+
+Каждая страница следует одному шаблону:
+
+1. **TL;DR** (4-7 предложений) — задача, подход, главный результат, актуальность сегодня, что найдёшь в разборе.
+2. **Мотивация** — что хотим, наивный подход, почему он не работает, что предлагает источник.
+3. **Идея в одной картинке** — единственная главная иллюстрация плюс абзац комментария.
+4. **Как это работает** — разбор по подсекциям. Формулы в LaTeX с обязательным списком `где: …`. Code-сниппеты 3-6 строк.
+5. **Опциональные секции** — Результаты, Сравнение с альтернативами, Ограничения, Открытые вопросы, Связанные разборы.
+6. **Вывод** — что забрать с этой страницы.
+7. **Источник** — что разобрано, кто авторы, ссылка на оригинал.
+
+Минимум картинок: 3 для paper, 2 для лекции, 1 для clip / KS. Mermaid, matplotlib, или вырезки из исходника с обязательной атрибуцией. AI-генерация картинок запрещена.
+
+## Где смотреть детали
+
+- `README.md` — обзор репо.
+- `.claude/CLAUDE.md` — главные инструкции для Claude, шаблоны.
+- `.claude/role.md` — роль и стиль.
+- `.claude/rules/01-language-policy.md` — язык, как писать (3-tier hierarchy для терминологии).
+- `.claude/rules/02-commit-policy.md` — формат коммитов и размер.
+- `.claude/rules/03-illustration-policy.md` — иллюстрации.
+- `.claude/rules/04-frontmatter-schema.md` — frontmatter.
+- `.claude/skills/_shared/page-templates.md` — шаблон страниц.
+- `.claude/skills/_shared/russian-style.md` — стиль русской прозы.
+- `wiki/index.md` — навигация по разборам.
+- `wiki/tags.md` — реестр тегов.
+
+## Локальный просмотр
 
 ```bash
-cd publish && npx quartz build --serve
+cd publish
+npx quartz build --serve
 ```
 
-Then open <http://localhost:8080>.
+Открой `http://localhost:8080`. При изменениях в `wiki/` ребилд не нужен.
 
-## Deploy
+## Открой репо как отдельный workspace
 
-Vercel watches `main`. **Push to `main` = publication.** Run `/wiki-lint` before pushing.
-
-## Where to write open questions
-
-Inline on the breakdown page in the «Открытые вопросы» section (optional, between «Как это работает» and «Вывод»). There is no separate questions folder — open threads live attached to the source that raised them.
-
-## Open this repo as its own workspace
-
-Open `knowledge_sharing_wiki/` as the workspace root. Do not open a wrapping project (e.g., a parent ML workspace) and edit from there — parent `CLAUDE.md` files will load and pollute context with unrelated rules.
+Открывай `knowledge_sharing_wiki/` в редакторе как корень, не как подпапку в большом проекте. Иначе родительские `.claude/CLAUDE.md` файлы (например, из обёрточного ML/DS workspace) подгружаются и засоряют контекст ненужными правилами.
