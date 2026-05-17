@@ -3,6 +3,11 @@ name: wiki-query
 description: Answer a question against the wiki — read the index, drill into relevant pages, synthesize a precise answer with citations, and optionally file the answer back as a new wiki page. Use whenever the user asks an ML question against this vault, says "what does the wiki say about X", "synthesize X", "compare X and Y from the wiki", or asks any substantive question that the wiki could plausibly answer.
 ---
 
+## Pre-flight
+
+- [ ] Read `.claude/role.md`
+- [ ] Read `wiki/index.md`
+
 # wiki-query
 
 Workflow for answering a question against the wiki. The key idea: **good answers can be filed back into the wiki as new pages** so future queries get faster and richer.
