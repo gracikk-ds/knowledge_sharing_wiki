@@ -1,4 +1,4 @@
-# CLAUDE.md — ML Notes Wiki
+# .claude/CLAUDE.md — ML Notes Wiki
 
 Personal LLM-maintained wiki on machine learning. You read raw sources, integrate knowledge into a structured network of pages, illustrate non-trivial ideas, and check Russian style. The wiki compounds — every new source enriches existing pages.
 
@@ -13,25 +13,27 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 
 ```
 .
-├── CLAUDE.md             # this file
-├── AGENTS.md             # pointer to this file
-├── ONBOARDING.md         # 30-min onboarding for new colleagues
+├── AGENTS.md             # pointer to .claude/CLAUDE.md for non-Claude tooling
+├── README.md             # project overview (Russian)
+├── ONBOARDING.md         # text reference; /onboard for the interactive walkthrough
 ├── .autodoc/             # persistent session memory
 ├── .claude/
+│   ├── CLAUDE.md         # this file — main agent instructions
 │   ├── role.md
 │   ├── rules/            # language, commit, illustration, frontmatter
 │   ├── agents/           # wiki-source-researcher
-│   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, autodoc, _shared/
+│   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, onboard, autodoc, _shared/
 ├── raw/                  # source documents (immutable)
-│   ├── papers/  clips/  lectures/  scratch/
+│   ├── papers/  clips/  lectures/  scratch/  knowledge-sharings/
 ├── wiki/                 # source breakdowns: one page per paper/lecture/clip/KS
-│   ├── index.md          # recent ingests, alphabetical-by-kind, by-tag
+│   ├── index.md          # landing page + recent / by-kind / by-tag
+│   ├── tags.md           # master tag registry
 │   ├── log.md            # chronological event log
 │   ├── papers/           # paper breakdowns
 │   ├── lectures/         # lecture breakdowns
 │   ├── clips/            # blog/article breakdowns
 │   ├── knowledge-sharings/   # internal KS meeting breakdowns
-│   └── static/figures/   # matplotlib .py+.png and source cut-outs per page
+│   └── static/figures/   # flat: <slug>-<figure>.png (PNGs only)
 └── publish/              # Quartz site; deploys to Vercel from main
 ```
 
@@ -49,6 +51,7 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 | Ask the wiki | `/wiki-query "<question>"` |
 | Lint before commit | `/wiki-lint` |
 | Quiz yourself | `/wiki-quiz <topic>` |
+| Walk through onboarding interactively | `/onboard` |
 | Save session insights | `/autodoc` |
 
 ## Principles
@@ -65,4 +68,4 @@ Quartz + Vercel. Push to `main` triggers deploy. See `publish/README.md`.
 
 ## Open this repo as its own workspace
 
-Open `knowledge_sharing_wiki/` as the top-level workspace, not a subfolder inside a larger project. Otherwise parent CLAUDE.md files (e.g., from a wrapping ML/DS workspace) load and pollute context with unrelated rules.
+Open `knowledge_sharing_wiki/` as the top-level workspace, not a subfolder inside a larger project. Otherwise parent `.claude/CLAUDE.md` files (e.g., from a wrapping ML/DS workspace) load and pollute context with unrelated rules.
