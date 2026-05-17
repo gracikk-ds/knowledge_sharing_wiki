@@ -33,3 +33,18 @@ This rule auto-loads. Full manual with chooser logic lives in `.claude/skills/_s
 ## Coverage rule
 
 Every non-trivial concept on a wiki page must have at least one illustration. If a concept is genuinely impossible to illustrate, add an "Открытые вопросы" bullet on the breakdown page ("как нарисовать <концепт>") instead of skipping silently.
+
+## Minimum figure count per page
+
+The «Идея в одной картинке» counts toward this total. Floor — not ceiling: a long paper with 6 worthwhile concepts gets 6 figures, not 3.
+
+| `source_kind` | Minimum figures | Typical figures |
+|---|---|---|
+| paper | **3** | 4-6 |
+| lecture | **2** | 3-5 |
+| clip | **1** | 2-3 |
+| knowledge-sharing | **1** | 1-3 |
+
+If the page comes in under the minimum, `wiki-ingest` Phase 6 fails the check and you go back and add more — either matplotlib plots for the formal claims, mermaid for any data flow / dependency structure that the page describes in prose, or source cut-outs with attribution for paper figures you'd otherwise re-explain in 200 words.
+
+Every figure on the page must connect to the text via a **lead-in** (one sentence right before the figure explaining what it shows) and a **walk-out** (one sentence right after explaining what to take away). Floating figures with no textual anchor are the same as missing figures.
