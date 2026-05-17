@@ -44,33 +44,31 @@ status: stub | draft | mature
 - `source_date` — date the source was published (arxiv submission, lecture recording, blog publication, KS meeting).
 - `ingested` — when the breakdown was written. Bumped on substantive edits, not typo fixes.
 - `authors` — array. For lectures and clips too (`[Andrej Karpathy]`, `[Jay Alammar]`).
-- `tags` — lowercase kebab-case, plural where natural (`transformers`, not `transformer`). 3-7 tags per page. All tags must be in the whitelist below.
+- `tags` — lowercase kebab-case, plural where natural (`transformers`, not `transformer`). 3-7 tags per page. Every tag must have an entry in `wiki/tags.md` (see «Tag registry» below).
 - `status`:
   - `stub` — TL;DR and Мотивация only, the rest is empty or missing.
   - `draft` — all required sections filled.
   - `mature` — user reviewed and approved.
 
-## Tag whitelist
+## Tag registry
 
-Starter set. Authors extend this list in the same commit that introduces the first page using a new tag.
+The live source of truth is `wiki/tags.md`. Every tag used on any wiki page must already have an entry there. When a page needs a new tag, append an H2 to `wiki/tags.md` **in the same commit** that introduces the tag on the page.
 
-```
-attention
-positional-encoding
-normalization
-optimization
-regularization
-generative-models
-diffusion
-flow-matching
-variational-inference
-distillation
-tokenization
-inference-economics
-training-dynamics
+`wiki-lint` reads `wiki/tags.md` and rejects any page tag that has no matching entry.
+
+Format of each entry in `wiki/tags.md`:
+
+```markdown
+## <human-readable name>
+
+**Slug:** `<slug-used-in-frontmatter>`
+
+<one-sentence definition: when to apply this tag>
+
+[Все разборы →](/tags/<slug>)
 ```
 
-`wiki-lint` rejects unknown tags.
+Quartz auto-generates the `/tags/<slug>` index from frontmatter — `wiki/tags.md` adds the human-readable definition layer on top.
 
 ## Slug rules
 
@@ -90,7 +88,7 @@ Lowercase, kebab-case, no spaces.
 3. `source_kind` matches the enclosing directory (`wiki/papers/*.md` has `source_kind: paper`).
 4. `source_path` exists under `raw/`.
 5. `source_date` ≤ `ingested`.
-6. `tags` non-empty, all in the whitelist.
+6. `tags` non-empty; every tag has a matching H2 entry in `wiki/tags.md`.
 7. `status` is one of: `stub`, `draft`, `mature`.
 8. `authors` is non-empty for paper/lecture/clip; `presenter` is present for knowledge-sharing.
 9. Slug matches the pattern for the file's `source_kind`.
