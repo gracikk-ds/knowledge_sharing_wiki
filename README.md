@@ -25,6 +25,10 @@ CLAUDE.md           # schema, taxonomy, style rules
 
 You own `raw/` and `CLAUDE.md`. Claude owns `wiki/`.
 
+## Setup
+
+Open the repository as a vault in Obsidian — `[[wiki-links]]`, backlinks, and the graph view all depend on it.
+
 ## Workflow
 
 Four operations, each invoked by asking Claude in plain language:
