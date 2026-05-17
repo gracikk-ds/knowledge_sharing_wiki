@@ -6,6 +6,7 @@ created: 2026-05-15
 updated: 2026-05-15
 sources: 1
 status: draft
+needs_rewrite: true
 ---
 
 # Evidence Lower Bound (ELBO)

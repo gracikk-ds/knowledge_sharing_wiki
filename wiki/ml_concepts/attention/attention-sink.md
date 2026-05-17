@@ -6,6 +6,7 @@ created: 2026-05-17
 updated: 2026-05-17
 sources: 1
 status: stub
+needs_rewrite: true
 ---
 
 # Attention Sink
