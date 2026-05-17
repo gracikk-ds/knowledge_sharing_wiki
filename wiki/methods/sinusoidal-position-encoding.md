@@ -4,7 +4,7 @@ type: method
 tags: [attention, transformers, position-encoding, sinusoidal-pe]
 created: 2026-05-17
 updated: 2026-05-17
-sources: 1
+sources: 2
 status: draft
 ---
 
@@ -61,6 +61,7 @@ $$
 ## Sources
 
 - [[sources/rope-lecture]] — sinusoidal PE рассматривается как baseline, от которого мотивируется переход к RoPE.
+- [[sources/illustrated-transformer]] — описывает sinusoidal PE в контексте оригинального трансформера; отмечает, что Tensor2Tensor-реализация интерливит sin/cos иначе, чем формула в статье (concat vs interleave двух половин).
 
 ## Up next
 

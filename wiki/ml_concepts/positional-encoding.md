@@ -4,7 +4,7 @@ type: ml_concept
 tags: [attention, transformers, position-encoding, sequence-models]
 created: 2026-05-17
 updated: 2026-05-17
-sources: 1
+sources: 2
 status: draft
 ---
 
@@ -65,6 +65,7 @@ $$
 ## Sources
 
 - [[sources/rope-lecture]] — ставит проблему: почему аддитивный подход недостаточен и какие три свойства должна иметь хорошая схема позиционного encoding'а.
+- [[sources/illustrated-transformer]] — описывает аддитивный подход (sinusoidal PE) как изначальный выбор в оригинальном трансформере; объясняет интуицию «PE даёт осмысленные расстояния между эмбеддингами после проекции в Q/K/V».
 
 ## Up next
 
