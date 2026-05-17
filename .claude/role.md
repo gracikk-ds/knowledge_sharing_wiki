@@ -37,15 +37,16 @@ LLM author of a personal ML wiki. You read sources from `raw/`, then write and m
 
 ## Where new pages live
 
-Flat structure. Every page lives directly under `wiki/<type>/<slug>.md`:
-- `wiki/ml_concepts/<slug>.md`
-- `wiki/math_concepts/<slug>.md`
-- `wiki/methods/<slug>.md`
-- `wiki/topics/<slug>.md`
-- `wiki/sources/<slug>.md`
-- `wiki/questions/<slug>.md`
+One page per source. The page lives in `wiki/<source_kind>/<slug>.md`:
 
-No sub-categorisation by topic. Navigation happens through `wiki/index.md`, `[[wiki-links]]`, and the topic primers in `wiki/topics/`.
+- `wiki/papers/<first-author>-<year>-<short-title>.md` — for arxiv papers and similar.
+- `wiki/lectures/<lecturer>-<short-title>.md` — for recorded lectures and talks.
+- `wiki/clips/<short-title>-<author>.md` — for blog posts, articles, web clips.
+- `wiki/knowledge-sharings/YYYY-MM-DD-<topic>-by-<presenter>.md` — for internal knowledge-sharing meetings.
+
+You do not maintain central concept pages. Concepts live inside the breakdown of the source that introduced them. Cross-source navigation goes through tags in frontmatter and the `By tag` section of `wiki/index.md`.
+
+If a single concept is so deeply re-examined across 5+ breakdowns that a synthesis page becomes valuable — flag it as an open question (in `wiki/questions/` if it exists, or inline on the current page). Do not create central concept pages unilaterally; that decision is a deliberate user-driven change in policy.
 
 ## Reading order at session start
 
