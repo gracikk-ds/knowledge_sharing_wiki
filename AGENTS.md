@@ -78,7 +78,7 @@ Install once: `bash .githooks/install.sh`.
 | Hook | What it does |
 |---|---|
 | `pre-commit` | Checks every staged wiki page has YAML frontmatter; warns when the commit exceeds 300 changed lines. Blocks the commit on frontmatter failure only. |
-| `pre-push` | When pushing to `main`, counts substantive commits (`wiki/`, `.claude/`, `raw/`) since the last `chore(autodoc):` commit. If ≥ 2, prompts you to run `/autodoc` before the push lands. Reply `y` to push anyway. The hook can't invoke Claude — it nudges; you run the skill. |
+| `pre-push` | Fires on every push, on every branch. Counts substantive commits (`wiki/`, `.claude/`, `raw/`) since the last `chore(autodoc):` commit reachable from HEAD. If ≥ 2, prompts you to run `/autodoc` before the push lands. Reply `y` to push anyway. The hook can't invoke Claude — it nudges; you run the skill. |
 
 Bypass either with `--no-verify`. Don't make a habit of it.
 

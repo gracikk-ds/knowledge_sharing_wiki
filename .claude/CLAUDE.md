@@ -67,7 +67,7 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 6. **You do not edit your own instructions autonomously.** Changes to `.claude/role.md`, `.claude/rules/*.md`, and `.claude/skills/*/SKILL.md` go through `/skill-updater` — predict → user review → apply. The skill activates only when the user explicitly asks, or when `.autodoc/insights.md` has ≥ 5 new entries since the last skill-updater apply commit AND that commit is ≥ 14 days old.
 7. **Git hooks** (`bash .githooks/install.sh` once):
    - `pre-commit`: frontmatter check on wiki pages + soft warning on commits > 300 lines.
-   - `pre-push`: when pushing to `main`, if ≥ 2 substantive commits landed since the last `chore(autodoc):` commit, the hook prompts to run `/autodoc` first. Reply `y` to push anyway. The hook can't run Claude — it nudges; you run the skill.
+   - `pre-push`: fires on every push, every branch. If ≥ 2 substantive commits (wiki/, .claude/, raw/) landed since the last `chore(autodoc):` commit reachable from HEAD, the hook prompts to run `/autodoc` first. Reply `y` to push anyway. The hook can't run Claude — it nudges; you run the skill.
 
 ## Deploy
 

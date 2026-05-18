@@ -1,42 +1,37 @@
 #!/usr/bin/env bash
-# Pre-push hook: gate publish-to-main on a recent /autodoc session.
+# Pre-push hook: nudge /autodoc whenever a push carries substantive work
+# without a session-insights commit.
 #
-# When you push to main (the deploy branch), this hook counts commits
-# touching wiki/, .claude/, or raw/ since the last `chore(autodoc):`
-# commit. If ≥ 2 such commits exist, the hook prompts you to run
-# /autodoc before the push lands. Reply `y` to push anyway; anything
-# else aborts so you can run /autodoc and re-push.
+# Fires on every push, on every branch — main is the deploy target, but
+# real work also lives on feature branches (wiki-overhaul, migrate-*,
+# experimental-*). Losing insights between sessions is just as costly
+# there as on main.
 #
-# The hook never runs Claude itself — git hooks can't invoke a skill.
-# It only fires the reminder. Once you run /autodoc and commit the
-# insights, the count resets and the next push goes through silently.
+# The hook counts commits touching wiki/, .claude/, or raw/ since the
+# last `chore(autodoc):` commit reachable from HEAD. If ≥ 2 such commits
+# exist, the hook prompts to run /autodoc before the push lands. Reply
+# `y` to push anyway; anything else aborts so you can run the skill and
+# re-push.
+#
+# Git hooks can't invoke a Claude skill — this only fires the reminder.
+# Once you run /autodoc and commit the insights, the count resets and
+# the next push goes through silently.
 #
 # Bypass: `git push --no-verify`. Don't make a habit of it.
-#
-# Pushes to any branch other than main pass through silently.
 
 set -u
 
-remote="${1:-}"
 yellow=$'\033[33m'
 reset=$'\033[0m'
 
-# Detect a push to main from the refs piped on stdin.
-on_main=0
-while read -r _local_ref _local_sha remote_ref _remote_sha; do
-  if [[ "$remote_ref" == "refs/heads/main" ]]; then
-    on_main=1
-  fi
-done
+# Drain stdin so git doesn't complain. We don't differentiate by remote
+# ref any more — any push gets the check.
+while read -r _local_ref _local_sha _remote_ref _remote_sha; do :; done
 
-if (( on_main == 0 )); then
-  exit 0
-fi
-
-# Find the last autodoc commit.
+# Find the last autodoc commit reachable from HEAD.
 last_autodoc=$(git log -1 --format=%H --grep '^chore(autodoc):' 2>/dev/null || true)
 range="HEAD"
-if [[ -n "$last_autodoc" ]]; then
+if [ -n "$last_autodoc" ]; then
   range="${last_autodoc}..HEAD"
 fi
 
@@ -44,16 +39,18 @@ fi
 substantive=$(git log "$range" --format=%H --no-merges \
   -- wiki/ .claude/ raw/ 2>/dev/null | wc -l | tr -d ' ')
 
-if (( substantive < 2 )); then
+if [ "$substantive" -lt 2 ]; then
   exit 0
 fi
 
-printf '\n%spre-push: %d substantive commit(s) since the last /autodoc on main.%s\n' \
-  "$yellow" "$substantive" "$reset"
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+
+printf '\n%spre-push: %d substantive commit(s) on %s since the last /autodoc.%s\n' \
+  "$yellow" "$substantive" "$branch" "$reset"
 printf 'Run /autodoc to capture session insights, then re-push.\n'
 printf 'Push anyway? [y/N] '
 
-if [[ -t 0 ]]; then
+if [ -t 0 ]; then
   read -r answer </dev/tty || answer=""
 else
   answer=""

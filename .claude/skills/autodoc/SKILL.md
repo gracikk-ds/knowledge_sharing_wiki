@@ -1,6 +1,6 @@
 ---
 name: autodoc
-description: Capture session insights into .autodoc/. Run at the end of a session, after a meaningful /wiki-ingest, or when something non-obvious was learned. Auto-triggered before `git push` to `main` (see rules/02-commit-policy.md). Triggers when user says "autodoc", "save session insights", "collect insights", "что узнали", "сохрани insights".
+description: Capture session insights into .autodoc/. Run at the end of a session, after a meaningful /wiki-ingest, or when something non-obvious was learned. The pre-push hook reminds you to run it on any branch when ≥ 2 substantive commits have accumulated since the last `chore(autodoc):` commit (see rules/02-commit-policy.md). Triggers when user says "autodoc", "save session insights", "collect insights", "что узнали", "сохрани insights".
 ---
 
 # autodoc
