@@ -18,3 +18,9 @@ raw/**
 # Specs and plans are working memory, not deliverables; they accumulate
 # fast and would dilute the wiki's commit history.
 docs/
+
+# Proposed-but-not-yet-applied skill updates. The skill-updater writes
+# a diff here; the user reviews; the skill applies and deletes. Drafts
+# never enter the repo history. Only the empty directory is tracked.
+.claude/proposed-changes/*
+!.claude/proposed-changes/.gitkeep
