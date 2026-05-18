@@ -86,3 +86,55 @@ recent `/autodoc` so the policy doesn't bypass insight capture.
 
 **Why preserve force-push and main-from-feature gates:** both can destroy
 upstream state. Everything else is recoverable from origin.
+
+## [2026-05-18] Pre-push autodoc nudge on every branch
+
+**Category:** Skill/tool issue
+
+First version of the pre-push hook only checked pushes to `main`. Real
+work also lives on feature branches (wiki-overhaul, migrate-*,
+experimental-*) — losing session insights there costs the same. The hook
+now fires on every push, prints the branch name in the warning, and
+counts substantive commits relative to HEAD (so the count makes sense
+on each branch independently).
+
+This bit when first tested: the hook caught two real substantive commits
+on `wiki-overhaul` (the hook-generalization commit itself, and a later
+onboard restoration). Confirmed the gate works on feature branches.
+
+## [2026-05-18] /onboard restored from hardcoded version + sync contract
+
+**Category:** Wiki structure
+
+Earlier in this session: rewrote /onboard to be discovery-driven (no
+hardcoded layout, ls/find at runtime). User reverted: the hardcoded
+version is clearer to read; the runtime-discovery approach felt vague.
+
+To make the trade-off explicit: added a **Maintenance contract** table
+to `/skill-updater` listing every file that hardcodes structure (layout,
+skill set, push policy, hooks, source kinds) and what else must travel
+with each kind of change. Phase 1 of /skill-updater self-checks the
+diff against this table before writing to .claude/proposed-changes/.
+
+**Rule:** when accepting "hardcoded is clearer", commit to the sync work.
+Don't pretend the cost isn't there.
+
+## [2026-05-18] Commit-staging discipline with active external edits
+
+**Category:** Gotcha
+
+When the user is editing files externally (in their IDE) while Claude
+runs `git add` + `git commit` sequentially, files modified between the
+two commands can land in Claude's commit. Saw this happen: explicit
+`git add .claude/...` showed 3 files in `git diff --cached --stat`,
+but `git commit` shipped 6 (qwen page + log + new figure ended up
+inside a skill-refactor commit).
+
+Fix: `git reset --mixed HEAD~1`, re-add only the intended files,
+recommit. Easy to recover before push.
+
+**Prevention rule:** when the user is actively editing wiki/ files in
+parallel, run `git add <paths> && git diff --cached --stat` and
+`git commit -m ...` in a SINGLE compound Bash call so nothing slips
+in between. Or: stage with `git add -- <paths>` and pass `--only`
+to commit (`git commit --only -- <paths>`).
