@@ -129,3 +129,17 @@ Triggered by the user's `apply` instruction. Idempotent — re-running on the sa
 2. **Phase 3 applies only what the user listed.** If the user said "hunks 1, 3", hunk 2 is not applied.
 3. **The diff file lives under `.claude/proposed-changes/`** — that directory is gitignored, so unaccepted proposals never enter the repo's history.
 4. **If anything is unclear**, stop and ask. A skipped update is recoverable; a wrong update to the rules costs every future session.
+
+## Maintenance contract
+
+Several files hardcode the repo's structure or skill set and **must travel together** with structural changes. When a proposed diff touches any of the items in the left column, the diff **must also propose synchronized edits** to every file in the right column. The Phase 1 self-check verifies this before writing the diff to `.claude/proposed-changes/`; if a synchronized edit is missing, add it (or downgrade the change so it doesn't break the contract).
+
+| If you're changing… | Then also update… |
+|---|---|
+| Repo layout (new top-level dir, renamed subfolder under `raw/` / `wiki/` / `.claude/`) | `.claude/skills/onboard/SKILL.md` (Phase 2 layout block), `.claude/CLAUDE.md` (Layout section), `AGENTS.md` (Layout block), `README.md` (Что внутри) |
+| Skill set (added / removed / renamed a skill, changed a command surface) | `.claude/skills/onboard/SKILL.md` (Phase 4 command table), `.claude/CLAUDE.md` (Commands table), `AGENTS.md` (Skills table), `README.md` (Основные команды) |
+| Push / commit policy | `.claude/skills/onboard/SKILL.md` (Phase 6), `.claude/rules/02-commit-policy.md`, `.claude/CLAUDE.md` (Principles section), `AGENTS.md` (Commit and push section) |
+| Git hooks (`.githooks/`) | `.claude/skills/onboard/SKILL.md` (Phase 6), `.claude/CLAUDE.md` (Principles 7), `AGENTS.md` (Git hooks section), `.claude/rules/02-commit-policy.md` |
+| Source kinds (`papers`, `lectures`, `clips`, `knowledge-sharings`) — added or removed | `.claude/skills/onboard/SKILL.md` (Phases 2-3), `.claude/role.md` (Where new pages live), `.claude/rules/04-frontmatter-schema.md`, every `_shared/*.md` that lists kinds, `.githooks/pre-commit` (frontmatter check regex) |
+
+**Why `onboard/SKILL.md` is on every row:** the skill hardcodes layout, commands, push policy, and the source-kind taxonomy on purpose — a discovery-driven gid was tried and found less clear. The cost of "hardcoded" is exactly this contract: when something moves, the gid must move too. If a proposed change touches structure but the diff has no corresponding `onboard` hunk, the diff is incomplete.
