@@ -24,11 +24,12 @@ User-invocable commands live under [`.claude/skills/`](.claude/skills/). Each ha
 |---|---|
 | `wiki-ingest` | Turn one source under `raw/` into one breakdown page (9 phases: pre-flight → read source → extract embedded images → optional research dispatch → align plan with user → write page → produce figures → lint pass → update index/tags/log → commit). |
 | `wiki-query` | Answer questions against the wiki. Resolves by tag and slug; cites pages inline. |
-| `wiki-lint` | Audit pass: frontmatter, broken `[[wiki-links]]`, orphans, tag-index drift, tag-registry consistency. Reports findings; the user picks what to fix. |
+| `wiki-lint` | Audit pass: frontmatter, broken `[[wiki-links]]`, orphans, tag-index drift, tag-registry consistency. Reports findings; the user picks what to fix. Run before pushing to `main`. |
 | `wiki-quiz` | Generate multiple-choice / open / paper-and-pen quizzes from the wiki; logs sessions to `wiki/log.md`. |
 | `onboard` | 7-phase interactive walkthrough for first-time users of the repo. |
-| `autodoc` | Append session insights to `.autodoc/`. Run at the end of a substantive session. |
-| `write-russian` | Apply the Russian voice rules to an arbitrary piece of text. |
+| `autodoc` | Append session insights to `.autodoc/`. The pre-push hook reminds you to run it before publishing if substantive commits accumulated. |
+| `write-russian` | Apply the Russian voice rules to an arbitrary piece of text. Source-of-truth style guide. |
+| `skill-updater` | Three-phase safe meta-edit of `.claude/role.md`, `.claude/rules/*.md`, `.claude/skills/*/SKILL.md`. Predict → user review → apply. Triggers only on explicit user ask or when `.autodoc/insights.md` has ≥ 5 new entries since the last apply commit. Claude does not modify its own instructions outside this flow. |
 
 ## Agents
 
@@ -44,7 +45,6 @@ Dispatched by skills, not invoked directly.
 .
 ├── AGENTS.md             # this file
 ├── README.md             # project overview (Russian)
-├── ONBOARDING.md         # text reference; /onboard for the interactive walkthrough
 ├── .claude/              # agent config — read freely
 │   ├── CLAUDE.md
 │   ├── role.md
@@ -67,8 +67,20 @@ Dispatched by skills, not invoked directly.
 
 - Conventional commits with scope (`feat(wiki)`, `docs(skill)`, `chore(autodoc)`, etc.).
 - One commit ≤ 300 lines; split big work into atomic commits.
-- Push is allowed without per-action approval. Force-push and pushing to `main` from a feature branch still need an explicit user OK.
-- `main` deploys to Vercel — run `/wiki-lint` before pushing to `main`.
+- Push is allowed without per-action approval. Force-push and pushing `main` from a feature branch still need an explicit user OK.
+- Before push to `main`, run `/wiki-lint`. `main` deploys to Vercel.
+- `.claude/role.md`, `.claude/rules/*.md`, and `.claude/skills/*/SKILL.md` are not edited freely — changes go through `/skill-updater`.
+
+## Git hooks (`.githooks/`)
+
+Install once: `bash .githooks/install.sh`.
+
+| Hook | What it does |
+|---|---|
+| `pre-commit` | Checks every staged wiki page has YAML frontmatter; warns when the commit exceeds 300 changed lines. Blocks the commit on frontmatter failure only. |
+| `pre-push` | When pushing to `main`, counts substantive commits (`wiki/`, `.claude/`, `raw/`) since the last `chore(autodoc):` commit. If ≥ 2, prompts you to run `/autodoc` before the push lands. Reply `y` to push anyway. The hook can't invoke Claude — it nudges; you run the skill. |
+
+Bypass either with `--no-verify`. Don't make a habit of it.
 
 ## Open this repo as its own workspace
 

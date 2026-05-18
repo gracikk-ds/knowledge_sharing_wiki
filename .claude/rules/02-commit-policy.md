@@ -42,8 +42,11 @@ PNGs > 200 KB are rejected. Lower DPI or simplify the figure.
 ## Push
 
 - **`git push` is allowed without per-action approval.** Push when the commit chain is ready.
-- Before pushing to `main`, run `/wiki-lint` and fix blockers — `main` deploys to Vercel on push.
+- Before pushing to `main`, run **two finishing skills** in this order:
+  1. `/wiki-lint` — fix blockers (broken links, frontmatter, unknown tags). `main` deploys to Vercel; broken pages go live.
+  2. `/autodoc` — if the session produced ≥ 2 substantive commits (ingest, refactor, rules change, skill change) or surfaced a non-obvious finding, append insights to `.autodoc/insights.md`. Routine sessions (typo fix, single-line edit) skip this step.
 - Force-push (`--force`, `--force-with-lease`) and pushing to `main` from a feature branch still need an explicit OK from the user.
+- Pushing a feature branch (`wiki-overhaul`, `migrate-attention`, …) does not require `/wiki-lint` or `/autodoc` — those gate the deploy, not the publish-to-origin.
 
 ## Branches
 

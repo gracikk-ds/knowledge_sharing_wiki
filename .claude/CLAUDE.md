@@ -15,14 +15,16 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 .
 ├── AGENTS.md             # pointer to .claude/CLAUDE.md for non-Claude tooling
 ├── README.md             # project overview (Russian)
-├── ONBOARDING.md         # text reference; /onboard for the interactive walkthrough
 ├── .autodoc/             # persistent session memory
 ├── .claude/
 │   ├── CLAUDE.md         # this file — main agent instructions
 │   ├── role.md
 │   ├── rules/            # language, commit, illustration, frontmatter
 │   ├── agents/           # wiki-source-researcher
-│   └── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz, onboard, autodoc, _shared/
+│   ├── skills/           # wiki-ingest, wiki-query, wiki-lint, wiki-quiz,
+│   │                     # onboard, autodoc, write-russian, skill-updater,
+│   │                     # _shared/
+│   └── proposed-changes/ # skill-updater drafts (gitignored)
 ├── raw/                  # source documents — LOCAL ONLY (gitignored)
 │   ├── papers/  clips/  lectures/  scratch/  knowledge-sharings/
 ├── wiki/                 # source breakdowns: one page per paper/lecture/clip/KS
@@ -49,10 +51,11 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 |---|---|
 | Ingest a source | `/wiki-ingest raw/<path>` |
 | Ask the wiki | `/wiki-query "<question>"` |
-| Lint before commit | `/wiki-lint` |
+| Lint before push to main | `/wiki-lint` |
 | Quiz yourself | `/wiki-quiz <topic>` |
 | Walk through onboarding interactively | `/onboard` |
 | Save session insights | `/autodoc` |
+| Propose updates to `.claude/` itself | `/skill-updater` (only when the user asks, or when `.autodoc/insights.md` has ≥ 5 new entries since the last apply commit) |
 
 ## Principles
 
@@ -60,7 +63,11 @@ Personal LLM-maintained wiki on machine learning. You read raw sources, integrat
 2. **Illustrate non-trivial ideas.** Mermaid, matplotlib, or attributed source cut-outs. **AI image generation is forbidden** (rules/03).
 3. **Russian prose, English structure.** Body in Russian; headings, slugs, tags, frontmatter in English (rules/01).
 4. **Atomic commits ≤ 300 lines.** Conventional commits with scope (rules/02).
-5. **You may push.** `git push` is allowed without per-action approval. Run `/wiki-lint` before pushing to `main` — it deploys to Vercel.
+5. **You may push.** `git push` is allowed without per-action approval. Before pushing to `main` (Vercel deploys from it), run `/wiki-lint` and fix blockers. Force-push and pushing `main` from a feature branch still need explicit user OK.
+6. **You do not edit your own instructions autonomously.** Changes to `.claude/role.md`, `.claude/rules/*.md`, and `.claude/skills/*/SKILL.md` go through `/skill-updater` — predict → user review → apply. The skill activates only when the user explicitly asks, or when `.autodoc/insights.md` has ≥ 5 new entries since the last skill-updater apply commit AND that commit is ≥ 14 days old.
+7. **Git hooks** (`bash .githooks/install.sh` once):
+   - `pre-commit`: frontmatter check on wiki pages + soft warning on commits > 300 lines.
+   - `pre-push`: when pushing to `main`, if ≥ 2 substantive commits landed since the last `chore(autodoc):` commit, the hook prompts to run `/autodoc` first. Reply `y` to push anyway. The hook can't run Claude — it nudges; you run the skill.
 
 ## Deploy
 

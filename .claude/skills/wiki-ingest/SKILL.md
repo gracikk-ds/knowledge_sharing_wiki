@@ -201,7 +201,7 @@ For the «Идея в одной картинке» (mandatory) and any addition
   - update: wiki/tags.md  (if new tag added)
   ```
 - [ ] **Stop and wait for the user to approve the commit message before running `git commit`.**
-- [ ] **Push is allowed after the commit.** Run `/wiki-lint`; if it passes, `git push origin <branch>` is OK without further approval. Force-push and pushing to `main` from a feature branch still need an explicit user OK.
+- [ ] **Push is allowed after the commit.** If you're pushing to `main`, run **two finishing skills first**: `/wiki-lint` (fix blockers) and `/autodoc` (append session insights if substantive). Pushing a feature branch to `origin` does not require either — those gate the deploy, not the publish. Force-push and pushing to `main` from a feature branch still need an explicit user OK. See `rules/02-commit-policy.md` for the full push contract.
 
 ## Gates where you stop and wait
 
