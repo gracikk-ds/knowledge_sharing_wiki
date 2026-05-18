@@ -35,3 +35,9 @@ Verbs: `ingest`, `query`, `lint`, `refactor`.
 - **Page(s) touched:** [[papers/qwen-team-2025-qwen-image]]
 - **Notes:** Source PDF downloaded from arxiv (2508.02324). Added new tag `text-to-image` to `wiki/tags.md`. Figures: mermaid pipeline overview, two source cut-outs (Fig 6 architecture, Fig 8 MSRoPE comparison), one matplotlib (flow-matching linear path + constant target velocity). Fig 8 had to be downsampled to 780px wide to stay under the 200 KB PNG ceiling — the cat photo inside makes PNG compression inefficient. Open question for the user: whether `multimodal` or `image-editing` should also become tags (skipped for now — `text-to-image` already covers the main contribution).
 
+## [2026-05-18] refactor | Qwen-Image breakdown — second pass
+
+- **What:** Re-ingest of the Qwen-Image breakdown. Page rewritten end-to-end against the PDF: added Table 1 (architecture configuration: VLM / VAE / MMDiT layer counts and dimensions), Table 9 (ChineseWord Level-1/2/3), benchmark summary tables for T2I and editing, a training-pipeline mermaid (data → 7-stage filter → curriculum → pre-train → SFT → DPO → GRPO), and a new matplotlib bar chart comparing Chinese character rendering accuracy across Qwen-Image / GPT Image 1 / Seedream 3.0.
+- **Page(s) touched:** [[papers/qwen-team-2025-qwen-image]]
+- **Notes:** Total 4 figures (mermaid overview kept, Fig 6 + Fig 8 cut-outs kept, flow-matching matplotlib kept, new chinese-rendering bar chart). Page length 292 lines. No new tags. Russian-style self-check clean.
+
