@@ -9,7 +9,7 @@ This rule auto-loads. It applies to all wiki content and skill output.
 | Prose body of pages under `wiki/{papers,lectures,clips,knowledge-sharings}` | Russian |
 | Frontmatter `title:`, H1 of every wiki page | English |
 | Filenames, slugs, tags, `[[wiki-links]]` | English (kebab-case) |
-| Service files: `CLAUDE.md`, `AGENTS.md`, `wiki/index.md`, `wiki/log.md`, `.claude/skills/**`, `.claude/rules/**`, `.claude/role.md`, `ONBOARDING.md` | English |
+| Service files: `CLAUDE.md`, `AGENTS.md`, `wiki/index.md`, `wiki/log.md`, `.claude/skills/**`, `.claude/rules/**`, `.claude/role.md` | English |
 | Section headings inside wiki pages | English |
 | Commit messages, PR descriptions | English |
 
