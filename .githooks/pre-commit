@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Pre-commit hook for knowledge_sharing_wiki.
+#
+# Checks two things on every commit:
+#   1. Wiki pages under wiki/{papers,lectures,clips,knowledge-sharings}/
+#      start with a YAML frontmatter block (--- on line 1).
+#   2. The commit doesn't exceed 300 changed lines (warning only — policy
+#      allows splits, but this nudges you to split before committing).
+#
+# Bypass: `git commit --no-verify`. Don't make a habit of it.
+
+red=$'\033[31m'
+yellow=$'\033[33m'
+reset=$'\033[0m'
+
+fail=0
+
+# --- Check 1: frontmatter on wiki pages ---
+pages=$(
+  git diff --cached --name-only --diff-filter=AM \
+    | grep -E '^wiki/(papers|lectures|clips|knowledge-sharings)/[^/]+\.md$' || true
+)
+
+if [ -n "$pages" ]; then
+  while IFS= read -r page; do
+    first_line=$(git show ":${page}" 2>/dev/null | head -n 1 || true)
+    if [ "$first_line" != "---" ]; then
+      echo "${red}pre-commit: ${page} is missing YAML frontmatter (first line must be ---)${reset}"
+      fail=1
+    fi
+  done <<EOF
+$pages
+EOF
+fi
+
+# --- Check 2: commit size warning ---
+added=$(git diff --cached --numstat | awk '{a+=$1} END {print a+0}')
+removed=$(git diff --cached --numstat | awk '{a+=$2} END {print a+0}')
+total=$((added + removed))
+if (( total > 300 )); then
+  echo "${yellow}pre-commit: commit touches ${total} lines (+${added} -${removed}); policy is ≤ 300.${reset}"
+  echo "${yellow}             consider splitting into atomic commits. Proceeding anyway.${reset}"
+fi
+
+if (( fail != 0 )); then
+  echo
+  echo "${red}pre-commit: aborting. Fix the issues above or bypass with --no-verify.${reset}"
+  exit 1
+fi
+
+exit 0
