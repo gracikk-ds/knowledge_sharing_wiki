@@ -18,7 +18,6 @@ The wiki is the source of truth. Every question must be answerable from a page t
 3. **Generate questions.** Match the requested type and difficulty. Anchor every question to a specific wiki page.
 4. **Present the quiz.** One question at a time (interactive) or as a batch (offline solving).
 5. **Grade and explain.** Compare the user's answer to the wiki. Link to the source page in every explanation.
-6. **Log the session.** Append a `quiz` entry to `wiki/log.md` capturing scope, format, score, and weak spots.
 
 ---
 
@@ -32,10 +31,10 @@ Before generating any question, ask the user four things. Use the `AskUserQuesti
   - Problems (math / derivations / hand-calculated examples — paper and pen)
   - Mixed
 - **Scope:**
-  - One specific page (e.g. `[[ml_concepts/attention]]`)
-  - A topic area (e.g. everything under `[[topics/optimization]]`)
+  - One specific page
+  - A topic area
   - Interview prep on X — broader, mixes concepts + math + methods
-  - Whatever the index covers (random across `mature` pages)
+  - Whatever the index covers
 - **Difficulty:**
   - Warmup — definitions, identification, "what is X"
   - Standard — explain, apply, work through a mechanism
@@ -51,12 +50,9 @@ If the user has asked you to work without stopping for clarifying questions, pic
 ## Step 2 — Pick source pages
 
 - Read `wiki/index.md` first.
-- For one specific page: read that page in full, plus pages it directly links to (one hop out).
+- For one specific page: read that page in full.
 - For a topic area: read the topic page and every page it lists.
-- For interview prep on X: pull every page whose tags or summary mention X, plus the `[[ml_concepts/...]]`, `[[math_concepts/...]]`, and `[[methods/...]]` pages linked from them. Read each in full.
-- For "whatever the index covers": pick 3–5 random `mature` pages. Bias toward pages the user hasn't quizzed recently (skim recent `quiz` log entries to avoid repetition).
-
-Do not generate questions from pages you have not read in full. If a topic is thin in the wiki, say so before generating — suggest a `wiki-ingest` first.
+- For interview prep on X: pull every page whose tags or summary mention X.
 
 ---
 
@@ -161,7 +157,7 @@ Append one entry to `wiki/log.md`:
   answer yet; flag for next ingest}
 ```
 
-The log becomes a record of what has been drilled. `wiki-lint` can read this later to spot under-drilled areas.
+The log becomes a record of what has been drilled.
 
 ---
 
@@ -175,7 +171,7 @@ When the user asks for "interview prep on X" the workflow shifts:
   - Math derivations and step-by-step problems (~30%)
   - Comparisons with alternative methods or approaches (~20%)
   - Common interviewer follow-ups: "what would change if we removed X?", "what fails when the input is degenerate?", "how does this scale?" (~20%)
-- Include at least 2–3 paper-and-pen problems if any `math_concept` or `method` pages are in scope.
+- Include at least 2–3 paper-and-pen problems.
 - After grading, give a short readiness summary: what is solid, what needs more work, where a confident "I don't know — but here is how I would reason about it" is the right answer.
 
 ---
@@ -183,11 +179,3 @@ When the user asks for "interview prep on X" the workflow shifts:
 ## Spaced repetition / follow-up quizzes
 
 If the user asks for a "follow-up" or "spaced" quiz, read recent `quiz` log entries to find what they got wrong before. Re-ask those questions (or close variants) alongside new ones. Target a 30/70 mix of revisit / new.
-
----
-
-## What this skill is NOT
-
-- Not a chat. Quizzes drill specific knowledge. Stay on topic; do not drift into open conversation between questions.
-- Not a wiki edit workflow. If a quiz surfaces a missing page or a contradiction, note it in the log entry and suggest a follow-up `wiki-ingest` or `wiki-lint`. Do not edit pages mid-quiz.
-- Not a substitute for ingesting sources. If the wiki is thin on a topic the user wants to drill, say so plainly — suggest ingesting more before quizzing.
