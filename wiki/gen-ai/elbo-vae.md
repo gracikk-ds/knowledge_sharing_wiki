@@ -1,4 +1,14 @@
-### **Постановка задачи**
+---
+Created: 2026-05-15T19:53
+Reviewed: Done
+Keywords:
+  - VAE
+  - ELBO
+  - variational inference
+  - EM
+---
+
+## Постановка задачи
 
 Пусть нам дана выборка независимых одинаково распределённых наблюдений $x \in \mathcal{X}$ (например, изображений), полученных из неизвестного распределения $\pi(x)$. Требуется построить модель этого распределения, чтобы:
 
@@ -7,38 +17,37 @@
 
 Поскольку распределение реальных данных обычно сложное и высокоразмерное, напрямую оценить $\pi(x)$ по выборке затруднительно (из-за проклятия размерности). Поэтому будем аппроксимировать его параметрическим семейством $p(x\mid\theta)$, где параметры $\theta$ задаются нейронной сетью.
 
-### **Дивергенция**
+## Дивергенция
 
 Для того, чтобы оценить, насколько одно распределение близко к другому часто используют такую меру близости, как дивергенция. 
 
 Функция $D : S \times S \to \mathbb{R}$ является дивергенцией если:
 
 1. $D(\pi \parallel p) \geq 0$ для любый $\pi$ и $p$
-2. $D(\pi \parallel p) = 0$ только в случае если $\pi = p$ 
+2. $D(\pi \parallel p) = 0$ только в случае если $\pi = p$
 
 Тогда нашу цель можно сформировать как $\min_{\theta} D(\pi \parallel p)$. В качестве функции дивергенции будем использовать форвард дивергенцию Кульбака-Лейблера.
 
 $$
-KL(\pi \parallel p) = \int \pi(x) \log \left( \frac{\pi(x)}{p(x|\theta)} \right) dx 
+D_{\text{KL}}(\pi \parallel p) = \int \pi(x) \log \left( \frac{\pi(x)}{p(x\mid\theta)} \right) dx 
 $$
 
-Немного перепишем уравнение, чтобы с ним было проще работать. Так как логарифм частного равен разности логарифмов можем переписать выражение в следующем виде
+Немного перепишем уравнение, чтобы с ним было проще работать. Так как логарифм частного равен разности логарифмов можем переписать выражение в следующем виде
 
 $$
-KL(\pi \parallel p) = \int \pi(\mathbf{x}) \log\pi(\mathbf{x}) \, dx - \int \pi(\mathbf{x}) \log p(\mathbf{x}|\theta) \, dx
+D_{\text{KL}}(\pi \parallel p) = \int \pi(\mathbf{x}) \log\pi(\mathbf{x}) \, dx - \int \pi(\mathbf{x}) \log p(\mathbf{x}\mid\theta) \, dx
 $$
 
 Заметим, что первое слагаемое никак не зависит от параметра $\theta$ и не важно при оптимизации. А второе есть матожидание по нашим данным, которое, используя оценку Монте Карло, можно приблизить с помощью среднего:
 
 $$
-KL(\pi  \parallel p) = \text{const} - \mathbb{E}_{\pi(x)} \log p(\mathbf{x}|\theta)
-\approx \text{const} - \frac{1}{n} \sum_{i=1}^{n} \log p(\mathbf{x_i}|\theta) \rightarrow \min_{\theta}
-
+D_{\text{KL}}(\pi \parallel p) = \text{const} - \mathbb{E}_{\pi(x)} \log p(\mathbf{x}\mid\theta)
+\approx \text{const} - \frac{1}{n} \sum_{i=1}^{n} \log p(\mathbf{x}_i \mid \theta) \rightarrow \min_{\theta}
 $$
 
 Теперь мы понимаем какой функционал мы хотим оптимизировать, чтобы аппроксимировать распределение наших данных. Однако, даже если мы сумеем выучить распределение  $p(x_i\mid\theta)$, это решит нашу задачу лишь отчасти. Мы сможем оценивать вероятность того, что семпл вышел из распределения наших данных, однако само распределение может быть довольно сложным и семплировать из него все так же будет невозможно.
 
-## **Latent Variable Model**
+## Latent Variable Model
 
 Важно понимать, что нам обычно легко даётся семплирование только из *простых распределений* — например, из бернулли или гауссовского. Поэтому часто предполагают, что интересующее нас (возможно сложное) распределение $p(x\mid\theta)$ можно задать через *скрытую переменную* $z$ с простым априорным распределением $p(z)$ и условным распределением $p(x\mid z,\theta)$, которое описывает, как из $z$ порождается наблюдение $x$.
 
@@ -46,10 +55,9 @@ $$
 
 $$
 P(A) = \sum_i P(A\mid B_i)P(B_i)
-
 $$
 
-Здесь $P(B_i)$ — распределение по “скрытым состояниям”, а $P(A\mid B_i)$ — условное распределение, которое задаёт вероятность события $A$ при фиксированном $B_i$. Маргинализуя по $B_i$, мы получаем итоговую  вероятность $P(A)$, которая может быть существенно более сложной, чем распределение по $B$.
+Здесь $P(B_i)$ — распределение по “скрытым состояниям”, а $P(A\mid B_i)$ — условное распределение, которое задаёт вероятность события $A$ при фиксированном $B_i$. Маргинализуя по $B_i$, мы получаем итоговую вероятность $P(A)$, которая может быть существенно более сложной, чем распределение по $B$.
 
 Оформим эту интуицию чуть более формально. Пусть $\mathbf{x}$  — наблюдения, а $z$ — латентная переменная (она не наблюдается напрямую). Зададим генеративную модель:
 
@@ -66,7 +74,6 @@ $$
 p(\mathbf{x}\mid\theta)
 = \int p(\mathbf{x},z\mid\theta)\,dz
 = \int p(\mathbf{x}\mid z,\theta)\,p(z)\,dz
-
 $$
 
 Теперь оптимизационную задачу для оценки параметров $\theta$ можно записать как максимизацию лог-правдоподобия:
@@ -91,25 +98,21 @@ p(\mathbf{x}\mid\theta)
 \end{aligned}
 $$
 
-На первый взгляд кажется, что этого достаточно: мы “учим генеративную часть” $p(\mathbf{x}\mid z,\theta)$так, чтобы при разных $z$ она порождала правдоподобные $\mathbf{x}$. Но если наша цель — оценивать и максимизировать $\log p(\mathbf{x}\mid\theta)$ по данным, то этот наивный MC-подход быстро упирается в проблему.
+На первый взгляд кажется, что этого достаточно: мы “учим генеративную часть” $p(\mathbf{x}\mid z,\theta)$ так, чтобы при разных $z$ она порождала правдоподобные $\mathbf{x}$. Но если наша цель — оценивать и максимизировать $\log p(\mathbf{x}\mid\theta)$ по данным, то этот наивный MC-подход быстро упирается в проблему.
 
 Главная сложность в том, что для фиксированного наблюдения $\mathbf{x}$ существенный вклад в интеграл дают лишь те значения $z$, для которых $p(\mathbf{x}\mid z,\theta)$ велико. Если мы семплируем $z$ из prior $p(z)$, то почти все сэмплы оказываются *нерелевантными* конкретному $\mathbf{x}$: они дают крайне маленькие значения $p(\mathbf{x}\mid z,\theta)$  и почти не влияют на оценку интеграла. В итоге, чтобы “случайно” попасть в области $z$, объясняющие $\mathbf{x}$, может потребоваться очень большое $K$, а градиенты, получаемые из такой оценки, становятся шумными.
 
-<aside>
-
-**Пример**
-
-Пусть $z \sim \mathcal N(0,1)$, а наблюдение генерируется как $x\mid z \sim \mathcal N(z,\sigma^2)$ (то есть $x$ должен быть близок к $z$). Возьмём конкретное наблюдение $x=10$ и маленький шум $\sigma=0.1$.
-
-Тогда $p(x\mid z)$ заметно только когда $z \approx 10$; для типичных сэмплов $z\sim\mathcal N(0,1)$ разница $|x-z|\approx 10$, поэтому $p(x\mid z)\approx 0$. Значит в наивной оценке
-
-$$
-p(x)=\mathbb E_{z\sim p(z)}[p(x\mid z)] \approx \frac1K\sum_{k=1}^K p(x\mid z_k)
-$$
-
-почти все слагаемые близки к нулю, а ненулевой вклад дают только крайне редкие $z$ около 10. Из-за этого нужна очень большая $K$, а оценка получается шумной.
-
-</aside>
+> [!example] Пример
+>
+> Пусть $z \sim \mathcal N(0,1)$, а наблюдение генерируется как $x\mid z \sim \mathcal N(z,\sigma^2)$ (то есть $x$ должен быть близок к $z$). Возьмём конкретное наблюдение $x=10$ и маленький шум $\sigma=0.1$.
+>
+> Тогда $p(x\mid z)$ заметно только когда $z \approx 10$; для типичных сэмплов $z\sim\mathcal N(0,1)$ разница $|x-z|\approx 10$, поэтому $p(x\mid z)\approx 0$. Значит в наивной оценке
+>
+> $$
+> p(x)=\mathbb E_{z\sim p(z)}[p(x\mid z)] \approx \frac1K\sum_{k=1}^K p(x\mid z_k)
+> $$
+>
+> почти все слагаемые близки к нулю, а ненулевой вклад дают только крайне редкие $z$ около 10. Из-за этого нужна очень большая $K$, а оценка получается шумной.
 
 Отсюда естественная мысль: вместо того, чтобы семплировать $z$ *безусловно* из $p(z)$, хочется семплировать $z$ условно на $\mathbf{x}$ — то есть из распределения, которое концентрируется на тех $z$, что хорошо объясняют данное наблюдение. Держим эту идею в уме — она приведёт нас к выводу ELBO.
 
@@ -165,7 +168,7 @@ $$
 = \mathrm{ELBO}(q,\theta)
 $$
 
-Другими словами, ELBO — это нижняя оценка на $\log p(x | θ)$, и она верна для любого выбора $q(z)$ (при корректных условиях на $q$). Интересный результат, но пока неясно, что нам это даёт: как выбирать $q(z)$ и как использовать эту оценку для обучения модели? На эти вопросы мы ответим чуть позже, а пока давайте покопаемся еще немного в ELBO.
+Другими словами, ELBO — это нижняя оценка на $\log p(x \mid \theta)$, и она верна для любого выбора $q(z)$ (при корректных условиях на $q$). Интересный результат, но пока неясно, что нам это даёт: как выбирать $q(z)$ и как использовать эту оценку для обучения модели? На эти вопросы мы ответим чуть позже, а пока давайте покопаемся еще немного в ELBO.
 
 ## Equality Derivation
 
@@ -177,7 +180,6 @@ $$
 \\
 \mathrm{ELBO}(q,\theta)=\mathbb{E}_{z\sim q(z)}\Big[\log \frac{p(\mathbf{x},z\mid\theta)}{q(z)}\Big]
 \end{aligned}
-
 $$
 
 Теперь покажем, что эта оценка — не просто «какая-то» функция, а аккуратно связана с апостериорным распределением $p(z\mid \mathbf{x},\theta)$.
@@ -190,7 +192,7 @@ p(z\mid \mathbf{x},\theta) =
 \frac{p(\mathbf{x}\mid z, \theta)\,p(z)}{p(\mathbf{x}\mid\theta)} =
 \frac{p(\mathbf{x},z\mid\theta)}{p(\mathbf{x}\mid\theta)} 
 \\
-следовательно
+\text{следовательно}
 \\
 p(\mathbf{x},z\mid\theta)=p(z\mid \mathbf{x},\theta)\, p(\mathbf{x}\mid\theta)
 \end{aligned}
@@ -202,7 +204,6 @@ $$
 \mathrm{ELBO}(q,\theta)
 = \int q(z)\,\log\frac{p(\mathbf{x},z\mid\theta)}{q(z)}\,dz
 = \int q(z)\,\log\frac{p(z\mid\mathbf{x},\theta)\,p(\mathbf{x}\mid\theta)}{q(z)}\,dz
-
 $$
 
 Разобьём логарифм произведения на сумму логарифмов:
@@ -223,36 +224,33 @@ $$
 $$
 \int q(z)\,\log\frac{p(z\mid\mathbf{x},\theta)}{q(z)}\,dz
 = -\int q(z)\,\log\frac{q(z)}{p(z\mid\mathbf{x},\theta)}\,dz
-= -\mathrm{KL}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)
-
+= -D_{\text{KL}}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)
 $$
 
 Итого получаем ключевое равенство:
 
 $$
 \begin{aligned}
-\mathrm{ELBO}(q,\theta)=\log p(\mathbf{x}\mid\theta)-\mathrm{KL}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right) 
+\mathrm{ELBO}(q,\theta)=\log p(\mathbf{x}\mid\theta)-D_{\text{KL}}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right) 
 \\
-или 
+\text{или} 
 \\
 \log p(\mathbf{x}\,|\,\theta) = \mathrm{ELBO}(q,\theta)
 +
-\mathrm{KL}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)
-
+D_{\text{KL}}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)
 \end{aligned}
 $$
 
-Так как $\mathrm{KL}(\cdot\|\cdot)\ge 0$, сразу следует:
+Так как $D_{\text{KL}}(\cdot\|\cdot)\ge 0$, сразу следует:
 
 $$
 \log p(\mathbf{x}\,|\,\theta) \ge \mathrm{ELBO}(q,\theta),
-
 $$
 
 то есть мы заново получаем «нижнюю оценку», но уже понимаем *почему* она работает и *что именно* теряем. **Равенство же достигается** тогда, когда KL равен нулю, то есть когда модельное апостериорное распределение и введенное нами искусственное распределение $q$ совпадают:
 
 $$
-\mathrm{KL}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)=0
+D_{\text{KL}}\!\left(q(z)\,\|\,p(z\mid\mathbf{x},\theta)\right)=0
 \;\;\Longleftrightarrow\;\;
 q(z)=p(z\mid\mathbf{x},\theta).
 $$
@@ -264,10 +262,9 @@ $$
 $$
 \mathrm{ELBO}(q,\theta)
 = \int q(z) \, \log \frac{p(\mathbf{x}, z \mid \theta)}{q(z)}\, dz
-
 $$
 
-Теперь разложим совместное распределение на правдоподобие и априор (нечто похожее мы уже делали в блоке[Equality Derivation](https://www.notion.so/Equality-Derivation-2f4f6f75bb0b8001bfc3d872e9f8face?pvs=21))
+Теперь разложим совместное распределение на правдоподобие и априор (нечто похожее мы уже делали в блоке [[#Equality Derivation]])
 
 $$
 p(\mathbf{x}, z \mid \theta) = p(\mathbf{x} \mid z, \theta)\, p(z)
@@ -283,26 +280,25 @@ $$
 Разложим логарифм произведения на сумму:
 
 $$
-\mathrm{ELBO}(q,\theta)=\int q(z)\, \log p(\mathbf{x} \mid z, \theta)\, dz+\int q(z)\, \log \frac{p(z)}{q(z )}\, dz
+\mathrm{ELBO}(q,\theta)=\int q(z)\, \log p(\mathbf{x} \mid z, \theta)\, dz+\int q(z)\, \log \frac{p(z)}{q(z)}\, dz
 $$
 
 Первая часть — это матожидание лог-правдоподобия (тот самый “лосс реконструкции”):
 
 $$
 \mathbb{E}_{z \sim q(z)}\big[\log p(\mathbf{x} \mid z, \theta)\big]
-
 $$
 
 Вторая часть — это минус KL-дивергенция к априору (регуляризация латентного пространства):
 
 $$
-\int q(z)\, \log \frac{p(z)}{q(z)}\, dz=-\mathrm{KL}\!\left(q(z)\,\|\,p(z)\right)
+\int q(z)\, \log \frac{p(z)}{q(z)}\, dz=-D_{\text{KL}}\!\left(q(z)\,\|\,p(z)\right)
 $$
 
 Итого получаем развернутую форму:
 
 $$
-\mathrm{ELBO}(q,\theta)=\mathbb{E}_{z \sim q(z )}\big[\log p(\mathbf{x} \mid z, \theta)\big]-\mathrm{KL}\!\left(q(z)\,\|\,p(z)\right)
+\mathrm{ELBO}(q,\theta)=\mathbb{E}_{z \sim q(z)}\big[\log p(\mathbf{x} \mid z, \theta)\big]-D_{\text{KL}}\!\left(q(z)\,\|\,p(z)\right)
 $$
 
 Интерпретация компонент ELBO простая:
@@ -318,7 +314,6 @@ $$
 \max_{\theta}\ \log p(\mathbf{x}\mid \theta)
 \quad\Rightarrow\quad
 \max_{\theta,\,q}\ \mathrm{ELBO}(\mathbf{x} \mid q ,\theta).
-
 $$
 
 То есть мы поднимаем ELBO как можно выше, потому что она подпирает $p(\mathbf{x}\mid \theta)$ снизу. Но для этого нужно двигаться не только по параметрам $\theta$, но и по вариационному распределению $q$. Естественный ход - делать оптимизацию по очереди: сначала улучшать $q$ при фиксированных $\theta$, затем улучшать $\theta$ при фиксированном $q$. Такая поочерёдная оптимизация ни что иное, как вариационный EM-алгоритм.
@@ -337,8 +332,7 @@ $$
     $$
     \arg\max_{q}\ \mathrm{ELBO}(q \mid \theta)
     \equiv
-    \arg\min_{q}\ \mathrm{KL}\!\left(q(z)\,\|\,p(z\mid \mathbf{x}, \theta)\right)
-    
+    \arg\min_{q}\ D_{\text{KL}}\!\left(q(z)\,\|\,p(z\mid \mathbf{x}, \theta)\right)
     $$
     
     - **Пример**
@@ -361,7 +355,7 @@ $$
     Следовательно, справедливо следующее тождество
     
     $$
-    q^{(t+1)}=\arg\min_{q}\,\mathrm{KL}\!\left(q(z) \,\|\, p(z \mid x, \theta^{(t)}\right)= p(z \mid x, \theta^{(t)})
+    q^{(t+1)}=\arg\min_{q}\,D_{\text{KL}}\!\left(q(z) \,\|\, p(z \mid x, \theta^{(t)})\right)= p(z \mid x, \theta^{(t)})
     $$
     
     Из чего следует, что задача распределения $q$ заключается в моделировании апостериорного распределения  $p(z\mid \mathbf{x}, \theta)$. С этим есть пара проблем, но разберемся с ними чуть позже, а пока перейдем к следующему шагу алгоритма.
@@ -471,7 +465,7 @@ $$
 = 
 \nabla_\phi\int q(z\mid \mathbf{x},\phi)\,\log p(\mathbf{x}\mid z,\theta)\,dz 
 -
-\nabla_\phi\,\mathrm{KL}\left(q(z\mid \mathbf{x},\phi) \,\|\,p(z)\right)
+\nabla_\phi\,D_{\text{KL}}\left(q(z\mid \mathbf{x},\phi) \,\|\,p(z)\right)
 $$
 
 **Сначала рассмотрим первое слагаемое.** 
@@ -545,13 +539,13 @@ $$
 KL-слагаемое при стандартном выборе $q(z\mid \mathbf{x},\phi)=\mathcal{N}(\mu_\phi(\mathbf{x}),\mathrm{diag}(\sigma_\phi^2(\mathbf{x})))$ и $p(z)=\mathcal{N}(0,I)$ считается аналитически, то есть его градиент по $\phi$ можно брать “точно”, без сэмплирования.
 
 $$
-\mathrm{KL}\!\left(q(z\mid \mathbf{x},\phi)\,\|\,p(z)\right)=\frac{1}{2}\sum_{i=1}^{d}\Big(\mu_{\phi,i}^2(\mathbf{x})+\sigma_{\phi,i}^2(\mathbf{x})-\log \sigma_{\phi,i}^2(\mathbf{x})-1\Big)
+D_{\text{KL}}\!\left(q(z\mid \mathbf{x},\phi)\,\|\,p(z)\right)=\frac{1}{2}\sum_{i=1}^{d}\Big(\mu_{\phi,i}^2(\mathbf{x})+\sigma_{\phi,i}^2(\mathbf{x})-\log \sigma_{\phi,i}^2(\mathbf{x})-1\Big)
 $$
 
 В итоге получаем итоговую рабочую формулу для E-шага:
 
 $$
-\nabla_\phi\,\mathrm{ELBO}(\phi,\theta;\mathbf{x}) \approx \frac{1}{L}\sum_{l=1}^L \nabla_\phi \log p\big(\mathbf{x}\mid g_\phi(\mathbf{x},\varepsilon^{(l)}),\theta\big) - \nabla_\phi\,\mathrm{KL}\left(q(z\mid \mathbf{x},\phi)\,\|\, p(z)\right), \qquad \varepsilon^{(l)}\sim p(\varepsilon)
+\nabla_\phi\,\mathrm{ELBO}(\phi,\theta;\mathbf{x}) \approx \frac{1}{L}\sum_{l=1}^L \nabla_\phi \log p\big(\mathbf{x}\mid g_\phi(\mathbf{x},\varepsilon^{(l)}),\theta\big) - \nabla_\phi\,D_{\text{KL}}\left(q(z\mid \mathbf{x},\phi)\,\|\, p(z)\right), \qquad \varepsilon^{(l)}\sim p(\varepsilon)
 $$
 
 То есть E-шаг — это обычный градиентный апдейт параметров энкодера $\phi$: первая часть “тянет” $q(z\mid \mathbf{x},\phi)$ к тем $z$, через которые декодер лучше объясняет $\mathbf{x}$, а вторая часть не даёт постериору разъехаться слишком далеко от априора.
@@ -568,7 +562,7 @@ $$
 Именно поэтому стандартный VAE обучают как обычную нейросеть: минимизируют отрицательную ELBO одновременно по $\phi$ и $\theta$.
 
 $$
-\mathcal{L}_{\text{VAE}}(\phi,\theta;\mathbf{x})=-\mathrm{ELBO}(\phi,\theta;\mathbf{x})=-\mathbb{E}_{q(z\mid \mathbf{x},\phi)}\big[\log p(\mathbf{x}\mid z,\theta)\big]+\mathrm{KL}\!\left(q(z\mid \mathbf{x},\phi)\,\|\,p(z)\right)
+\mathcal{L}_{\text{VAE}}(\phi,\theta;\mathbf{x})=-\mathrm{ELBO}(\phi,\theta;\mathbf{x})=-\mathbb{E}_{q(z\mid \mathbf{x},\phi)}\big[\log p(\mathbf{x}\mid z,\theta)\big]+D_{\text{KL}}\!\left(q(z\mid \mathbf{x},\phi)\,\|\,p(z)\right)
 $$
 
 Итоговый “рабочий” loss выглядит следующим образом

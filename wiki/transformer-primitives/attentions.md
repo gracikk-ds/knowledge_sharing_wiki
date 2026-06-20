@@ -32,15 +32,15 @@ MQA collapses all KV projections into a single shared pair: every head uses the 
 
 GQA splits heads into small groups (typically 2, 4, or 8) where heads within a group share KV projections. The difference between MHA, GQA, and MQA is best seen as a spectrum of KV sharing:
 
-```jsx
+```
 MHA (h=8, no sharing)         GQA (h=8, g=4 groups)        MQA (h=8, 1 shared KV)
 ┌──┬──┬──┬──┬──┬──┬──┬──┐    ┌──┬──┬──┬──┬──┬──┬──┬──┐    ┌──┬──┬──┬──┬──┬──┬──┬──┐
 │Q₁│Q₂│Q₃│Q₄│Q₅│Q₆│Q₇│Q₈│    │Q₁│Q₂│Q₃│Q₄│Q₅│Q₆│Q₇│Q₈│    │Q₁│Q₂│Q₃│Q₄│Q₅│Q₆│Q₇│Q₈│
 ├──┼──┼──┼──┼──┼──┼──┼──┤    ├──┴──┼──┴──┼──┴──┼──┴──┤    ├──┴──┴──┴──┴──┴──┴──┴──┤
 │K₁│K₂│K₃│K₄│K₅│K₆│K₇│K₈│    │ K₁  │ K₂  │ K₃  │ K₄  │    │         K₁            │
-├──┼──┼──┼──┼──┼──┼──┼──┤    ├─────┼─────┼─────┼─────┤    ├────────────────────────┤
+├──┼──┼──┼──┼──┼──┼──┼──┤    ├─────┼─────┼─────┼─────┤    ├───────────────────────┤
 │V₁│V₂│V₃│V₄│V₅│V₆│V₇│V₈│    │ V₁  │ V₂  │ V₃  │ V₄  │    │         V₁            │
-└──┴──┴──┴──┴──┴──┴──┴──┘    └─────┴─────┴─────┴─────┘    └────────────────────────┘
+└──┴──┴──┴──┴──┴──┴──┴──┘    └─────┴─────┴─────┴─────┘    └───────────────────────┘
   8 KV pairs (full cache)       4 KV pairs (cache / 2)        1 KV pair (cache / 8)
 ```
 
@@ -60,7 +60,7 @@ Only $\mathbf{c}_t$ is cached — at attention time, full keys and values are re
 
 $$\mathbf{K}_t = \mathbf{W}_{K}^{\text{up}} \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_{V}^{\text{up}} \mathbf{c}_t$$
 
-Since $dim(\mathbf{c}_t) ll n_{\text{heads}} \times d_{\text{head}}$, this achieves 4–8x KV-cache compression — comparable to aggressive GQA — while preserving more representational capacity than simple sharing. The tradeoff is implementation complexity: the compression/decompression machinery adds engineering overhead. Kimi-K2 and DeepSeek adopt MLA as their primary attention mechanism.
+Since $\dim(\mathbf{c}_t) \ll n_{\text{heads}} \times d_{\text{head}}$, this achieves 4–8x KV-cache compression — comparable to aggressive GQA — while preserving more representational capacity than simple sharing. The tradeoff is implementation complexity: the compression/decompression machinery adds engineering overhead. Kimi-K2 and DeepSeek adopt MLA as their primary attention mechanism.
 
 ### Gated Attention
 
@@ -78,11 +78,11 @@ $$\mathbf{o}_t = \sum_{j=1}^{t} (\mathbf{q}_t^\top \mathbf{k}_j) \mathbf{v}_j = 
 
 where $S_t$ is a matrix that accumulates outer products of all past key-value pairs. This gives us $O(1)$ memory per step at inference. But without softmax normalization, the state $S_t$ grows unboundedly. GLA fixes this with a learned forget gate:
 
-$$S_t = G_t \odot S_{t-1} + \mathbf{v}_t \mathbf{k}_t^T$$
+$$S_t = G_t \odot S_{t-1} + \mathbf{v}_t \mathbf{k}_t^\top$$
 
 where $G_t$ is a gating matrix that controls how much history to retain vs. forget. This formulation supports both parallel (chunked) training and efficient autoregressive inference. In practice, hybrid architectures interleave GLA layers with standard softmax attention layers:
 
-```jsx
+```
 Layer 1:  [Softmax Attention]  ← full quadratic, captures precise retrieval
 Layer 2:  [GLA / Mamba-2    ]  ← linear recurrence, cheap long-range mixing
 Layer 3:  [Softmax Attention]
@@ -98,7 +98,7 @@ Full quadratic attention over very long sequences is prohibitively expensive —
 
 **Sliding Window Attention (SWA)** restricts each token to a fixed window of $p$ positions backward. Gemma 3 combined SWA with full attention every other layer:
 
-```jsx
+```
 Causal Full Attention (token 6):     Sliding Window, p=3 (token 6):
 
   1 2 3 4 5 6  ← keys                 1 2 3 4 5 6  ← keys
@@ -120,7 +120,7 @@ Causal Full Attention (token 6):     Sliding Window, p=3 (token 6):
 
 When multiple documents are packed into a single training sequence for efficiency, standard causal masking lets tokens attend across document boundaries. Document masking restricts attention to tokens within the same document, preventing cross-contamination:
 
-```jsx
+```
 Packed sequence: [Doc A tokens | Doc B tokens | Doc C tokens]
 
 Standard causal mask:              Document mask:
@@ -179,11 +179,8 @@ SmolLM3 found small improvements on PIQA but otherwise no noticeable impact on s
 **Concrete configurations from frontier models:**
 
 - Kimi-K2: MLA, 384 MoE experts
-
 - Trinity Large: GQA with 8 groups
-
 - gpt-oss-120b: GQA with 8 groups
-
 - SmolLM3: GQA with 4 groups, RNoPE + document masking
 
 ---
@@ -191,11 +188,7 @@ SmolLM3 found small improvements on PIQA but otherwise no noticeable impact on s
 ## Key Takeaways
 
 - GQA with small groups (2–8 heads) is the strongest default — it outperformed MHA in ablations while substantially reducing KV-cache, and is adopted by most frontier models.
-
 - MLA achieves 4–8x KV-cache compression but adds implementation complexity; reserve it for inference-memory-critical deployments.
-
 - Gated attention suppresses attention sinks and stabilizes training — a low-cost addition worth considering for large-scale runs.
-
 - Document masking has minimal impact on short-context tasks but is critical for extending beyond 4k tokens to 64k+.
-
 - For long context, combine document masking with RNoPE or YaRN scaling and consider local/global attention interleaving to manage compute.

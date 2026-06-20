@@ -12,11 +12,11 @@ $$\mathbf{x}_t = \sqrt{1 - \beta_t} \cdot \mathbf{x}_{t-1} + \sqrt{\beta_t} \cdo
 
 где $\beta_t \ll 1$ — расписание шума (noise schedule), контролирующее интенсивность добавляемого шума на каждом шаге. Эквивалентно, переходное распределение записывается как:
 
-$$q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}\left(\sqrt{1 - \beta_t} \cdot \mathbf{x}_{t-1},\ \beta_t \mathbf{I}\right)$$
+$$q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathcal{N}\left(\sqrt{1 - \beta_t} \cdot \mathbf{x}_{t-1},\ \beta_t \mathbf{I}\right)$$
 
 Обратим внимание на структуру этого перехода. Коэффициент $\sqrt{1 - \beta_t}$ перед $\mathbf{x}_{t-1}$ слегка сжимает сигнал к нулю, а слагаемое $\sqrt{\beta_t} \cdot \boldsymbol{\epsilon}_t$ добавляет случайный шум. Таким образом, на каждом шаге мы немного “забываем” информацию о данных и заменяем её шумом.
 
-### Связь с forward процесса с динамикой Ланжевена
+### Связь forward-процесса с динамикой Ланжевена
 
 Эта марковская цепь не случайна — она является частным случаем динамики Ланжевена. Вспомним формулу из раздела NCSN:
 
@@ -70,8 +70,8 @@ $$
 
 $$
 \begin{aligned}  
-q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0,\ (1 - \bar{\alpha}_t) \mathbf{I}\right) \\  
-или  
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0,\ (1 - \bar{\alpha}_t) \mathbf{I}\right) \\  
+\text{или}  
 \\  
 \mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})  
 \end{aligned}
@@ -110,9 +110,9 @@ $$
 
 1. $\mathbf{x}_0 = \mathbf{x} \sim p_{\text{data}}(\mathbf{x})$
 
-1. $\mathbf{x}_t = \sqrt{1 - \beta_t} \cdot \mathbf{x}_{t-1} + \sqrt{\beta_t} \cdot \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}), \quad t \geq 1$
+2. $\mathbf{x}_t = \sqrt{1 - \beta_t} \cdot \mathbf{x}_{t-1} + \sqrt{\beta_t} \cdot \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}), \quad t \geq 1$
 
-1. После $T \gg 1$ шагов: $\mathbf{x}_T \sim p_\infty(\mathbf{x}) = \mathcal{N}(\mathbf{0}, \mathbf{I})$
+3. После $T \gg 1$ шагов: $\mathbf{x}_T \sim p_\infty(\mathbf{x}) = \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
 Диффузия описывает миграцию частиц из областей высокой плотности в области низкой плотности. Если мы сумеем обратить этот процесс, то сможем генерировать сэмплы из $p_{\text{data}}(\mathbf{x})$, стартуя из шума $p_\infty(\mathbf{x}) = \mathcal{N}(\mathbf{0}, \mathbf{I})$.
 
@@ -202,7 +202,7 @@ $$q(\mathbf{x}_t) = \int q(\mathbf{x}_t \mid \mathbf{x}_0) \, p_{\text{data}}(\m
     
     Знаменатель $q(\mathbf{x}_t)$ — нормировочная константа и на форму не влияет. Значит, всё решает числитель: произведение простой гауссианы на вообще говоря мультимодальное распределение данных. Вопрос: почему это произведение всё равно оказывается гауссовским?
     
-    **1. Узкое окно.** Рассмотрим первый множитель $q(\mathbf{x}_t \mid \mathbf{x}_{t-1})$ как функцию от $\mathbf{x}_{t-1}$ при фиксированном $\mathbf{x}_t$. Это гауссиана с центром около $\mathbf{x}_t / \sqrt{\alpha_t}$ _и шириной $\sim \sqrt{\beta_t}$. При малом $\beta_t$ этот пик очень узкий: он как «прожектор», обнуляющий произведение везде, кроме крошечной окрестности. Поэтому нам не важно, как $q(\mathbf{x}_{t-1})$_ выглядит глобально — важно только её поведение в окне шириной $\sqrt{\beta_t}$.
+    **1. Узкое окно.** Рассмотрим первый множитель $q(\mathbf{x}_t \mid \mathbf{x}_{t-1})$ как функцию от $\mathbf{x}_{t-1}$ при фиксированном $\mathbf{x}_t$. Это гауссиана с центром около $\mathbf{x}_t / \sqrt{\alpha_t}$ и шириной $\sim \sqrt{\beta_t}$. При малом $\beta_t$ этот пик очень узкий: он как «прожектор», обнуляющий произведение везде, кроме крошечной окрестности. Поэтому нам не важно, как $q(\mathbf{x}_{t-1})$ выглядит глобально — важно только её поведение в окне шириной $\sqrt{\beta_t}$.
     
     **2. Любая гладкая функция локально — парабола.** Разложим $\log q(\mathbf{x}_{t-1})$ по Тейлору вокруг центра окна $\mathbf{x}^{*}$:
     
@@ -220,7 +220,7 @@ $$q(\mathbf{x}_t) = \int q(\mathbf{x}_t \mid \mathbf{x}_0) \, p_{\text{data}}(\m
     
     Сумма двух квадратичных форм — квадратичная форма; экспонента от неё — гауссиана. Значит, $q(\mathbf{x}_{t-1} \mid \mathbf{x}_t)$ приближённо гауссовское. Это ровно аргумент **приближения Лапласа**: когда один из множителей — узкая гауссиана, второй можно «заморозить» на уровне квадратичного приближения, и произведение остаётся гауссовым.
     
-    ![[images/ddpm/image.png|image.png|717]]
+    ![[images/ddpm/image.png|717]]
     
 
 ### Аппроксимация обратного процесса
@@ -499,15 +499,15 @@ $$\mathcal{L}_\theta(\mathbf{x}) = - \sum_{t=1}^{T} \mathbb{E}_{q(\mathbf{x}_t \
 
 1. Получить сэмпл $\mathbf{x}_0 \sim p_{\text{data}}(\mathbf{x})$
 
-1. Сгенерировать зашумлённое изображение $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}$, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+2. Сгенерировать зашумлённое изображение $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}$, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
-1. Вычислить ELBO и обновить параметры $\theta$
+3. Вычислить ELBO и обновить параметры $\theta$
 
 **Алгоритм сэмплирования (ancestral sampling):**
 
 1. Сэмплировать $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
-1. Для $t = T, T-1, \ldots, 1$ выполнить денойзинг: $\mathbf{x}_{t-1} = \boldsymbol{\mu}_{\theta,t}(\mathbf{x}_t) + \sqrt{\tilde{\beta}_t} \cdot \boldsymbol{\epsilon}$, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+2. Для $t = T, T-1, \ldots, 1$ выполнить денойзинг: $\mathbf{x}_{t-1} = \boldsymbol{\mu}_{\theta,t}(\mathbf{x}_t) + \sqrt{\tilde{\beta}_t} \cdot \boldsymbol{\epsilon}$, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
 На данном этапе задача обучения полностью определена: модель $\boldsymbol{\mu}_{\theta,t}$ учится предсказывать среднее условного обратного перехода. Однако вспомним, что $\tilde{\boldsymbol{\mu}}_t$ зависит от $\mathbf{x}_0$, который при сэмплировании неизвестен. В следующем разделе мы покажем, как репараметризовать $\boldsymbol{\mu}_{\theta,t}$ так, чтобы модель предсказывала шум $\boldsymbol{\epsilon}$ вместо среднего — что приведёт к элегантной и практичной формулировке DDPM.
 
@@ -615,24 +615,24 @@ $$\boxed{\mathcal{L}_{\text{simple}} = \mathbb{E}_{t \sim U\{1, T\}} \, \mathbb{
 
 1. Получить сэмпл $\mathbf{x}_0 \sim p_{\text{data}}(\mathbf{x})$
 
-1. Сэмплировать $t \sim U\{1, T\}$ и $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+2. Сэмплировать $t \sim U\{1, T\}$ и $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
-1. Вычислить зашумлённое изображение $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}$
+3. Вычислить зашумлённое изображение $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}$
 
-1. Выполнить шаг градиентного спуска по $\nabla_\theta \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_{\theta,t}(\mathbf{x}_t) \right\|^2$
+4. Выполнить шаг градиентного спуска по $\nabla_\theta \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_{\theta,t}(\mathbf{x}_t) \right\|^2$
 
 **Алгоритм сэмплирования (Sampling):**
 
 1. Сэмплировать $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 
-1. Для $t = T, T-1, \ldots, 1$:
+2. Для $t = T, T-1, \ldots, 1$:
     
     - Сэмплировать $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ (при $t > 1$; при $t = 1$ положить $\boldsymbol{\epsilon} = \mathbf{0}$)
     
     - Вычислить $\mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \cdot \boldsymbol{\epsilon}_{\theta,t}(\mathbf{x}_t) \right) + \sqrt{\tilde{\beta}_t} \cdot \boldsymbol{\epsilon}$
     
 
-1. Вернуть $\mathbf{x}_0$
+3. Вернуть $\mathbf{x}_0$
 
 Обратим внимание на шаг сэмплирования: при $t = 1$ шум не добавляется ($\boldsymbol{\epsilon} = \mathbf{0}$), поскольку $\mathbf{x}_0$ — это финальный результат генерации, и добавление шума на последнем шаге только ухудшило бы качество.
 
@@ -642,12 +642,12 @@ $$\boxed{\mathcal{L}_{\text{simple}} = \mathbb{E}_{t \sim U\{1, T\}} \, \mathbb{
 
 1. **DDPM аппроксимирует обратный процесс гауссианами** — это обосновано теоремой Феллера при малых $\beta_t$.
 
-1. **DDPM — это VAE с иерархией латентных переменных**, где энкодер фиксирован, а приор — обучаемая марковская цепь.
+2. **DDPM — это VAE с иерархией латентных переменных**, где энкодер фиксирован, а приор — обучаемая марковская цепь.
 
-1. **ELBO раскладывается в сумму KL-дивергенций** между известными условными обратными переходами $q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0)$ и обучаемыми $p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t)$.
+3. **ELBO раскладывается в сумму KL-дивергенций** между известными условными обратными переходами $q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0)$ и обучаемыми $p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t)$.
 
-1. **Репараметризация сводит задачу к предсказанию шума** — на каждом шаге модель предсказывает гауссовский шум $\boldsymbol{\epsilon}$, добавленный прямым процессом.
+4. **Репараметризация сводит задачу к предсказанию шума** — на каждом шаге модель предсказывает гауссовский шум $\boldsymbol{\epsilon}$, добавленный прямым процессом.
 
-1. **Предсказание шума эквивалентно обучению score-функции** — DDPM (вариационный вывод) и NCSN (score matching) приходят к одной и той же задаче оптимизации.
+5. **Предсказание шума эквивалентно обучению score-функции** — DDPM (вариационный вывод) и NCSN (score matching) приходят к одной и той же задаче оптимизации.
 
-1. **Сэмплирование требует** $T$ **последовательных проходов** через нейронную сеть, что является основным узким местом метода.
+6. **Сэмплирование требует** $T$ **последовательных проходов** через нейронную сеть, что является основным узким местом метода.

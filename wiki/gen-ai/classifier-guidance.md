@@ -2,7 +2,7 @@
 Created: 2025-10-28T12:54
 Reviewed: Done
 ---
-### Пререквизиты
+## Пререквизиты
 
 Рассмотрим генеративную задачу, а именно генерацию изображений. Поставим цель - напрямую смоделировать плотность распределения данных $\pi(x)$ с помощью нейронной сети. Таким образом, мы аппроксимируем истинную плотность $\pi(x)$ параметрической моделью $p(x|\theta)$, где $\theta$ - параметры сети.
 
@@ -16,11 +16,11 @@ $$p(x|\theta) = \frac{\hat p(x|\theta)}{\int \hat p(x|\theta)dx}$$
 
 Здорово, конечно, но абсолютно непонятно, как брать интеграл по всем возможным выходам нейронной сети, это аналитически и вычислительно неразрешимая задача. Для того, чтобы обойти вычисление интеграла рассмотрим логарифм плотности.
 
-$$\log p(x|\theta) = \log \hat p(x|\theta) - log \int \hat p(x|\theta)dx$$
+$$\log p(x|\theta) = \log \hat p(x|\theta) - \log \int \hat p(x|\theta)dx$$
 
 Теперь заметим, что если мы возьмем $\nabla_x$ по левой и правой частям, то чудесным образом нам удастся избавиться от интеграла. Так как интеграл уже выинтегрировал весь $x$, то он более от него не зависит и градиент по нему будет равен 0.
 
-$$\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x log \int \hat p(x|\theta)dx = \nabla_x \log \hat p(x|\theta) + 0$$
+$$\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x \log \int \hat p(x|\theta)dx = \nabla_x \log \hat p(x|\theta) + 0$$
 
 Круто! Мы получили важный результат: градиент логарифма истинной нормированной плотности (левая часть) равен градиенту логарифма ненормированного выхода нейронной сети (правая часть). Эта величина $\nabla_x \log p(x|\theta)$ имеет собственное название - score-функция.
 
@@ -28,21 +28,21 @@ $$\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x log \int
 
 Если у нас есть нейронная сеть, которая обучена аппроксимировать score-функцию $\nabla_x \log p(x|\theta)$, мы можем использовать ее для генерации новых семплов $x$. Например, мы можем воспользоваться динамикой Ланжевена (этот подход лежит в основе моделей Noise Conditional Score Networks) или ancestral sampling-ом (используется в диффузиях).
 
-### Classifier Guidance
+## Classifier Guidance
 
 Важно отметить, что до сих пор мы обсуждали моделирование безусловной плотности $p(x)$. Такая модель позволяет генерировать семплы, в целом похожие на обучающие данные (например, случайное изображение пса, если модель обучена на собаках). Однако на практике часто требуется условная генерация, то есть возможность управлять процессом и создавать изображения, соответствующие конкретному запросу $y$. Этим запросом может быть текст или метка класса. Вместо того, чтобы моделировать $\nabla_x \log p(x|\theta)$, нам нужно моделировать $\nabla_x \log p(x|y, \theta)$.
 
 Распишем $\nabla_x \log p(x|y)$ по формуле Байеса:
 
 $$
-\begin{align*}  
-p(\mathbf{x}|\mathbf{y}) &= \frac{p(\mathbf{x}) p(\mathbf{y}|\mathbf{x})}{p(\mathbf{y})}  
-\\  
-\nabla_{\mathbf{x}} \log p(\mathbf{x}|\mathbf{y}) &= \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{y})  
-\end{align*}
+\begin{aligned}
+p(\mathbf{x}|\mathbf{y}) &= \frac{p(\mathbf{x}) p(\mathbf{y}|\mathbf{x})}{p(\mathbf{y})}
+\\
+\nabla_{\mathbf{x}} \log p(\mathbf{x}|\mathbf{y}) &= \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{y})
+\end{aligned}
 $$
 
-Поскольку $p(y)$ (априорная вероятность класса $y$) не зависит от $x$, ее градиент $\nabla_x \log p(y)$равен нулю. Так мы приходим к фундаментальному разложению:
+Поскольку $p(y)$ (априорная вероятность класса $y$) не зависит от $x$, ее градиент $\nabla_x \log p(y)$ равен нулю. Так мы приходим к фундаментальному разложению:
 
 $$\nabla_x \log p(x|y) = \underbrace{\nabla_x \log p(x)}_{\text{Безусловная score-функция}} + \underbrace{\nabla_x \log p(y|x)}_{\text{Градиент классификатора}}$$
 
@@ -60,7 +60,7 @@ $$\nabla_x \log p(x|y) = \underbrace{\nabla_x \log p(x)}_{\text{Безуслов
 
 $$\nabla_{\mathbf{x}} \log p_\gamma(\mathbf{x}|\mathbf{y}) = \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \gamma \cdot \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$$
 
-### Classifier Free Guidance
+## Classifier Free Guidance
 
 Если набор данных, на котором мы обучаем генеративную модель, является размеченным (т.е. содержит пары картинка - описание), мы можем обойтись без обучения явного классификатора. Вместо этого, можно обучить неявный классификатор. Для того, чтобы это сделать, возьмем член, отвечающий за градиент классификатора $\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$ и применим к нему теорему Байеса еще раз.
 
@@ -78,7 +78,7 @@ $$\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \mathbf{s}_
 
 Раскроем скобки и приведем подобные :D
 
-$$\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \gamma \cdot \mathbf{s}{\theta}(\mathbf{x}, \mathbf{y}) + (1 - \gamma) \cdot \mathbf{s}{\theta}(\mathbf{x}, \emptyset)$$
+$$\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \gamma \cdot \mathbf{s}_{\theta}(\mathbf{x}, \mathbf{y}) + (1 - \gamma) \cdot \mathbf{s}_{\theta}(\mathbf{x}, \emptyset)$$
 
 Теперь на этапе инференса нужно 2 раза прогнать сетку: один раз с кондишеном и второй раз без. Зато благодаря параметру $\gamma$ мы можем определять насколько узкой или широкой будет мода данных, в которую мы хотим попасть. Если $\gamma$ большое, то мы будем семплировать моду, но сгенерированные данные будут однообразны, если $\gamma$ мало, то данные будут более разнообразные, но меньше следовать $y$.
 

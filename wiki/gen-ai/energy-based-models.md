@@ -16,7 +16,7 @@ $$p(x|\theta) = \frac{\hat{p}(x|\theta)}{\int \hat{p}(x|\theta)dx}$$
 
 Здорово, конечно, но абсолютно непонятно, как брать интеграл по всем возможным выходам нейронной сети — это аналитически и вычислительно неразрешимая задача.
 
-## Score функция
+## Score-функция
 
 Для того чтобы обойти вычисление интеграла, рассмотрим логарифм плотности:
 
@@ -30,9 +30,9 @@ $$\nabla_\mathbf{x} \log p(\mathbf{x}|\theta) = \nabla_\mathbf{x} \log \hat{p}(\
 
 Теперь вместо того чтобы моделировать саму плотность $p(\mathbf{x}|\theta)$, мы перешли к моделированию её градиента по $\mathbf{x}$. Геометрически score-функция — это векторное поле, которое в каждой точке $\mathbf{x}$ (т.е. для каждого изображения) указывает направление наискорейшего роста плотности вероятности. То есть показывает, как нам нужно сдвинуть значения пикселей в нашей картинке, чтобы семпл был более похож на наиболее вероятный семпл из распределения, которое мы пытаемся аппроксимировать.
 
-![[images/energy-based-models/image.png|image.png]]
+![[images/energy-based-models/image.png]]
 
-Постановка задачи: есть конкретные точки в пространстве и необходимо обучить score функцию
+Постановка задачи: есть конкретные точки в пространстве и необходимо обучить score-функцию
 
 ## Задача оптимизации
 
@@ -71,18 +71,18 @@ $$\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \approx \nabla_{\mathbf{x
 На первый взгляд кажется, что мы ничего не выиграли: score зашумлённого распределения $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$ вычислить напрямую так же невозможно, как и $\nabla_{\mathbf{x}} \log \pi(\mathbf{x})$. Ведь $q(\mathbf{x}_\sigma)$ — это интеграл по всем возможным $\mathbf{x}$, который мы не умеем брать аналитически. Однако именно здесь и появляется ключевой трюк, известный как **Denoising Score Matching**. Оказывается, что при достаточно мягких условиях регулярности справедливо следующее равенство:
 
 $$
-\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}  
-\left\|  
-\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)  
--  
-\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)  
-\right\|_2^2  
-=  
-\mathbb{E}_{\mathbf{x} \sim \pi(\mathbf{x})} \mathbb{E}_{\mathbf{x}_\sigma \sim {q(\mathbf{x}_\sigma | \mathbf{x})}}  
-\left\|  
-\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)  
--  
-\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})  
+\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}
+\left\|
+\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)
+-
+\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)
+\right\|_2^2
+=
+\mathbb{E}_{\mathbf{x} \sim \pi(\mathbf{x})} \mathbb{E}_{\mathbf{x}_\sigma \sim {q(\mathbf{x}_\sigma | \mathbf{x})}}
+\left\|
+\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)
+-
+\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})
 \right\|_2^2 + \text{const}(\theta)
 $$
 
@@ -90,7 +90,7 @@ $$
 
 ## Доказательство
 
-Сначала докажем, что мы можем перейти от $\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}$ _к $\mathbb{E}_{\mathbf{x} \sim \pi(\mathbf{x})} \mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma | \mathbf{x})}$_. Пусть
+Сначала докажем, что мы можем перейти от $\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}$ к $\mathbb{E}_{\mathbf{x} \sim \pi(\mathbf{x})} \mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma | \mathbf{x})}$. Пусть
 
 $$h(\mathbf{x}_\sigma) = \left\| \nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma) - \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \right\|_2^2$$
 
@@ -118,19 +118,19 @@ $$\iint \pi(\mathbf{x}) \, q(\mathbf{x}_\sigma | \mathbf{x}) \, h(\mathbf{x}_\si
 
 $$\int \pi(\mathbf{x}) \left[ \int q(\mathbf{x}_\sigma | \mathbf{x}) \, h(\mathbf{x}_\sigma) \, d\mathbf{x}_\sigma \right] d\mathbf{x}$$
 
-Внутренний интеграл — это $\mathbb{E}_{q(\mathbf{x}_\sigma | \mathbf{x})} h(\mathbf{x}_\sigma)$_, внешний — $\mathbb{E}_{\pi(\mathbf{x})}$_. Итого:
+Внутренний интеграл — это $\mathbb{E}_{q(\mathbf{x}_\sigma | \mathbf{x})} h(\mathbf{x}_\sigma)$, внешний — $\mathbb{E}_{\pi(\mathbf{x})}$. Итого:
 
 $$\mathbb{E}_{q(\mathbf{x}_\sigma)} h(\mathbf{x}_\sigma) = \mathbb{E}_{\pi(\mathbf{x})} \mathbb{E}_{q(\mathbf{x}_\sigma | \mathbf{x})} h(\mathbf{x}_\sigma)$$
 
 Замечательно, первый шаг выполнен. Теперь сосредоточим свое внимание на функции $h(\mathbf{x}_\sigma)$ и докажем, что мы можем перейти от использования $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$ в качестве таргета к $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})$. Для краткости обозначим $\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)$ как $\mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma)$. И раскроем квадрат l2-нормы:
 
 $$
-\begin{aligned}  
-\mathbb{E}_{q(\mathbf{x}_\sigma)}h(\mathbf{x}_\sigma) &= \mathbb{E}_{q(\mathbf{x}_\sigma)}  
-\| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) - \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \|^2  
-=\\  
-&= \mathbb{E}_{q(\mathbf{x}_\sigma)}\left[\| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) \|^2 - 2 \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle + \|\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)\|^2  
-\right]  
+\begin{aligned}
+\mathbb{E}_{q(\mathbf{x}_\sigma)}h(\mathbf{x}_\sigma) &= \mathbb{E}_{q(\mathbf{x}_\sigma)}
+\| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) - \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \|^2
+=\\
+&= \mathbb{E}_{q(\mathbf{x}_\sigma)}\left[\| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) \|^2 - 2 \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle + \|\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)\|^2
+\right]
 \end{aligned}
 $$
 
@@ -143,13 +143,13 @@ $$\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x
 Раскроем левую часть по определению математического ожидания и воспользуемся тождеством $\nabla \log f = \frac{\nabla f}{f}$:
 
 $$
-\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle = \int \cancel{q(\mathbf{x}_\sigma)} \left[ \mathbf{s}_{\theta,\sigma}^T(\mathbf{x}_\sigma)  
-\frac  
-{\nabla_{\mathbf{x}_\sigma}q(\mathbf{x}_\sigma)}  
+\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle = \int \cancel{q(\mathbf{x}_\sigma)} \left[ \mathbf{s}_{\theta,\sigma}^T(\mathbf{x}_\sigma)
+\frac
+{\nabla_{\mathbf{x}_\sigma}q(\mathbf{x}_\sigma)}
 {\cancel{q(\mathbf{x}_\sigma)}} \right] d\mathbf{x}_\sigma
 $$
 
-Сокращаем $q(\mathbf{x}_\sigma)$ _и подставляем $q(\mathbf{x}_\sigma) = \int q(\mathbf{x}_\sigma | \mathbf{x}) \pi(\mathbf{x}) d\mathbf{x}$_:
+Сокращаем $q(\mathbf{x}_\sigma)$ и подставляем $q(\mathbf{x}_\sigma) = \int q(\mathbf{x}_\sigma | \mathbf{x}) \pi(\mathbf{x}) d\mathbf{x}$:
 
 $$= \int \left[ \mathbf{s}_{\theta,\sigma}^T(\mathbf{x}_\sigma) \nabla_{\mathbf{x}_\sigma} \left( \int q(\mathbf{x}_\sigma | \mathbf{x}) \pi(\mathbf{x}) d\mathbf{x} \right) \right] d\mathbf{x}_\sigma$$
 
@@ -215,12 +215,12 @@ $$\log q(\mathbf{x}_\sigma | \mathbf{x}) = -\frac{\|\mathbf{x}_\sigma - \mathbf{
 
 $$\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) = -\frac{\mathbf{x}_\sigma - \mathbf{x}}{\sigma^2}$$
 
-Вспомним, что $\mathbf{x}_\sigma = \mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}$_, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$. Тогда_:
+Вспомним, что $\mathbf{x}_\sigma = \mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}$, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$. Тогда:
 
 $$
-\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) =  
--\frac{(\mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}) - \mathbf{x}}{\sigma^2}  
-=  
+\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) =
+-\frac{(\mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}) - \mathbf{x}}{\sigma^2}
+=
 -\frac{\sigma \cdot \boldsymbol{\epsilon}}{\sigma^2} = -\frac{\boldsymbol{\epsilon}}{\sigma}
 $$
 
@@ -242,9 +242,9 @@ $$\mathbb{E}_{\pi(\mathbf{x})} \mathbb{E}_{\boldsymbol{\epsilon} \sim \mathcal{N
 
 Мы научились обучать score-функцию $\mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) \approx \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$. Осталось понять, как использовать ее для генерации новых семплов из распределения $\pi(x)$. Первое, что приходит на ум, — это старый добрый градиентный ~~спуск~~ подъём: делаем шаги в направлении score, пока не достигнем области максимальной плотности.
 
-К сожалению, такой алгоритм приведет к mode collapse: вместо разнообразных сэмплов из $\pi(\mathbf{x})$ мы раз за разом будем получаем плюс-минус одну и ту же точку вблизи моды распределения. Чтобы сэмплировать из распределения, а не просто находить его максимум, к градиентному шагу добавляют случайный шум. Такая модификация алгоритма градиентного подъема называется динамикой Ланжевена.  
+К сожалению, такой алгоритм приведет к mode collapse: вместо разнообразных сэмплов из $\pi(\mathbf{x})$ мы раз за разом будем получать плюс-минус одну и ту же точку вблизи моды распределения. Чтобы сэмплировать из распределения, а не просто находить его максимум, к градиентному шагу добавляют случайный шум. Такая модификация алгоритма градиентного подъема называется динамикой Ланжевена.  
 
-![[images/energy-based-models/image 1.png|image 1.png]]
+![[images/energy-based-models/image 1.png]]
 
 Динамика Ланжевена — это итеративный процесс. Инициализируем $\mathbf{x}_0$ из нормального распределения $\mathcal{N}(\mathbf{0}, \mathbf{I})$, а далее повторяем $T$ раз:
 
@@ -256,21 +256,21 @@ $$\mathbf{x}_{t+1} = \mathbf{x}_t + \frac{\eta}{2} \nabla_{\mathbf{x}} \log p(\m
 
 - $\sqrt{\eta} \cdot \boldsymbol{\epsilon}_t$ — случайный шум, который не даёт застрять в локальном максимуме и обеспечивает правильное распределение
 
-Таким образом, дрейф тянет к модам, а шум позволяет исследовать всё распределение, не застревая в локальных модах. Более того, можно показать, что при $\eta \to 0$ и $t \to \infty$распределение $\mathbf{x}_t$ сходится к $\pi(\mathbf{x})$. На практике $\eta$ и число шагов конечны, поэтому сэмплы получаются приближённые, но и этого зачастую достаточно.
+Таким образом, дрейф тянет к модам, а шум позволяет исследовать всё распределение, не застревая в локальных модах. Более того, можно показать, что при $\eta \to 0$ и $t \to \infty$ распределение $\mathbf{x}_t$ сходится к $\pi(\mathbf{x})$. На практике $\eta$ и число шагов конечны, поэтому сэмплы получаются приближённые, но и этого зачастую достаточно.
 
 Однако важно помнить, что мы не знаем истинный score $\nabla_{\mathbf{x}} \log p(\mathbf{x})$, у нас есть только его аппроксимация — обученная нейросеть $\mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma)$. В самом начале повествования мы показали, что
 
 $$\mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) \approx \nabla_{\mathbf{x}} \log \pi(\mathbf{x}) \quad \text{при } \sigma \to 0$$
 
-Отсюда следует проблема: score-функция, обученная с малым $\sigma$, хорошо определена только в областях высокой плотности данных. Она практически не видела сильно зашумлённых сэмплов, с которых мы начинаем генерацию ( $\mathbf{x}_0 \sim \mathcal{N}(\mathbf{0}, \mathbf{I}$)). Следовательно, может потребоваться очень много итераций, чтобы случайным блужданием добраться до тех областей, где $\mathbf{s}_{\theta,\sigma}(\mathbf{x})$ начнёт выдавать осмысленные значения.
+Отсюда следует проблема: score-функция, обученная с малым $\sigma$, хорошо определена только в областях высокой плотности данных. Она практически не видела сильно зашумлённых сэмплов, с которых мы начинаем генерацию ($\mathbf{x}_0 \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$). Следовательно, может потребоваться очень много итераций, чтобы случайным блужданием добраться до тех областей, где $\mathbf{s}_{\theta,\sigma}(\mathbf{x})$ начнёт выдавать осмысленные значения.
 
-![[images/energy-based-models/image 2.png|image 2.png]]
+![[images/energy-based-models/image 2.png]]
 
 ## Noised Conditioned Score Network
 
 Для решения описанной выше проблемы было предложено использовать _annealed_ динамику Ланжевена. В рамках модифицированного алгоритма мы обучаем score-функцию не для одного, а сразу для нескольких уровней шума $\sigma_1 < \sigma_2 < \ldots < \sigma_L$.
 
-![[images/energy-based-models/image 3.png|image 3.png]]
+![[images/energy-based-models/image 3.png]]
 
 $$\mathcal{L}(\theta) = \sum_{i=1}^{L} \sigma_i^2 \cdot \mathbb{E}_{p(\mathbf{x})} \mathbb{E}_{\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \left\| \mathbf{s}_{\theta,\sigma_i}(\mathbf{x} + \sigma_i \boldsymbol{\epsilon}) + \frac{\boldsymbol{\epsilon}}{\sigma_i} \right\|_2^2$$
 
