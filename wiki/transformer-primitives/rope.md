@@ -56,11 +56,15 @@ Let's derive it.
 
 Let a vector be
 
-$$X=\begin{bmatrix}x_1\\x_2\end{bmatrix}$$
+$$
+X=\begin{bmatrix}x_1\\x_2\end{bmatrix}
+$$
 
 Geometrically, $x_1$ and $x_2$ are the projections of $X$ onto the $x_1$-axis and $x_2$-axis. If $X$ has length $|X|$ and makes angle $\varphi$ with the $x_1$-axis, then (by definition of cosine/sine):
 
-$$x_1 = |X|\cos\varphi,\qquad x_2 = |X|\sin\varphi$$
+$$
+x_1 = |X|\cos\varphi,\qquad x_2 = |X|\sin\varphi
+$$
 
 ![[images/rope_images/image 2.png]]
 
@@ -68,7 +72,9 @@ $$x_1 = |X|\cos\varphi,\qquad x_2 = |X|\sin\varphi$$
 
 Rotate $X$ counterclockwise by $\theta$ means that the length of the vector stays the same, but the direction changes from $\varphi$ to $\varphi+\theta$. So the new projections must be:
 
-$$x_1' = |X|\cos(\varphi+\theta),\qquad x_2' = |X|\sin(\varphi+\theta).$$
+$$
+x_1' = |X|\cos(\varphi+\theta),\qquad x_2' = |X|\sin(\varphi+\theta).
+$$
 
 So rotation is literally: replace the angle $\varphi$ by $\varphi+\theta$ in the projection formulas.
 
@@ -118,15 +124,21 @@ $$
 
 For a pure rotation, the inverse transform is "rotate back" by the same angle:
 
-$$R(\theta)^{-1} = R(-\theta)$$
+$$
+R(\theta)^{-1} = R(-\theta)
+$$
 
 Also, for rotation matrices (they are **orthogonal**), the inverse equals the transpose:
 
-$$R(\theta)^{-1} = R(\theta)^\top$$
+$$
+R(\theta)^{-1} = R(\theta)^\top
+$$
 
 Putting these together gives a very useful identity:
 
-$$R(\theta)^\top = R(-\theta)$$
+$$
+R(\theta)^\top = R(-\theta)
+$$
 
 You can also see this directly by transposing the matrix:
 
@@ -154,11 +166,15 @@ using $\cos(-\theta)=\cos\theta$ and $\sin(-\theta)=-\sin\theta$.
 
 If you rotate by $\beta$ and then rotate by $\alpha$, the net effect is a rotation by $\alpha+\beta$:
 
-$$R(\alpha)\,R(\beta)=R(\alpha+\beta).$$
+$$
+R(\alpha)\,R(\beta)=R(\alpha+\beta).
+$$
 
 You can verify this by multiplying the matrices:
 
-$$R(\alpha)R(\beta)=\begin{bmatrix}\cos\alpha & -\sin\alpha\\\sin\alpha & \cos\alpha\end{bmatrix}\begin{bmatrix}\cos\beta & -\sin\beta\\\sin\beta & \cos\beta\end{bmatrix}=\begin{bmatrix}\cos(\alpha+\beta) & -\sin(\alpha+\beta)\\\sin(\alpha+\beta) & \cos(\alpha+\beta)\end{bmatrix}$$
+$$
+R(\alpha)R(\beta)=\begin{bmatrix}\cos\alpha & -\sin\alpha\\\sin\alpha & \cos\alpha\end{bmatrix}\begin{bmatrix}\cos\beta & -\sin\beta\\\sin\beta & \cos\beta\end{bmatrix}=\begin{bmatrix}\cos(\alpha+\beta) & -\sin(\alpha+\beta)\\\sin(\alpha+\beta) & \cos(\alpha+\beta)\end{bmatrix}
+$$
 
 which follows exactly from the angle-sum trig identities.
 
@@ -181,7 +197,9 @@ which follows exactly from the angle-sum trig identities.
 Рассмотрим простейший случай, когда размерность наших ембеддингов равна 2 ($d = 2$). Пусть $q_m \in \mathbb{R}^2$ — query-вектор токена на позиции $m$, а $k_n \in \mathbb{R}^2$ - key-вектор на позиции $n$. Оба уже прошли через линейные проекции $W_Q$ и $W_K$ и содержат только контентную информацию — позиция пока нигде не учтена.  
 RoPE определяет encoding так:
 
-$$\tilde{q}_m = R(m\theta)\,q_m, \qquad \tilde{k}_n = R(n\theta)\,k_n,$$
+$$
+\tilde{q}_m = R(m\theta)\,q_m, \qquad \tilde{k}_n = R(n\theta)\,k_n,
+$$
 
 где $\theta$ — фиксированная константа, задающая _скорость вращения_: она определяет, на какой угол поворачивается вектор при сдвиге на одну позицию. Если $\theta$ большая — векторы крутятся быстро и даже близкие токены оказываются под заметно разными углами; если маленькая — вращение медленное и нужен большой разрыв в позициях, чтобы угол существенно изменился. $\theta$ — гиперпараметр, а не обучаемый вес; $R(\cdot)$ — матрица поворота из Part 1. Это всё: мы просто умножаем каждый вектор на матрицу поворота, угол которой линейно растёт с номером позиции. Записав явно, получим:
 
@@ -220,11 +238,15 @@ $$
 
 Используем стандартное свойство транспонирования произведения $(AB)^\top = B^\top A^\top$:
 
-$$= q_m^\top\, R(m\theta)^\top\, R(n\theta)\, k_n$$
+$$
+= q_m^\top\, R(m\theta)^\top\, R(n\theta)\, k_n
+$$
 
 Из Part 1 мы знаем, что $R(m\theta)^\top = R(-m\theta)$. Подставляем:
 
-$$= q_m^\top\, R(-m\theta)\, R(n\theta)\, k_n$$
+$$
+= q_m^\top\, R(-m\theta)\, R(n\theta)\, k_n
+$$
 
 Теперь используем Property 2 (composition): $R(\alpha)\,R(\beta) = R(\alpha + \beta)$:
 
@@ -235,7 +257,9 @@ $$
 
 Вот и всё. Финальный результат:
 
-$$\tilde{q}_m^\top \tilde{k}_n \;=\; q_m^\top \; R\!\left((n-m)\,\theta\right) \; k_n$$
+$$
+\tilde{q}_m^\top \tilde{k}_n \;=\; q_m^\top \; R\!\left((n-m)\,\theta\right) \; k_n
+$$
 
 ![[images/rope_images/image 4.png|304]]
 
@@ -264,7 +288,9 @@ Once upon a time, the PIG chased the DOG
 
 Матрица поворота ортогональна: $R(\theta)^\top R(\theta) = I$. Это означает, что она сохраняет длину вектора:
 
-$$\lVert \tilde{q}_m \rVert = \lVert R(m\theta)\,q_m \rVert = \lVert q_m \rVert, \qquad \lVert \tilde{k}_n \rVert = \lVert k_n \rVert$$
+$$
+\lVert \tilde{q}_m \rVert = \lVert R(m\theta)\,q_m \rVert = \lVert q_m \rVert, \qquad \lVert \tilde{k}_n \rVert = \lVert k_n \rVert
+$$
 
 ![[images/rope_images/image 5.png|447]]
 
@@ -316,7 +342,9 @@ $$
 
 Пустые области вне диагональных блоков заполнены нулями. Encoding применяется так же, как в 2D:
 
-$$\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m, \qquad \tilde{k}_n = \mathcal{R}_{\Theta,n}\, k_n$$
+$$
+\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m, \qquad \tilde{k}_n = \mathcal{R}_{\Theta,n}\, k_n
+$$
 
 Обратите внимание на структуру: это не одна матрица поворота в $d$-мерном пространстве (такая содержала бы $d(d-1)/2$ параметров). Это $d/2$ независимых поворотов в непересекающихся двумерных подпространствах. Блочно-диагональная форма гарантирует, что каждая пара координат вращается автономно.
 
@@ -324,15 +352,19 @@ $$\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m, \qquad \tilde{k}_n = \mathcal{R}_{
 
 Каждая пара координат вращается со своей скоростью $\theta_i$. Из Part 2 мы знаем: большая $\theta_i$ — быстрое вращение (чувствительность к близким позициям), маленькая — медленное (кодирование далёких зависимостей). Чтобы распределить частоты, RoPE использует геометрическую прогрессию, заимствуя идею из синусоидальных кодировок Vaswani et al.:
 
-$$\theta_i = 10000^{-2i/d}, \qquad i = 0, 1, \ldots, d/2 - 1$$
+$$
+\theta_i = 10000^{-2i/d}, \qquad i = 0, 1, \ldots, d/2 - 1
+$$
 
 Распишем несколько значений для конкретности. При $d = 8$ (четыре пары):
 
 $$
-\theta_0 = 10000^{0} = 1, \\  
-\theta_1 = 10000^{-1/2} = 0.01, \\  
-\theta_2 = 10000^{-1} = 0.0001, \\  
-\theta_3 = 10000^{-3/2} = 0.000001
+\begin{aligned}
+\theta_0 &= 10000^{0} = 1, \\
+\theta_1 &= 10000^{-1/2} = 0.01, \\
+\theta_2 &= 10000^{-1} = 0.0001, \\
+\theta_3 &= 10000^{-3/2} = 0.000001
+\end{aligned}
 $$
 
 Первая пара координат ($i = 0$) вращается на 1 радиан за шаг — это быстро: уже через несколько позиций угол существенно изменится, и эта пара хорошо различает близких соседей. Последняя пара ($i = 3$) вращается на миллионную долю радиана за шаг — ей нужны тысячи позиций, чтобы угол заметно сместился, она кодирует грубую, «далёкую» позиционную информацию, т.е. она заточена на семантическую информацию, даже если токены далеки друг от друга позиционно, но близки по смыслу, эта часть ембеддинга внесет большой вклад в скалярное произведение.
@@ -347,7 +379,9 @@ $$
 
 **Шаг 2. Позиционный поворот.** К полученным $q_m$ и $k_m$ применяется блочно-диагональная матрица поворота:
 
-$$\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m \quad \tilde{k}_m = \mathcal{R}_{\Theta,m}\, k_m$$
+$$
+\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m \quad \tilde{k}_m = \mathcal{R}_{\Theta,m}\, k_m
+$$
 
 Каждая $i$-я пара координат поворачивается на $m\theta_i$. Длины векторов не меняются, новых параметров нет.
 
@@ -363,7 +397,9 @@ $$\tilde{q}_m = \mathcal{R}_{\Theta,m}\, q_m \quad \tilde{k}_m = \mathcal{R}_{\T
 
 Рассмотрим Vision Transformer (ViT). Изображение разбивается на патчи, и каждый патч получает двумерную позицию $(m_x, m_y)$ — строку и столбец на сетке. Нам нужно, чтобы attention-скор зависел от двумерного относительного сдвига, а не от абсолютных координат.
 
-$$(\Delta x, \Delta y) = (m_x - n_x; m_y - n_y)$$
+$$
+(\Delta x, \Delta y) = (m_x - n_x; m_y - n_y)
+$$
 
 Для этого делим $d/2$ пар на две равные группы по $d/4$:
 
@@ -447,7 +483,9 @@ $$
 
 **Частоты для разных осей.** Разные оси могут иметь разный масштаб: пространственные координаты в ViT обычно лежат в диапазоне $[0, 14]$ (для сетки $14 \times 14$ патчей), а временная — $[0, T)$, где $T$ может быть на порядки больше. Поэтому для каждой оси часто выбирают своё базовое значение $b_{\text{axis}}$ вместо единого $10000$:
 
-$$\theta_i^{(\text{axis})} = b_{\text{axis}}^{-2i/d_{\text{axis}}}$$
+$$
+\theta_i^{(\text{axis})} = b_{\text{axis}}^{-2i/d_{\text{axis}}}
+$$
 
 где $d_{\text{axis}}$ — число координат, отведённых данной оси.
 
@@ -467,21 +505,29 @@ $$\theta_i^{(\text{axis})} = b_{\text{axis}}^{-2i/d_{\text{axis}}}$$
 
 Определим коэффициент масштабирования:
 
-$$s = \frac{L_{\text{target}}}{L_{\text{train}}}$$
+$$
+s = \frac{L_{\text{target}}}{L_{\text{train}}}
+$$
 
 Например, если модель обучалась на контексте $L_{\text{train}} = 4096$, а мы хотим $L_{\text{target}} = 16384$, то $s = 4$.
 
 PI модифицирует RoPE, заменяя позицию $m$ на $m/s$:
 
-$$\tilde{q}_m^{\text{PI}} = \mathcal{R}_{\Theta,\, m/s}\; q_m, \qquad \tilde{k}_n^{\text{PI}} =\mathcal{R}_{\Theta,\, n/s}\; k_n$$
+$$
+\tilde{q}_m^{\text{PI}} = \mathcal{R}_{\Theta,\, m/s}\; q_m, \qquad \tilde{k}_n^{\text{PI}} =\mathcal{R}_{\Theta,\, n/s}\; k_n
+$$
 
 Запишем, что происходит с конкретной парой координат $i$: угол поворота вместо $m\theta_i$ становится
 
-$$\frac{m}{s}\,\theta_i = m \cdot \frac{\theta_i}{s}$$
+$$
+\frac{m}{s}\,\theta_i = m \cdot \frac{\theta_i}{s}
+$$
 
 Максимальный угол для позиции $m = L_{\text{target}} - 1$ теперь равен:
 
-$$\frac{(L_{\text{target}} - 1)}{s}\,\theta_i \approx \frac{L_{\text{target}}}{s}\,\theta_i = L_{\text{train}}\,\theta_i$$
+$$
+\frac{(L_{\text{target}} - 1)}{s}\,\theta_i \approx \frac{L_{\text{target}}}{s}\,\theta_i = L_{\text{train}}\,\theta_i
+$$
 
 — ровно тот максимальный угол, который модель видела при обучении. Задача решена: все углы гарантированно лежат в обученном диапазоне, и OOD-проблема исчезает.
 
@@ -501,17 +547,23 @@ PI масштабирует все частоты одинаково, но ра�
 
 Итак, вместо масштабирования позиции $m \to m/s$ мы масштабируем _базу_ $b$ в формуле частот. Напомним исходное расписание частот:
 
-$$\theta_i = b^{-2i/d}, \qquad b = 10000$$
+$$
+\theta_i = b^{-2i/d}, \qquad b = 10000
+$$
 
 NTK-Aware заменяет $b$ на $b'$:
 
-$$\theta_i^{\text{NTK}} = (b')^{-2i/d}, \qquad b' = b \cdot s^{d/(d-2)}$$
+$$
+\theta_i^{\text{NTK}} = (b')^{-2i/d}, \qquad b' = b \cdot s^{d/(d-2)}
+$$
 
 где $s = L_{\text{target}} / L_{\text{train}}$ — тот же коэффициент расширения.
 
 Такой подход обеспечивает неравномерное сжатие. Давайте посмотрим, как изменяется каждая частота. Отношение новой частоты к старой выражается следующим образом:
 
-$$\frac{\theta_i^{\text{NTK}}}{\theta_i} = \frac{(b')^{-2i/d}}{b^{-2i/d}} = \left(\frac{b}{b'}\right)^{2i/d} = \left(\frac{1}{s^{d/(d-2)}}\right)^{2i/d} = s^{-2i/(d-2)}$$
+$$
+\frac{\theta_i^{\text{NTK}}}{\theta_i} = \frac{(b')^{-2i/d}}{b^{-2i/d}} = \left(\frac{b}{b'}\right)^{2i/d} = \left(\frac{1}{s^{d/(d-2)}}\right)^{2i/d} = s^{-2i/(d-2)}
+$$
 
 Для $i = 0$: $\theta_0^{\text{NTK}} / \theta_0 = s^0 = 1$ — самая быстрая пара вообще не меняется.  
 Для $i = d/2 - 1$ (последняя пара): отношение $\approx s^{-1}$ — медленная пара сжимается почти в $s$ раз, как при PI.
@@ -538,7 +590,9 @@ YaRN разделяет все пары координат на три груп�
 
 Для реализации плавного перехода YaRN вводит ramp-функцию $\gamma(r_i)$, где $r_i = \lambda_i / L_{\text{train}}$ — отношение длины волны к тренировочному контексту. Эффективная частота для пары $i$ определяется как:
 
-$$\theta_i^{\text{YaRN}} = \theta_i \cdot \left(\frac{1 - \gamma(r_i)}{s} + \gamma(r_i)\right)$$
+$$
+\theta_i^{\text{YaRN}} = \theta_i \cdot \left(\frac{1 - \gamma(r_i)}{s} + \gamma(r_i)\right)
+$$
 
 где $\gamma$ плавно переходит от 0 (полная интерполяция, как PI) к 1 (без изменений):
 
@@ -560,7 +614,9 @@ YaRN вводит ещё одно важное дополнение. Интер�
 
 Для компенсации этого эффекта YaRN домножает attention-логиты на температурный коэффициент $\sqrt{1/t}$:
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{1}{\sqrt{t}} \cdot \frac{\tilde{Q}\tilde{K}^\top}{\sqrt{d_k}}\right) V$$
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{1}{\sqrt{t}} \cdot \frac{\tilde{Q}\tilde{K}^\top}{\sqrt{d_k}}\right) V
+$$
 
 ![[images/rope_images/image 6.png|817]]
 
@@ -575,11 +631,15 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{1}{\sqrt{t}} \cdot \fr
 Диффузионная модель генерирует изображение, постепенно удаляя шум из гауссова сэмпла. Этот процесс имеет чёткую спектральную структуру: низкочастотные компоненты (крупномасштабная композиция, общие формы) конвергируют рано, а высокочастотные детали (текстуры, мелкие элементы) формируются на поздних шагах.  
 Формально, в flow matching формулировке промежуточный сэмпл задаётся как:
 
-$$x_t = (1 - t)\,x + t\,\epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)$$
+$$
+x_t = (1 - t)\,x + t\,\epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)
+$$
 
 где $t = 1$ — чистый шум, $t = 0$ — финальное изображение. В фурье-пространстве средняя спектральная плотность мощности (PSD) на шаге $t$ равна:
 
-$$\|\hat{x}_t\|^2_f = (1 - t)^2 \cdot C / f^\omega + t^2$$
+$$
+\|\hat{x}_t\|^2_f = (1 - t)^2 \cdot C / f^\omega + t^2
+$$
 
 где $C$ — характеристический масштаб PSD данных, $\omega \approx 2$ — показатель степенного закона для естественных изображений. При $t \approx 1$ доминирует плоский спектр шума; по мере уменьшения $t$ проявляется степенной спад $1/f^\omega$, причём низкие частоты «проявляются» первыми.
 
@@ -597,7 +657,9 @@ DyPE замечает: этот компромисс _не нужно подде
 
 Все три метода (PI, NTK-Aware, YaRN) «выключаются» при $s = 1$: PI даёт $g(m) = m$, NTK-Aware — $h(\theta_d) = \theta_d$, YaRN аналогично. DyPE использует это свойство, вводя зависящий от шага диффузии коэффициент масштабирования:
 
-$$\kappa(t) = \lambda_s \cdot t^{\lambda_t}$$
+$$
+\kappa(t) = \lambda_s \cdot t^{\lambda_t}
+$$
 
 где $\lambda_s$ и $\lambda_t$ — настраиваемые гиперпараметры. В начале сэмплирования ($t \approx 1$, чистый шум) $\kappa(1) = \lambda_s$ — масштабирование максимально. В конце ($t \approx 0$, финальное изображение) $\kappa(0) = 1$ — масштабирование выключено. Экспонента $\lambda_t$ управляет скоростью затухания: при $\lambda_t > 1$ масштабирование убывает быстрее (выпуклый профиль), при $\lambda_t < 1$ — медленнее (вогнутый).
 

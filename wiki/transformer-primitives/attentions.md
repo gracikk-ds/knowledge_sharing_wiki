@@ -16,11 +16,15 @@ The landscape has moved well beyond the original multi-head formulation. Modern 
 
 The original transformer attention computes separate query, key, and value projections for every head. Each head attends over the full sequence using scaled dot-product attention:
 
-$$\mathbf{o}_t = \sum_{j=1}^{t} \frac{\exp(\mathbf{q}_t^\top \mathbf{k}_j / \sqrt{d})}{\sum_{l=1}^{t} \exp(\mathbf{q}_t^\top \mathbf{k}_l / \sqrt{d})} \mathbf{v}_j$$
+$$
+\mathbf{o}_t = \sum_{j=1}^{t} \frac{\exp(\mathbf{q}_t^\top \mathbf{k}_j / \sqrt{d})}{\sum_{l=1}^{t} \exp(\mathbf{q}_t^\top \mathbf{k}_l / \sqrt{d})} \mathbf{v}_j
+$$
 
 where $\mathbf{q}_t$, $\mathbf{k}_j$, $\mathbf{v}_j$ are the query, key, and value vectors, and $d$ is the head dimension. Each head learns its own subspace of relationships, and their outputs are concatenated and projected back to model dimension. This gives maximum capacity — every head has independent KV parameters — but the KV-cache scales linearly with head count:
 
-$$\text{KV-cache} = 2 \times n_{\text{heads}} \times n_{\text{layers}} \times d_{\text{head}} \times \text{seq\_len}$$
+$$
+\text{KV-cache} = 2 \times n_{\text{heads}} \times n_{\text{layers}} \times d_{\text{head}} \times \text{seq\_len}
+$$
 
 For a model with 128 heads serving long contexts, this becomes the dominant memory bottleneck at inference.
 
@@ -54,11 +58,15 @@ This softens MQA's capacity loss while still compressing the KV-cache substantia
 
 Instead of storing full KV tensors per head, MLA compresses them into low-dimensional latent variables and decompresses at runtime. The input is projected down into a small latent:
 
-$$\mathbf{c}_t = \mathbf{W}_{\text{down}} \mathbf{x}_t$$
+$$
+\mathbf{c}_t = \mathbf{W}_{\text{down}} \mathbf{x}_t
+$$
 
 Only $\mathbf{c}_t$ is cached — at attention time, full keys and values are recovered via upward projections:
 
-$$\mathbf{K}_t = \mathbf{W}_{K}^{\text{up}} \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_{V}^{\text{up}} \mathbf{c}_t$$
+$$
+\mathbf{K}_t = \mathbf{W}_{K}^{\text{up}} \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_{V}^{\text{up}} \mathbf{c}_t
+$$
 
 Since $\dim(\mathbf{c}_t) \ll n_{\text{heads}} \times d_{\text{head}}$, this achieves 4–8x KV-cache compression — comparable to aggressive GQA — while preserving more representational capacity than simple sharing. The tradeoff is implementation complexity: the compression/decompression machinery adds engineering overhead. Kimi-K2 and DeepSeek adopt MLA as their primary attention mechanism.
 
@@ -66,7 +74,9 @@ Since $\dim(\mathbf{c}_t) \ll n_{\text{heads}} \times d_{\text{head}}$, this ach
 
 Standard attention can develop "attention sinks" — tokens that accumulate disproportionately high attention weight despite carrying little semantic relevance. Gated attention addresses this by applying an elementwise sigmoid gate to the attention output:
 
-$$\tilde{\mathbf{o}}_{t,i} = \mathbf{o}^{\text{sdpa}}_{t,i} \odot \sigma(\mathbf{W}^G \mathbf{x}_t)$$
+$$
+\tilde{\mathbf{o}}_{t,i} = \mathbf{o}^{\text{sdpa}}_{t,i} \odot \sigma(\mathbf{W}^G \mathbf{x}_t)
+$$
 
 where $\mathbf{o}^{\text{sdpa}}_{t,i}$ is the standard scaled dot-product attention output, $\mathbf{W}^G$ is a learned gating matrix, and $\sigma$ is the sigmoid function. The gate learns to suppress uninformative attention patterns, reducing large activations that destabilize training and improving long-sequence generalization.
 
@@ -74,11 +84,15 @@ where $\mathbf{o}^{\text{sdpa}}_{t,i}$ is the standard scaled dot-product attent
 
 The key insight behind linear attention is algebraic. Standard attention normalizes over the full sequence via softmax. If we drop the softmax, the sum can be refactored into a recurrent state:
 
-$$\mathbf{o}_t = \sum_{j=1}^{t} (\mathbf{q}_t^\top \mathbf{k}_j) \mathbf{v}_j = \underbrace{\left(\sum_{j=1}^{t} \mathbf{v}_j \mathbf{k}_j^\top\right)}_{S_t} \mathbf{q}_t$$
+$$
+\mathbf{o}_t = \sum_{j=1}^{t} (\mathbf{q}_t^\top \mathbf{k}_j) \mathbf{v}_j = \underbrace{\left(\sum_{j=1}^{t} \mathbf{v}_j \mathbf{k}_j^\top\right)}_{S_t} \mathbf{q}_t
+$$
 
 where $S_t$ is a matrix that accumulates outer products of all past key-value pairs. This gives us $O(1)$ memory per step at inference. But without softmax normalization, the state $S_t$ grows unboundedly. GLA fixes this with a learned forget gate:
 
-$$S_t = G_t \odot S_{t-1} + \mathbf{v}_t \mathbf{k}_t^\top$$
+$$
+S_t = G_t \odot S_{t-1} + \mathbf{v}_t \mathbf{k}_t^\top
+$$
 
 where $G_t$ is a gating matrix that controls how much history to retain vs. forget. This formulation supports both parallel (chunked) training and efficient autoregressive inference. In practice, hybrid architectures interleave GLA layers with standard softmax attention layers:
 

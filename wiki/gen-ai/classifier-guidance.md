@@ -8,19 +8,27 @@ Reviewed: Done
 
 Ключевая проблема заключается в том, что выход нейронной сети, как правило, не гарантирует выполнения условия нормировки. Чтобы $p(x|\theta)$ являлась корректной функцией плотности вероятности, она должна удовлетворять следующему свойству:
 
-$$\int p(x|\theta) dx = 1$$
+$$
+\int p(x|\theta) dx = 1
+$$
 
 Для решения этой проблемы вводится ненормированная модель $\hat{p}(x|\theta)$, которую часто называют энергетической функцией, представляющая собой непосредственный выход нейронной сети. Корректная плотность $p(x|\theta)$ тогда определяется через явную нормировку:
 
-$$p(x|\theta) = \frac{\hat p(x|\theta)}{\int \hat p(x|\theta)dx}$$
+$$
+p(x|\theta) = \frac{\hat p(x|\theta)}{\int \hat p(x|\theta)dx}
+$$
 
 Здорово, конечно, но абсолютно непонятно, как брать интеграл по всем возможным выходам нейронной сети, это аналитически и вычислительно неразрешимая задача. Для того, чтобы обойти вычисление интеграла рассмотрим логарифм плотности.
 
-$$\log p(x|\theta) = \log \hat p(x|\theta) - \log \int \hat p(x|\theta)dx$$
+$$
+\log p(x|\theta) = \log \hat p(x|\theta) - \log \int \hat p(x|\theta)dx
+$$
 
 Теперь заметим, что если мы возьмем $\nabla_x$ по левой и правой частям, то чудесным образом нам удастся избавиться от интеграла. Так как интеграл уже выинтегрировал весь $x$, то он более от него не зависит и градиент по нему будет равен 0.
 
-$$\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x \log \int \hat p(x|\theta)dx = \nabla_x \log \hat p(x|\theta) + 0$$
+$$
+\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x \log \int \hat p(x|\theta)dx = \nabla_x \log \hat p(x|\theta) + 0
+$$
 
 Круто! Мы получили важный результат: градиент логарифма истинной нормированной плотности (левая часть) равен градиенту логарифма ненормированного выхода нейронной сети (правая часть). Эта величина $\nabla_x \log p(x|\theta)$ имеет собственное название - score-функция.
 
@@ -44,7 +52,9 @@ $$
 
 Поскольку $p(y)$ (априорная вероятность класса $y$) не зависит от $x$, ее градиент $\nabla_x \log p(y)$ равен нулю. Так мы приходим к фундаментальному разложению:
 
-$$\nabla_x \log p(x|y) = \underbrace{\nabla_x \log p(x)}_{\text{Безусловная score-функция}} + \underbrace{\nabla_x \log p(y|x)}_{\text{Градиент классификатора}}$$
+$$
+\nabla_x \log p(x|y) = \underbrace{\nabla_x \log p(x)}_{\text{Безусловная score-функция}} + \underbrace{\nabla_x \log p(y|x)}_{\text{Градиент классификатора}}
+$$
 
 Наша условная score-функция распалась на сумму двух членов:
 
@@ -58,13 +68,17 @@ $$\nabla_x \log p(x|y) = \underbrace{\nabla_x \log p(x)}_{\text{Безуслов
 
 1. Соответствовать условию $y$ (требование $\nabla_x \log p(y|x)$). Причем сила этого подталкивания на практике контролируется параметром $\gamma$, который называется guidance scale. Запишем формулу еще раз, на этот раз отразив в ней $\gamma$.
 
-$$\nabla_{\mathbf{x}} \log p_\gamma(\mathbf{x}|\mathbf{y}) = \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \gamma \cdot \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$$
+$$
+\nabla_{\mathbf{x}} \log p_\gamma(\mathbf{x}|\mathbf{y}) = \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \gamma \cdot \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})
+$$
 
 ## Classifier Free Guidance
 
 Если набор данных, на котором мы обучаем генеративную модель, является размеченным (т.е. содержит пары картинка - описание), мы можем обойтись без обучения явного классификатора. Вместо этого, можно обучить неявный классификатор. Для того, чтобы это сделать, возьмем член, отвечающий за градиент классификатора $\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$ и применим к нему теорему Байеса еще раз.
 
-$$\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) \approx \nabla_{\mathbf{x}} \log p(\mathbf{x}|\mathbf{y}) - \nabla_{\mathbf{x}} \log p(\mathbf{x})$$
+$$
+\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) \approx \nabla_{\mathbf{x}} \log p(\mathbf{x}|\mathbf{y}) - \nabla_{\mathbf{x}} \log p(\mathbf{x})
+$$
 
 Как видим, для того, чтобы получить $\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$, нам необходимы градиенты от двух распределений:
 
@@ -74,11 +88,15 @@ $$\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) \approx \nabla_{\mathbf{x}} 
 
 Чтобы одна и та же генеративная модель могла аппроксимировать обе эти score-функции, при обучении используется следующий прием (известный как classifier-free guidance): в некоторой доле случаев (например, 10-20%) реальное условие $y$ заменяется на специальный "пустой" токен $\emptyset$. Теперь подставим новое значения $\nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x})$ в исходную формулу classifier guidance-a.
 
-$$\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \mathbf{s}_{\theta}(\mathbf{x}, \emptyset) + \gamma \left( \mathbf{s}_{\theta}(\mathbf{x}, \mathbf{y}) - \mathbf{s}_{\theta}(\mathbf{x}, \emptyset) \right)$$
+$$
+\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \mathbf{s}_{\theta}(\mathbf{x}, \emptyset) + \gamma \left( \mathbf{s}_{\theta}(\mathbf{x}, \mathbf{y}) - \mathbf{s}_{\theta}(\mathbf{x}, \emptyset) \right)
+$$
 
 Раскроем скобки и приведем подобные :D
 
-$$\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \gamma \cdot \mathbf{s}_{\theta}(\mathbf{x}, \mathbf{y}) + (1 - \gamma) \cdot \mathbf{s}_{\theta}(\mathbf{x}, \emptyset)$$
+$$
+\nabla_{\mathbf{x}} \log p_{\gamma}(\mathbf{x}|\mathbf{y}) \approx \gamma \cdot \mathbf{s}_{\theta}(\mathbf{x}, \mathbf{y}) + (1 - \gamma) \cdot \mathbf{s}_{\theta}(\mathbf{x}, \emptyset)
+$$
 
 Теперь на этапе инференса нужно 2 раза прогнать сетку: один раз с кондишеном и второй раз без. Зато благодаря параметру $\gamma$ мы можем определять насколько узкой или широкой будет мода данных, в которую мы хотим попасть. Если $\gamma$ большое, то мы будем семплировать моду, но сгенерированные данные будут однообразны, если $\gamma$ мало, то данные будут более разнообразные, но меньше следовать $y$.
 
