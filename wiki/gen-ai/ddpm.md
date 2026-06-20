@@ -166,7 +166,7 @@ $$\mathbb{E}_{p_{\text{data}}(\mathbf{x}_0)} \mathbb{E}_{\boldsymbol{\epsilon} \
 
 Анимация ниже наглядно демонстрирует ключевое различие между двумя процессами зашумления. Слева — forward diffusion (DDPM): облако точек одновременно мигрирует к началу координат и размывается. Справа — NCSN/DSM: облако остаётся на месте, увеличивается только дисперсия. В обоих случаях используются одни и те же исходные данные $\mathbf{x}_0$ и один и тот же шум $\boldsymbol{\epsilon}$ — отличается только преобразование.
 
-![[97d586ea-075a-4030-ab13-998664bd6c88.gif]]
+![[images/ddpm/97d586ea-075a-4030-ab13-998664bd6c88.gif]]
 
 ## Reverse Gaussian Diffusion Process
 
@@ -277,7 +277,7 @@ $$q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}\!\left(\tild
 
 **Физический смысл.** Это распределение описывает, как правильно «денойзить» изображение $\mathbf{x}_t$ на один шаг назад, **если мы знаем оригинальное чистое изображение** $\mathbf{x}_0$. Среднее $\tilde{\boldsymbol{\mu}}_t$ интерполирует между зашумлённым наблюдением $\mathbf{x}_t$ и чистым сигналом $\mathbf{x}_0$, а дисперсия $\tilde{\beta}_t$ отражает неопределённость одного шага обратного перехода.
 
-![[1cb075ec-2b8a-4a8a-b1d2-52c1ff3a53ce.gif]]
+![[images/ddpm/1cb075ec-2b8a-4a8a-b1d2-52c1ff3a53ce.gif]]
 
 ### Сравнение трёх распределений
 
@@ -341,7 +341,7 @@ $$\log p_\theta(\mathbf{x}) \geq \mathbb{E}_{q(\mathbf{z} \mid \mathbf{x})} \log
 
 $$q(\mathbf{z} \mid \mathbf{x}) = q(\mathbf{x}_1, \ldots, \mathbf{x}_T \mid \mathbf{x}_0) = q(\mathbf{x}_1 \mid \mathbf{x}_0) \cdot q(\mathbf{x}_2 \mid \mathbf{x}_1, \mathbf{x}_0) \cdot q(\mathbf{x}_3 \mid \mathbf{x}_2, \mathbf{x}_1, \mathbf{x}_0) \cdots = \prod_{t=1}^{T} q(\mathbf{x}_t \mid \mathbf{x}_{t-1})$$
 
-![[7e4c4ff0-497b-49f6-bab8-67fac3fea446.png]]
+![[images/ddpm/7e4c4ff0-497b-49f6-bab8-67fac3fea446.png]]
 
 Каждый переход $q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathcal{N}(\sqrt{\alpha_t} \cdot \mathbf{x}_{t-1},\, \beta_t \mathbf{I})$ добавляет шум, постепенно превращая чистое изображение в белый шум. Принципиальное отличие от стандартного VAE: **энкодер не содержит обучаемых параметров**. Расписание шума $\{\beta_t\}_{t=1}^T$ задаётся заранее как гиперпараметр. В обычном VAE энкодер $q_\phi(\mathbf{z} \mid \mathbf{x})$ параметризуется нейронной сетью с весами $\phi$, которые оптимизируются совместно с декодером.
 
@@ -355,7 +355,7 @@ $$p_\theta(\mathbf{x} \mid \mathbf{z}) = p_\theta(\mathbf{x}_0 \mid\mathbf{x}_1,
 
 $$p_\theta(\mathbf{z}) = p_\theta(\mathbf{x}_1, \ldots, \mathbf{x}_T) = p(\mathbf{x}_T) \cdot \prod_{t=2}^{T} p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t)$$
 
-![[22ce7832-0c72-4bb0-a098-b8e71efdd45d.png]]
+![[images/ddpm/22ce7832-0c72-4bb0-a098-b8e71efdd45d.png]]
 
 Здесь $p(\mathbf{x}_T) = \mathcal{N}(\mathbf{0}, \mathbf{I})$ — стартовая точка обратного процесса. В отличие от стандартного VAE, где приор — простое фиксированное распределение $\mathcal{N}(\mathbf{0}, \mathbf{I})$, здесь приор — целая марковская цепь с обучаемыми параметрами $\theta$. Сложность, которая в стандартном VAE целиком сосредоточена в декодере, здесь распределена между декодером и приором.
 
