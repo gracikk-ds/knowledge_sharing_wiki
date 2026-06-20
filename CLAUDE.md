@@ -5,10 +5,14 @@ This repository is a personal **Obsidian vault** of ML/DL/CS study notes, writte
 - `wiki/` — the notes, grouped into topic folders (`gen-ai/`, `transformer-primitives/`, `distillation/`, `applied/`, `system-design/`). Markdown notes plus a few source `.pdf` lectures. This is the published content root.
 - `wiki/images/` — figure/GIF attachments in per-topic subfolders (`ddpm/`, `detr/`, `rope_images/`, `energy-based-models/`). Lives under the content root so Quartz emits them (see `publish/CLAUDE.md`).
 - `publish/` — vendored Quartz v4 static-site generator (`publish/content` is a symlink → `../wiki`); see `publish/CLAUDE.md`.
+- `styleguide.md` — the canonical guide for writing notes (voice, structure, derivation arc, math notation). See *Authoring conventions*.
 - `.claude/skills/` — `wiki-query` and `wiki-quiz` (see *Skills*).
 - `.obsidian/` — Obsidian app config; gitignored.
 
 ## Authoring conventions
+
+> [!important]
+> **Before creating or editing ANY note under `wiki/`, you MUST read `styleguide.md` (at the repository root) first — every time, even for a one-line edit.** It is the canonical reference for note language, the derivation arc, structure, math notation, figures, and what to clean up on import. The conventions below are the low-level mechanics; `styleguide.md` is the full picture and takes precedence. This is not optional.
 
 **Language.** Note prose is Russian. Keep established technical terms in English without transliteration (`attention`, `self-attention`, `embedding`). Everything code-related — identifiers, file paths, frontmatter keys — is English.
 

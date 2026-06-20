@@ -9,6 +9,8 @@ Workflow for generating quizzes from wiki content. The user uses these to check 
 
 The wiki is the source of truth. Every question must be answerable from a page that exists in the wiki. If you cannot anchor a question to a wiki page, drop it.
 
+**Conventions.** Generated math (and any explanation prose) must follow the repository-root `styleguide.md` — see §5 for math notation (LaTeX everywhere, bold vectors, `D_{\text{KL}}`, etc.). If a session ever leads you to create or edit a note under `wiki/`, you MUST read `styleguide.md` in full first (this is mandatory for all wiki edits, not just quiz output).
+
 ---
 
 ## Checklist (mirror as TodoWrite tasks)

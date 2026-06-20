@@ -48,7 +48,9 @@ Read each candidate page in full. Stop expanding once you have enough material t
 
 ## Step 4 — Synthesize
 
-Write the answer for the user. Follow the same quality bar as wiki pages:
+Write the answer for the user. Follow the same quality bar as wiki pages — see the repository-root `styleguide.md` for the conventions to match (language, "мы" voice, LaTeX math notation, intuition-beside-math). If answering ever turns into creating or editing a note under `wiki/`, you MUST read `styleguide.md` in full first.
+
+Quality bar:
 
 - **Definitions before claims.** State what the question is about, then the answer.
 - **Cite specifically.** Every non-trivial claim ends in a `[[wiki-link]]` to the page it came from. If the claim came from multiple pages, list both.
