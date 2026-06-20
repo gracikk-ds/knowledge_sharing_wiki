@@ -34,11 +34,13 @@ $$\nabla_x \log p(x|\theta) = \nabla_x \log \hat p(x|\theta) - \nabla_x log \int
 
 Распишем $\nabla_x \log p(x|y)$ по формуле Байеса:
 
-$$\begin{align*}  
+$$
+\begin{align*}  
 p(\mathbf{x}|\mathbf{y}) &= \frac{p(\mathbf{x}) p(\mathbf{y}|\mathbf{x})}{p(\mathbf{y})}  
 \\  
 \nabla_{\mathbf{x}} \log p(\mathbf{x}|\mathbf{y}) &= \nabla_{\mathbf{x}} \log p(\mathbf{x}) + \nabla_{\mathbf{x}} \log p(\mathbf{y}|\mathbf{x}) - \nabla_{\mathbf{x}}\log p(\mathbf{y})  
-\end{align*}$$
+\end{align*}
+$$
 
 Поскольку $p(y)$ (априорная вероятность класса $y$) не зависит от $x$, ее градиент $\nabla_x \log p(y)$равен нулю. Так мы приходим к фундаментальному разложению:
 

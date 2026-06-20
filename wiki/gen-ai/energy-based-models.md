@@ -68,9 +68,10 @@ $$\frac{1}{2} \, \mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)} \left[
 
 $$\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \approx \nabla_{\mathbf{x}} \log \pi(\mathbf{x}) \quad \text{при } \sigma \to 0$$
 
-На первый взгляд кажется, что мы ничего не выиграли: score зашумлённого распределения $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$ вычислить напрямую так же невозможно, как и $\nabla_{\mathbf{x}} \log \pi(\mathbf{x})$Ведь $q(\mathbf{x}_\sigma)$ — это интеграл по всем возможным $\mathbf{x}$, который мы не умеем брать аналитически. Однако именно здесь и появляется ключевой трюк, известный как **Denoising Score Matching**. Оказывается, что при достаточно мягких условиях регулярности справедливо следующее равенство:
+На первый взгляд кажется, что мы ничего не выиграли: score зашумлённого распределения $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$ вычислить напрямую так же невозможно, как и $\nabla_{\mathbf{x}} \log \pi(\mathbf{x})$. Ведь $q(\mathbf{x}_\sigma)$ — это интеграл по всем возможным $\mathbf{x}$, который мы не умеем брать аналитически. Однако именно здесь и появляется ключевой трюк, известный как **Denoising Score Matching**. Оказывается, что при достаточно мягких условиях регулярности справедливо следующее равенство:
 
-$$\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}  
+$$
+\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}  
 \left\|  
 \nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)  
 -  
@@ -82,7 +83,8 @@ $$\mathbb{E}_{\mathbf{x}_\sigma \sim q(\mathbf{x}_\sigma)}
 \nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)  
 -  
 \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})  
-\right\|_2^2 + \text{const}(\theta)$$
+\right\|_2^2 + \text{const}(\theta)
+$$
 
 Ключевой выигрыш этого равенства в том, что оно заменяет неизвестное на известное: вместо $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$, который мы не можем вычислить, появляется $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})$ — score условного распределения, заданного нами явно. Не хочу, чтобы этот переход казался нам некой магией, поэтому давайте для начала разберемся, как он оказался возможным, а потом уже до конца осознаем, что это нам дает.
 
@@ -122,13 +124,15 @@ $$\mathbb{E}_{q(\mathbf{x}_\sigma)} h(\mathbf{x}_\sigma) = \mathbb{E}_{\pi(\math
 
 Замечательно, первый шаг выполнен. Теперь сосредоточим свое внимание на функции $h(\mathbf{x}_\sigma)$ и докажем, что мы можем перейти от использования $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)$ в качестве таргета к $\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x})$. Для краткости обозначим $\nabla_{\mathbf{x}_\sigma} \log p(\mathbf{x}_\sigma \mid \theta, \sigma)$ как $\mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma)$. И раскроем квадрат l2-нормы:
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 \mathbb{E}_{q(\mathbf{x}_\sigma)}h(\mathbf{x}_\sigma) &= \mathbb{E}_{q(\mathbf{x}_\sigma)}  
 \| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) - \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \|^2  
 =\\  
 &= \mathbb{E}_{q(\mathbf{x}_\sigma)}\left[\| \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma) \|^2 - 2 \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle + \|\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma)\|^2  
 \right]  
-\end{aligned}$$
+\end{aligned}
+$$
 
 Последний член не зависит от параметров $\theta$, поэтому при оптимизации его можно отбросить. Первый член уже имеет нужный нам вид. Разберёмся со вторым членом — скалярным произведением.
 
@@ -138,10 +142,12 @@ $$\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x
 
 Раскроем левую часть по определению математического ожидания и воспользуемся тождеством $\nabla \log f = \frac{\nabla f}{f}$:
 
-$$\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle = \int \cancel{q(\mathbf{x}_\sigma)} \left[ \mathbf{s}_{\theta,\sigma}^T(\mathbf{x}_\sigma)  
+$$
+\mathbb{E}_{q(\mathbf{x}_\sigma)} \langle \mathbf{s}_{\theta,\sigma}(\mathbf{x}_\sigma), \nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma) \rangle = \int \cancel{q(\mathbf{x}_\sigma)} \left[ \mathbf{s}_{\theta,\sigma}^T(\mathbf{x}_\sigma)  
 \frac  
 {\nabla_{\mathbf{x}_\sigma}q(\mathbf{x}_\sigma)}  
-{\cancel{q(\mathbf{x}_\sigma)}} \right] d\mathbf{x}_\sigma$$
+{\cancel{q(\mathbf{x}_\sigma)}} \right] d\mathbf{x}_\sigma
+$$
 
 Сокращаем $q(\mathbf{x}_\sigma)$ _и подставляем $q(\mathbf{x}_\sigma) = \int q(\mathbf{x}_\sigma | \mathbf{x}) \pi(\mathbf{x}) d\mathbf{x}$_:
 
@@ -211,10 +217,12 @@ $$\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) = -\frac{\ma
 
 Вспомним, что $\mathbf{x}_\sigma = \mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}$_, где $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$. Тогда_:
 
-$$\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) =  
+$$
+\nabla_{\mathbf{x}_\sigma} \log q(\mathbf{x}_\sigma | \mathbf{x}) =  
 -\frac{(\mathbf{x} + \sigma \cdot \boldsymbol{\epsilon}) - \mathbf{x}}{\sigma^2}  
 =  
--\frac{\sigma \cdot \boldsymbol{\epsilon}}{\sigma^2} = -\frac{\boldsymbol{\epsilon}}{\sigma}$$
+-\frac{\sigma \cdot \boldsymbol{\epsilon}}{\sigma^2} = -\frac{\boldsymbol{\epsilon}}{\sigma}
+$$
 
 **Финальный лосс.** Подставляем найденный таргет и переписываем математическое ожидание по $q(\mathbf{x}_\sigma | \mathbf{x})$ как ожидание по $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$:
 

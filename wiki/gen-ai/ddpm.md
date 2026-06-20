@@ -59,19 +59,23 @@ $$\nabla_{\mathbf{x}} \log \mathcal{N}(\mathbf{x} \mid \mathbf{0}, \mathbf{I}) =
 
 Марковская цепь позволяет получить $\mathbf{x}_t$ последовательным применением $t$ шагов. Однако можно показать, что существует замкнутая формула для перехода сразу от $\mathbf{x}_0$ к $\mathbf{x}_t$ за один шаг. Введем следующие обозначения:
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 \alpha_t = 1 - \beta_t \\  
 \bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s = \prod_{s=1}^{t}(1 - \beta_s)  
-\end{aligned}$$
+\end{aligned}
+$$
 
 Тогда сэмпл на шаге $t$ можно получить напрямую из $\mathbf{x}_0$ следующим образом:
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0,\ (1 - \bar{\alpha}_t) \mathbf{I}\right) \\  
 или  
 \\  
 \mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})  
-\end{aligned}$$
+\end{aligned}
+$$
 
 - **Доказательство**
     

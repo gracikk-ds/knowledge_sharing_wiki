@@ -1,14 +1,10 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-This repository is a personal **Obsidian vault** of ML/DL/CS study notes, written in Russian prose with English technical terms, plus a vendored **Quartz** pipeline that publishes the vault as a website. The Obsidian vault root is the repository root (`.obsidian/` lives here), so `wiki/` and `images/` are both folders *inside* one vault.
+This repository is a personal **Obsidian vault** of ML/DL/CS study notes, written in Russian prose with English technical terms. The Obsidian vault root is the repository root (`.obsidian/` lives here), so the notes in `wiki/` and their figures in `wiki/images/` are all part of one vault.
 
 ## Repository layout
 
 - `wiki/` — the notes, grouped into topic folders (`gen-ai/`, `transformer-primitives/`, `distillation/`, `applied/`, `system-design/`). Markdown notes plus a few source `.pdf` lectures. This is the published content root.
-- `images/` — figure/GIF attachments in per-topic subfolders (`ddpm/`, `detr/`, `rope_images/`, `energy-based-models/`). **Target location is `wiki/images/`** — see *Publishing* for why and the pending migration.
-- `publish/` — vendored Quartz v4 static-site generator. `publish/content` is a symlink → `../wiki`.
+- `wiki/images/` — figure/GIF attachments in per-topic subfolders (`ddpm/`, `detr/`, `rope_images/`, `energy-based-models/`). Lives under the content root so Quartz emits them (see `publish/CLAUDE.md`).
+- `publish/` — vendored Quartz v4 static-site generator (`publish/content` is a symlink → `../wiki`); see `publish/CLAUDE.md`.
 - `.claude/skills/` — `wiki-query` and `wiki-quiz` (see *Skills*).
 - `.obsidian/` — Obsidian app config; gitignored.
 
@@ -33,26 +29,13 @@ Bad (math in backticks) → Good (LaTeX):
 
 Convert Unicode math inside backticks to LaTeX commands (`σ`→`\sigma`, `·`→`\cdot`, `∈`→`\in`, `≤`→`\leq`, `→`→`\to`). Multi-letter subscripts use `_{\text{...}}` for upright font (`c_{\text{skip}}`); single-letter subscripts go bare (`x_t`, `f_\theta`).
 
-## Publishing (Quartz → Vercel)
+## Publishing
 
-`publish/` is Quartz v4 (`jackyzha0/quartz`). It builds the notes under `publish/content` (→ `../wiki`) into a static site, deployed to **Vercel** at `ml-notes-wiki.vercel.app` (`publish/vercel.json` sets `cleanUrls`, so `/foo` serves `foo.html`). Requires **Node ≥ 22** (`.node-version` pins v22.16.0).
-
-```bash
-cd publish
-npx quartz build --serve   # local preview at http://localhost:8080 (live reload)
-npx quartz build           # one-off build → publish/public/ (gitignored)
-npm run check              # tsc + prettier check (only when editing Quartz internals)
-```
-
-Site config is `publish/quartz.config.ts` (title, `baseUrl`, `locale: ru-RU`, plugin pipeline incl. KaTeX, Obsidian-flavored markdown, OG images); layout/components are `publish/quartz.layout.ts`.
-
-**Hard constraint — assets must live under the content root.** Quartz only emits files found under `wiki/`. Anything outside it (today's repo-root `images/`) is never copied to the build and its embeds 404 on the published site. This is why attachments must move to `wiki/images/` and embeds must point there.
-
-**Migration pending.** The vault was restructured but the publish setup was not updated: images still sit at repo-root `images/`, several `rope.md` embeds are cross-wired to the wrong topic folder, and the `wiki/index.md` landing page was deleted. The redo is specified in `docs/plans/2026-06-20-publish-redo.md`. Until it lands, the published site is missing all figures and a home page.
+The vault is published as a website with a **Quartz → Vercel** toolchain living in `publish/`. Build mechanics, config, and the assets-under-content-root constraint are documented in **`publish/CLAUDE.md`**.
 
 ## Skills
 
 - `wiki-query` — answer a question against the wiki: read the index, drill into pages, synthesize with `[[wiki-link]]` citations.
 - `wiki-quiz` — generate quizzes (MCQ, open, solve-on-paper) from wiki pages; always clarifies format/scope/difficulty/count first.
 
-Both skills start by reading **`wiki/index.md`** as the page index. That file is currently missing (deleted in the restructure); restoring it — part of the migration above — is what makes the skills work.
+Both skills start by reading **`wiki/index.md`** as the page index.

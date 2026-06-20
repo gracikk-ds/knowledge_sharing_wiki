@@ -10,8 +10,10 @@ Keywords:
 
 **Sinusoidal encodings** (Vaswani et al., 2017) формируют позиционный сигнал:
 
-$$\mathrm{PE}(pos, 2i) = \sin\!\left(\frac{pos}{10000^{2i/d}}\right), \qquad  
-\mathrm{PE}(pos, 2i+1) = \cos\!\left(\frac{pos}{10000^{2i/d}}\right),$$
+$$
+\mathrm{PE}(pos, 2i) = \sin\!\left(\frac{pos}{10000^{2i/d}}\right), \qquad  
+\mathrm{PE}(pos, 2i+1) = \cos\!\left(\frac{pos}{10000^{2i/d}}\right),
+$$
 
 а затем суммируют его с эмбеддингами токенов _до_ проекций в $Q$ и $K$. Из-за этого позиционная и контекстная информация смешиваются уже на входе: модель должна сама научиться разделять их внутри линейных проекций и последующих слоёв.
 
@@ -43,10 +45,12 @@ RoPE удовлетворяет всем трём — потому что не �
 
 A rotation matrix $R(\theta)$ is a $2\times 2$ linear transformation that rotates any 2D vector by a fixed angle $\theta$ around the origin without changing its length.
 
-$$R(\theta) = {\begin{bmatrix}  
+$$
+R(\theta) = {\begin{bmatrix}  
 \cos\theta & -\sin\theta\\  
 \sin\theta & \cos\theta  
-\end{bmatrix}}$$
+\end{bmatrix}}
+$$
 
 Let’s derived it.
 
@@ -74,35 +78,43 @@ So rotation is literally: replace the angle $\varphi$ by $\varphi+\theta$ in the
 
 Use angle-sum identities:
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 \cos(\varphi+\theta)=\cos\varphi\cos\theta-\sin\varphi\sin\theta  
 \\  
 \sin(\varphi+\theta)=\sin\varphi\cos\theta+\cos\varphi\sin\theta  
-\end{aligned}$$
+\end{aligned}
+$$
 
 Since $x_1 = |X|\cos\varphi$ and $x_2 = |X|\sin\varphi$ we can substitute $\cos\varphi = x_1/|X|$ and $\sin\varphi = x_2/|X|$:
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 \cos(\varphi+\theta) = \Big(\frac{x_1}{|X|}\cos\theta-\frac{x_2}{|X|}\sin\theta\Big)\\ \sin(\varphi+\theta) = \Big(\frac{x_2}{|X|}\cos\theta+\frac{x_1}{|X|}\sin\theta\Big)  
-\end{aligned}$$
+\end{aligned}
+$$
 
 And do the same for $\cos(\varphi+\theta)$ and $\sin(\varphi+\theta)$
 
-$$\begin{aligned}  
+$$
+\begin{aligned}  
 x_1' = |X|\Big(\frac{x_1}{|X|}\cos\theta-\frac{x_2}{|X|}\sin\theta\Big)  
 = x_1\cos\theta - x_2\sin\theta \\ x_2' = |X|\Big(\frac{x_2}{|X|}\cos\theta+\frac{x_1}{|X|}\sin\theta\Big)  
 = x_1\sin\theta + x_2\cos\theta  
-\end{aligned}$$
+\end{aligned}
+$$
 
 This is the key result: the rotated coordinates are linear combinations of the original coordinates. Those two equations can be written compactly as:
 
-$$\begin{bmatrix}x_1'\\x_2'\end{bmatrix}  
+$$
+\begin{bmatrix}x_1'\\x_2'\end{bmatrix}  
 =  
 \underbrace{\begin{bmatrix}  
 \cos\theta & -\sin\theta\\  
 \sin\theta & \cos\theta  
 \end{bmatrix}}_{R(\theta)}  
-\begin{bmatrix}x_1\\x_2\end{bmatrix}$$
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+$$
 
 ### **Property 1. Transpose and inverse**
 
@@ -120,7 +132,8 @@ $$R(\theta)^\top = R(-\theta)$$
 
 You can also see this directly by transposing the matrix:
 
-$$R(\theta)^\top  
+$$
+R(\theta)^\top  
 =  
 \begin{bmatrix}  
 \cos\theta & \sin\theta\\  
@@ -132,7 +145,8 @@ $$R(\theta)^\top
 \sin(-\theta) & \cos(-\theta)  
 \end{bmatrix}  
 =  
-R(-\theta)$$
+R(-\theta)
+$$
 
 using $\cos(-\theta)=\cos\theta$ and $\sin(-\theta)=-\sin\theta$.
 
@@ -173,7 +187,8 @@ $$\tilde{q}_m = R(m\theta)\,q_m, \qquad \tilde{k}_n = R(n\theta)\,k_n,$$
 
 где $\theta$ — фиксированная константа, задающая _скорость вращения_: она определяет, на какой угол поворачивается вектор при сдвиге на одну позицию. Если $\theta$ большая — векторы крутятся быстро и даже близкие токены оказываются под заметно разными углами; если маленькая — вращение медленное и нужен большой разрыв в позициях, чтобы угол существенно изменился. $\theta$ — гиперпараметр, а не обучаемый вес; $R(\cdot)$ — матрица поворота из Part 1. Это всё: мы просто умножаем каждый вектор на матрицу поворота, угол которой линейно растёт с номером позиции. Записав явно, получим:
 
-$$\tilde{q}_m  
+$$
+\tilde{q}_m  
 =  
 \begin{bmatrix}  
 \cos(m\theta) & -\sin(m\theta)\\  
@@ -191,7 +206,8 @@ q_m^{(1)} \\ q_m^{(2)}
 \end{bmatrix}  
 \begin{bmatrix}  
 k_n^{(1)} \\ k_n^{(2)}  
-\end{bmatrix}$$
+\end{bmatrix}
+$$
 
 Токен на позиции 0 не поворачивается вовсе ($R(0) = I$), токен на позиции 1 поворачивается на $\theta$, на позиции 2 — на $2\theta$, и так далее. Каждый шаг в последовательности — это ещё один поворот на тот же угол $\theta$. На данный момент кажется, что позиции все еще задают абсолютным образом, но на деле это не так, давайте докажем это.
 
@@ -199,8 +215,10 @@ k_n^{(1)} \\ k_n^{(2)}
 
 Теперь вычислим attention-скор между позициями $m$ и $n$:
 
-$$\tilde{q}_m^\top \tilde{k}_n  
-= \left(R(m\theta)\,q_m\right)^\top \left(R(n\theta)\,k_n\right)$$
+$$
+\tilde{q}_m^\top \tilde{k}_n  
+= \left(R(m\theta)\,q_m\right)^\top \left(R(n\theta)\,k_n\right)
+$$
 
 Используем стандартное свойство транспонирования произведения $(AB)^\top = B^\top A^\top$:
 
@@ -212,8 +230,10 @@ $$= q_m^\top\, R(-m\theta)\, R(n\theta)\, k_n$$
 
 Теперь используем Property 2 (composition): $R(\alpha)\,R(\beta) = R(\alpha + \beta)$:
 
-$$= q_m^\top\, R\left(n\theta - m\theta\right)\, k_n  
-= q_m^\top\, R\!\left((n - m)\theta\right)\, k_n$$
+$$
+= q_m^\top\, R\left(n\theta - m\theta\right)\, k_n  
+= q_m^\top\, R\!\left((n - m)\theta\right)\, k_n
+$$
 
 Вот и всё. Финальный результат:
 
@@ -263,10 +283,12 @@ Softmax чувствителен к масштабу входов. Если по
 
 Ответ прост: мы разбиваем $d$-мерный вектор на $d/2$ независимых пар координат и в каждой паре выполняем свой 2D-поворот. Пусть $d$ чётное (а в современных архитектурах это всегда так). Тогда вектор $q_m \in \mathbb{R}^d$ разбивается на пары:
 
-$$\underbrace{(q_m^{(0)},\; q_m^{(1)})}_{\text{пара } 0}, \quad  
+$$
+\underbrace{(q_m^{(0)},\; q_m^{(1)})}_{\text{пара } 0}, \quad  
 \underbrace{(q_m^{(2)},\; q_m^{(3)})}_{\text{пара } 1}, \quad  
 \ldots, \quad  
-\underbrace{(q_m^{(d-2)},\; q_m^{(d-1)})}_{\text{пара } d/2-1}$$
+\underbrace{(q_m^{(d-2)},\; q_m^{(d-1)})}_{\text{пара } d/2-1}
+$$
 
 Каждая пара $i$ живёт на своей собственной 2D-плоскости и поворачивается на угол $m\theta_i$, где $\theta_i$ — частота, уникальная для данной пары. Пары не взаимодействуют: поворот в паре 0 никак не влияет на координаты пары 1.
 
@@ -274,21 +296,25 @@ $$\underbrace{(q_m^{(0)},\; q_m^{(1)})}_{\text{пара } 0}, \quad
 
 Запишем это формально. Определим матрицу поворота для позиции $m$ как блочно-диагональную матрицу размера $d \times d$:
 
-$$\mathcal{R}_{\Theta,m} =  
+$$
+\mathcal{R}_{\Theta,m} =  
 \begin{bmatrix}  
 R(m\theta_0) & & & \\  
 & R(m\theta_1) & & \\  
 & & \ddots & \\  
 & & & R(m\theta_{d/2-1})  
-\end{bmatrix},$$
+\end{bmatrix},
+$$
 
 где каждый блок — это знакомая нам $2 \times 2$ матрица поворота:
 
-$$R(m\theta_i) =  
+$$
+R(m\theta_i) =  
 \begin{bmatrix}  
 \cos(m\theta_i) & -\sin(m\theta_i) \\  
 \sin(m\theta_i) & \cos(m\theta_i)  
-\end{bmatrix}$$
+\end{bmatrix}
+$$
 
 Пустые области вне диагональных блоков заполнены нулями. Encoding применяется так же, как в 2D:
 
@@ -304,10 +330,12 @@ $$\theta_i = 10000^{-2i/d}, \qquad i = 0, 1, \ldots, d/2 - 1$$
 
 Распишем несколько значений для конкретности. При $d = 8$ (четыре пары):
 
-$$\theta_0 = 10000^{0} = 1, \\  
+$$
+\theta_0 = 10000^{0} = 1, \\  
 \theta_1 = 10000^{-1/2} = 0.01, \\  
 \theta_2 = 10000^{-1} = 0.0001, \\  
-\theta_3 = 10000^{-3/2} = 0.000001$$
+\theta_3 = 10000^{-3/2} = 0.000001
+$$
 
 Первая пара координат ($i = 0$) вращается на 1 радиан за шаг — это быстро: уже через несколько позиций угол существенно изменится, и эта пара хорошо различает близких соседей. Последняя пара ($i = 3$) вращается на миллионную долю радиана за шаг — ей нужны тысячи позиций, чтобы угол заметно сместился, она кодирует грубую, «далёкую» позиционную информацию, т.е. она заточена на симантическую информацию, даже если токены далеки друг от друга позиционно, но близки по смыслу, эта часть ембеддинга внесет большой вклад в скалярное произведение.
 
@@ -339,14 +367,17 @@ $$(\Delta x, \Delta y) = (m_x - n_x; m_y - n_y)$$
 
 Для этого делим $d/2$ пар на две равные группы по $d/4$:
 
-$$\underbrace{\text{пары } 0, 1, \ldots, \tfrac{d}{4}-1}_{\text{кодируют ось } x}  
+$$
+\underbrace{\text{пары } 0, 1, \ldots, \tfrac{d}{4}-1}_{\text{кодируют ось } x}  
 \quad  
 \quad  
-\underbrace{\text{пары } \tfrac{d}{4}, \tfrac{d}{4}+1, \ldots, \tfrac{d}{2}-1}_{\text{кодируют ось } y}$$
+\underbrace{\text{пары } \tfrac{d}{4}, \tfrac{d}{4}+1, \ldots, \tfrac{d}{2}-1}_{\text{кодируют ось } y}
+$$
 
 Первая группа вращается с углами, пропорциональными $m_x$, вторая — $m_y$. Блочно-диагональная матрица принимает вид:
 
-$$\mathcal{R}_{\Theta,\,(m_x, m_y)}^{\text{2D}} =  
+$$
+\mathcal{R}_{\Theta,\,(m_x, m_y)}^{\text{2D}} =  
 \begin{bmatrix}  
 R(m_x\,\theta_0) & & & & & \\  
 & \ddots & & & & \\  
@@ -354,18 +385,21 @@ R(m_x\,\theta_0) & & & & & \\
 & & & R(m_y\,\theta_0) & & \\  
 & & & & \ddots & \\  
 & & & & & R(m_y\,\theta_{d/4-1})  
-\end{bmatrix}$$
+\end{bmatrix}
+$$
 
 Здесь верхний блок из $d/4$ матриц поворота отвечает за горизонтальную ось, нижний — за вертикальную. Частоты $\theta_i$ в обеих группах могут использовать одно и то же расписание $\theta_i = 10000^{-2i/d'}$, где $d'$ — размерность, приходящаяся на одну ось (то есть $d/2$ для 2D-случая), либо настраиваться отдельно для каждой оси.
 
 **Почему это работает?** Вычислим скалярное произведение. Поскольку матрица блочно-диагональна, вклады двух групп пар складываются независимо:
 
-$$\tilde{q}_{(m_x,m_y)}^\top \, \tilde{k}_{(n_x,n_y)}  
+$$
+\tilde{q}_{(m_x,m_y)}^\top \, \tilde{k}_{(n_x,n_y)}  
 = \sum_{i=0}^{d/4-1}  
 \underbrace{(q^{(i)})^\top R\bigl((n_x - m_x)\,\theta_i\bigr)\, k^{(i)}}_{\text{зависит от } \Delta x}  
 \;+\;  
 \sum_{i=d/4}^{d/2-1}  
-\underbrace{(q^{(i)})^\top R\bigl((n_y - m_y)\,\theta_i\bigr)\, k^{(i)}}_{\text{зависит от } \Delta y}$$
+\underbrace{(q^{(i)})^\top R\bigl((n_y - m_y)\,\theta_i\bigr)\, k^{(i)}}_{\text{зависит от } \Delta y}
+$$
 
 где $q^{(i)}, k^{(i)} \in \mathbb{R}^2$ — $i$-я пара координат query и key соответственно. Каждое слагаемое зависит от контента и относительного сдвига вдоль _своей_ оси. Абсолютные координаты $(m_x, m_y)$ и $(n_x, n_y)$ по отдельности не появляются — ровно та же магия вычитания углов, что и в 1D, только теперь она работает для каждой пространственной оси параллельно.
 
@@ -377,27 +411,33 @@ $$\tilde{q}_{(m_x,m_y)}^\top \, \tilde{k}_{(n_x,n_y)}
 
 Видео добавляет третье измерение — время. Каждый токен (патч кадра) характеризуется тройкой $(m_x, m_y, m_t)$: пространственные координаты и номер кадра. Обобщение следует той же логике: делим $d/2$ пар на три равные группы по $d/6$ координат в каждой:
 
-$$\underbrace{\text{пары } 0, \ldots, \tfrac{d}{6}-1}_{\text{ось } x}  
+$$
+\underbrace{\text{пары } 0, \ldots, \tfrac{d}{6}-1}_{\text{ось } x}  
 \qquad  
 \underbrace{\text{пары } \tfrac{d}{6}, \ldots, \tfrac{d}{3}-1}_{\text{ось } y}  
 \qquad  
-\underbrace{\text{пары } \tfrac{d}{3}, \ldots, \tfrac{d}{2}-1}_{\text{ось } t}$$
+\underbrace{\text{пары } \tfrac{d}{3}, \ldots, \tfrac{d}{2}-1}_{\text{ось } t}
+$$
 
 Блочно-диагональная матрица поворота:
 
-$$\mathcal{R}_{\Theta,\,(m_x, m_y, m_t)}^{\text{3D}} =  
+$$
+\mathcal{R}_{\Theta,\,(m_x, m_y, m_t)}^{\text{3D}} =  
 \operatorname{diag}\!\Big(  
 \underbrace{R(m_x\theta_0),\ldots, R(m_x\theta_{d/6-1})}_{\text{ось } x},\;  
 \underbrace{R(m_y\theta_0),\ldots, R(m_y\theta_{d/6-1})}_{\text{ось } y},\;  
 \underbrace{R(m_t\theta_0),\ldots, R(m_t\theta_{d/6-1})}_{\text{ось } t}  
-\Big)$$
+\Big)
+$$
 
 Скалярное произведение декомпозируется в сумму трёх независимых вкладов:
 
-$$\tilde{q}^\top \tilde{k}  
+$$
+\tilde{q}^\top \tilde{k}  
 = \underbrace{\sum_{\text{пары } x} (q^{(i)})^\top R(\Delta x\,\theta_i)\, k^{(i)}}_{\text{пространство: горизонталь}}  
 + \underbrace{\sum_{\text{пары } y} (q^{(i)})^\top R(\Delta y\,\theta_i)\, k^{(i)}}_{\text{пространство: вертикаль}}  
-+ \underbrace{\sum_{\text{пары } t} (q^{(i)})^\top R(\Delta t\,\theta_i)\, k^{(i)}}_{\text{время}}$$
++ \underbrace{\sum_{\text{пары } t} (q^{(i)})^\top R(\Delta t\,\theta_i)\, k^{(i)}}_{\text{время}}
+$$
 
 где $\Delta x = n_x - m_x$, $\Delta y = n_y - m_y$, $\Delta t = n_t - m_t$. Attention-скор теперь чувствителен к трёхмерному относительному смещению — модель «знает», насколько два патча далеки друг от друга по горизонтали, вертикали и во времени.
 
@@ -502,11 +542,13 @@ $$\theta_i^{\text{YaRN}} = \theta_i \cdot \left(\frac{1 - \gamma(r_i)}{s} + \gam
 
 где $\gamma$ плавно переходит от 0 (полная интерполяция, как PI) к 1 (без изменений):
 
-$$\gamma(r) = \begin{cases}  
+$$
+\gamma(r) = \begin{cases}  
 0 & \text{если } r < \alpha \\[4pt]  
 \dfrac{r - \alpha}{\beta - \alpha} & \text{если } \alpha \le r \le \beta \\[4pt]  
 1 & \text{если } r > \beta  
-\end{cases}$$
+\end{cases}
+$$
 
 Здесь $\alpha$ и $\beta$ — гиперпараметры, задающие границы промежуточной зоны (авторы используют $\alpha = 1$, $\beta = 32$ как значения по умолчанию). При $\gamma = 0$ частота масштабируется как в PI ($\theta_i / s$), при $\gamma = 1$ остаётся нетронутой, а в промежутке — интерполяция между этими двумя режимами.
 

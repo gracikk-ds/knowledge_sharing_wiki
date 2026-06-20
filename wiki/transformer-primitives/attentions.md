@@ -18,7 +18,7 @@ The original transformer attention computes separate query, key, and value proje
 
 $$\mathbf{o}_t = \sum_{j=1}^{t} \frac{\exp(\mathbf{q}_t^\top \mathbf{k}_j / \sqrt{d})}{\sum_{l=1}^{t} \exp(\mathbf{q}_t^\top \mathbf{k}_l / \sqrt{d})} \mathbf{v}_j$$
 
-where $mathbf{q}_t$, $mathbf{k}_j$, $\mathbf{v}_j$ are the query, key, and value vectors, and $d$ is the head dimension. Each head learns its own subspace of relationships, and their outputs are concatenated and projected back to model dimension. This gives maximum capacity — every head has independent KV parameters — but the KV-cache scales linearly with head count:
+where $\mathbf{q}_t$, $\mathbf{k}_j$, $\mathbf{v}_j$ are the query, key, and value vectors, and $d$ is the head dimension. Each head learns its own subspace of relationships, and their outputs are concatenated and projected back to model dimension. This gives maximum capacity — every head has independent KV parameters — but the KV-cache scales linearly with head count:
 
 $$\text{KV-cache} = 2 \times n_{\text{heads}} \times n_{\text{layers}} \times d_{\text{head}} \times \text{seq\_len}$$
 
@@ -60,7 +60,7 @@ Only $\mathbf{c}_t$ is cached — at attention time, full keys and values are re
 
 $$\mathbf{K}_t = \mathbf{W}_{K}^{\text{up}} \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_{V}^{\text{up}} \mathbf{c}_t$$
 
-Since $dim(mathbf{c}_t) ll n_{text{heads}} times d_{text{head}}$, this achieves 4–8x KV-cache compression — comparable to aggressive GQA — while preserving more representational capacity than simple sharing. The tradeoff is implementation complexity: the compression/decompression machinery adds engineering overhead. Kimi-K2 and DeepSeek adopt MLA as their primary attention mechanism.
+Since $dim(\mathbf{c}_t) ll n_{\text{heads}} \times d_{\text{head}}$, this achieves 4–8x KV-cache compression — comparable to aggressive GQA — while preserving more representational capacity than simple sharing. The tradeoff is implementation complexity: the compression/decompression machinery adds engineering overhead. Kimi-K2 and DeepSeek adopt MLA as their primary attention mechanism.
 
 ### Gated Attention
 
