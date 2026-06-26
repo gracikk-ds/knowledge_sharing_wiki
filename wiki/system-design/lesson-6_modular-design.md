@@ -312,8 +312,3 @@
 ![[images/system-design/lesson6-booking-notify.png]]
 
 ![[images/system-design/lesson6-booking-queue.png]]
-
-## Полезные материалы
-
-- RabbitMQ for beginners
-- Apache Kafka for beginners
