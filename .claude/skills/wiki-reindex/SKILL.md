@@ -1,49 +1,69 @@
 ---
 name: wiki-reindex
-description: Use when notes or lecture PDFs under wiki/ are added, deleted, renamed, or substantially rewritten and wiki/index.md is now stale. Triggers on "update the index", "rebuild the index", "reindex the wiki", "обнови индекс", "пересобери индекс", or after ingesting/removing wiki content.
+description: Сверить курируемый индекс `wiki/index.md` с заметками и лекционными PDF в `wiki/` после добавления, удаления, переименования или существенного изменения материалов. Использовать для запросов «обнови индекс», «пересобери индекс», «переиндексируй wiki», «reindex wiki», а также после переноса или удаления содержимого `wiki/`.
 ---
 
 # wiki-reindex
 
-Reconcile `wiki/index.md` with what actually lives under `wiki/`. The heavy reading runs on a **sonnet** subagent; the main session only orchestrates and shows the diff — so the full note contents never load into the main context.
+Сверяй `wiki/index.md` с содержимым `wiki/`, сохраняя индекс курируемым и diff минимальным. Не переписывай точные описания ради стиля.
 
-## Core rule — reconcile, don't rewrite
+## Допустимые изменения
 
-Three operations only:
+- **Добавить** отсутствующую индексируемую заметку или PDF.
+- **Удалить** запись, если её файл исчез.
+- **Обновить** только устаревшую часть записи: target, отображаемое название, раздел или краткое описание.
+- **Вынести на решение** материал, который нельзя надёжно проиндексировать без выбора пользователя.
 
-- **Add** — a content file on disk has no entry → write one fresh entry in the matching section.
-- **Remove** — an entry points to a file that no longer exists → delete the bullet (and its heading if it becomes empty).
-- **Update** — the file exists but its one-liner is stale (no longer matches the note) → rewrite that single line.
+Сохраняй без изменений каждую актуальную запись. Меняй frontmatter `Updated` на текущую системную дату только при содержательном изменении записей или структуры. При no-op сообщай дату проверки, но не меняй файл.
 
-**Preserve the existing wording of every entry whose note is unchanged.** Minimal diff is the goal — never reword an accurate description.
+## Процесс
 
-**Always stamp the date.** On every run — even a no-op reconciliation — set the `Updated` frontmatter field to today's date, read from the system (never guessed). This is the one line that may change with no content change.
+1. Прочитай `styleguide.md` и текущий `wiki/index.md`.
+2. Проверь исходное состояние: `git status --short -- wiki/index.md` и `git diff -- wiki/index.md`. Если файл уже изменён, работай с текущей версией и не затирай существующий diff. При пересечении изменений остановись и опиши конфликт.
+3. Передай ограниченную сверку одному подагенту, чтобы не загружать основной контекст всеми заметками. Не привязывайся к конкретной модели или API. Если подагенты недоступны, выполни ту же процедуру напрямую.
+4. Проверь итоговый diff и инварианты из раздела «Проверка».
+5. Сообщи категории «Добавлено / Удалено / Обновлено / Требует решения», число неизменённых записей и дату проверки.
 
-## Checklist (mirror as TodoWrite)
+Менять разрешено только `wiki/index.md`.
 
-1. Delegate the reconciliation to a sonnet subagent.
-2. Review the diff for accidental churn.
-3. Report the changes to the user.
+## Задание для подагента
 
-## Step 1 — Delegate to a sonnet subagent
+Передай подагенту этот самодостаточный контекст:
 
-Dispatch ONE subagent with the Agent tool — `model: "sonnet"`, `subagent_type: "general-purpose"` — and give it this brief verbatim (it is self-contained):
-
-> You maintain the index of an Obsidian ML-notes vault at `wiki/index.md`. Reconcile it with disk. Apply only Add / Remove / Update; do NOT reword entries that are still accurate. Minimal diff.
+> Сверь курируемый индекс Obsidian-хранилища `wiki/index.md` с содержимым `wiki/`. Меняй только `wiki/index.md`. Сохраняй точные записи дословно и делай минимальный diff.
 >
-> 1. List content files: `find wiki -type f \( -name '*.md' -o -name '*.pdf' \) | sort`. Ignore `wiki/index.md` and everything under `wiki/images/`.
-> 2. Read `wiki/index.md`. Keep its intro paragraph intact, and the frontmatter too — except the `Updated` field (step 6).
-> 3. **Markdown note** → goes in a topic section as `- [[<basename-without-.md>|<Display Title>]] — <summary>`. The summary is terse Russian prose with English technical terms, naming the key sub-topics the note derives — match the style of the entries already present. Read the note to write/refresh its summary. For a new note, take the Display Title from its `title` frontmatter or its H1; reuse the existing title if the entry already exists.
-> 4. **`.pdf`** → a lecture, listed under `## Лекции (слайды)` as a backtick relative path (e.g. `distillation/flow-map-models.pdf`) with a short Russian description. Reading the PDF is optional — a brief accurate phrase suffices.
-> 5. Section ↔ folder map: `gen-ai/` → `## Генеративные модели`; `transformer-primitives/` → `## Трансформеры`; `applied/` → `## Прикладные модели`; PDF-only folders (`distillation/`, `system-design/`, `metrics/`, …) group under `## Лекции (слайды)`. If a new topic folder of notes appears with no matching heading, add a new `##` section in a sensible place.
-> 6. **Stamp the date.** Run `date +%Y-%m-%d`; set the frontmatter `Updated:` key to that value (add the key right under `title:` if it does not exist yet). Do this on every run, even if nothing in steps 3–5 changed.
-> 7. Write the reconciled file back to `wiki/index.md`.
-> 8. Return a concise report grouped as **Added / Removed / Updated**, plus an unchanged count and the new `Updated` date. Do NOT paste the whole file.
+> 1. Получи инвентарь командой `rg --files wiki -g '*.md' -g '*.pdf' -g '!wiki/images/**'`. Всегда исключай `wiki/index.md`, служебный backlog `wiki/Questions.md` и пустые файлы.
+> 2. Раздели остальные файлы на:
+>    - **индексируемые** — содержательные учебные заметки и PDF;
+>    - **пропускаемые** — служебные и пустые файлы;
+>    - **требующие решения** — нет надёжного названия или описания, назначение неоднозначно либо для темы нет очевидного раздела.
+> 3. Прочитай `wiki/index.md`. Сохрани frontmatter, порядок разделов, ручные названия и все актуальные формулировки.
+> 4. Markdown-запись оформляй как `- [[<target>|<Название>]] — <краткое описание>`. Для существующей записи сохраняй название, кроме доказанного случая намеренного переименования заметки. Для новой бери название из `title` или содержательного H1; технические заголовки вроде `Решение` и `Excalidraw Data` не используй. Если надёжного названия нет, ничего не придумывай и вынеси файл в «Требует решения».
+> 5. Для уникальной Markdown-заметки используй basename в target. Для любого `index.md` или basename, повторяющегося среди Markdown-файлов, используй кратчайший однозначный путь относительно `wiki/`, например `coding/index`. Совпадение stem у Markdown и PDF не делает wikilink неоднозначным.
+> 6. Существующие разделы сопоставляй с папками: `classical_ml/` → `## Классические модели`; `gen-ai/` → `## Генеративные модели`; `transformer-primitives/` → `## Трансформеры`; `applied/` → `## Прикладные модели`; `coding/` → `## Coding interview`; Markdown из `system-design/` → `## Системный дизайн`. Не создавай новый тематический раздел, если его название нельзя надёжно вывести из материалов.
+> 7. Все PDF размещай в `## Лекции (слайды)` в текущем формате: ``- **<Категория>** — `<путь относительно wiki/>`: <краткое описание>.`` Если назначение PDF неясно, прочитай первую страницу; не угадывай.
+> 8. Применяй только необходимые добавления, удаления и обновления. Пустой раздел после удаления записи удали, если в исходном индексе он не был намеренно оставлен.
+> 9. Если содержимое или структура индекса изменились, выполни `date +%Y-%m-%d` и запиши результат в `Updated`. При no-op не меняй `Updated`.
+> 10. Верни краткий отчёт: «Добавлено / Удалено / Обновлено / Требует решения», число неизменённых записей и дата проверки. Не вставляй весь индекс.
 
-## Step 2 — Review the diff
+## Проверка
 
-Run `git diff -- wiki/index.md`. Confirm it matches the subagent's report and contains no accidental churn: reworded-but-equivalent lines, dropped sections, broken `[[wikilinks]]`, or `.md` notes mistakenly listed as backtick paths (or PDFs as wikilinks). The `Updated` frontmatter line changes on every run — that is expected, not churn. If real churn appears, re-dispatch with a reminder to preserve unchanged wording.
+В основной сессии выполни:
 
-## Step 3 — Report
+```bash
+git diff -- wiki/index.md
+git diff --check -- wiki/index.md
+```
 
-Relay the Added / Removed / Updated summary and the new `Updated` date to the user. The change is already written and git-tracked — tell them they can discard it with `git checkout -- wiki/index.md`.
+Убедись, что:
+
+- изменения не затронули исходный пользовательский diff;
+- каждый wikilink разрешается ровно в один существующий Markdown-файл;
+- каждый индексируемый файл представлен ровно один раз;
+- target с повторяющимся basename содержит достаточный путь;
+- Markdown-записи оформлены wikilinks, а PDF — путями в backticks;
+- PDF-записи сохраняют формат с категорией и двоеточием;
+- точные описания не переформулированы;
+- `Updated` изменён только вместе с содержательным diff.
+
+Не откатывай изменения и не предлагай `git restore`, если до запуска уже существовал пользовательский diff.

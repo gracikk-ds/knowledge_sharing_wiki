@@ -1,45 +1,69 @@
 ---
 name: wiki-reindex
-description: Reconcile `wiki/index.md` with notes and lecture PDFs on disk after files under `wiki/` are added, removed, renamed, or substantially rewritten. Use for “update/rebuild/reindex the wiki”, «обнови индекс», «пересобери индекс», and after ingesting or removing wiki content.
+description: Сверить курируемый индекс `wiki/index.md` с заметками и лекционными PDF в `wiki/` после добавления, удаления, переименования или существенного изменения материалов. Использовать для запросов «обнови индекс», «пересобери индекс», «переиндексируй wiki», «reindex wiki», а также после переноса или удаления содержимого `wiki/`.
 ---
 
 # wiki-reindex
 
-Reconcile the index; do not rewrite it.
+Сверяй `wiki/index.md` с содержимым `wiki/`, сохраняя индекс курируемым и diff минимальным. Не переписывай точные описания ради стиля.
 
-Allowed content operations:
+## Допустимые изменения
 
-- **Add** an entry for a file missing from the index.
-- **Remove** an entry whose file no longer exists.
-- **Update** only a stale one-line summary.
+- **Добавить** отсутствующую индексируемую заметку или PDF.
+- **Удалить** запись, если её файл исчез.
+- **Обновить** только устаревшую часть записи: target, отображаемое название, раздел или краткое описание.
+- **Вынести на решение** материал, который нельзя надёжно проиндексировать без выбора пользователя.
 
-Preserve the exact wording of every still-accurate entry. On every run, including a content no-op, set frontmatter `Updated` to the current system date.
+Сохраняй без изменений каждую актуальную запись. Меняй frontmatter `Updated` на текущую системную дату только при содержательном изменении записей или структуры. При no-op сообщай дату проверки, но не меняй файл.
 
-## Process
+## Процесс
 
-1. Spawn one subagent for the bounded reconciliation task below so note contents do not fill the main context.
-2. Review `git diff -- wiki/index.md` in the main session.
-3. Report Added, Removed, Updated, the unchanged count, and the new date.
+1. Прочитай `styleguide.md` и текущий `wiki/index.md`.
+2. Проверь исходное состояние: `git status --short -- wiki/index.md` и `git diff -- wiki/index.md`. Если файл уже изменён, работай с текущей версией и не затирай существующий diff. При пересечении изменений остановись и опиши конфликт.
+3. Передай ограниченную сверку одному подагенту, чтобы не загружать основной контекст всеми заметками. Не привязывайся к конкретной модели или API. Если подагенты недоступны, выполни ту же процедуру напрямую.
+4. Проверь итоговый diff и инварианты из раздела «Проверка».
+5. Сообщи категории «Добавлено / Удалено / Обновлено / Требует решения», число неизменённых записей и дату проверки.
 
-If subagents are unavailable, perform the same bounded reconciliation directly.
+Менять разрешено только `wiki/index.md`.
 
-## Subagent brief
+## Задание для подагента
 
-Give the subagent this self-contained task:
+Передай подагенту этот самодостаточный контекст:
 
-> Maintain the index of the Obsidian ML-notes vault at `wiki/index.md`. Reconcile it with disk. Apply only Add / Remove / Update; do not reword entries that remain accurate. Keep the diff minimal.
+> Сверь курируемый индекс Obsidian-хранилища `wiki/index.md` с содержимым `wiki/`. Меняй только `wiki/index.md`. Сохраняй точные записи дословно и делай минимальный diff.
 >
-> 1. List `*.md` and `*.pdf` files under `wiki/`. Ignore `wiki/index.md` and everything under `wiki/images/`.
-> 2. Read `wiki/index.md`. Preserve its frontmatter and introduction except for `Updated`.
-> 3. List a Markdown note in its topic section as `- [[<basename-without-.md>|<Display Title>]] — <summary>`. Follow the current index style: use a basename by default, but use the shortest disambiguating path relative to `wiki/` for `index.md` files or duplicate basenames, for example `coding/index`. Match existing terse Russian summaries with natural English technical terms. Read a note before adding or refreshing its summary. Take a new display title from frontmatter `title` or H1; preserve an existing title.
-> 4. List PDFs under `## Лекции (слайды)` as backtick relative paths with a short Russian description. Reading a PDF is optional when its purpose is clear.
-> 5. Map `gen-ai/` to `## Генеративные модели`, `transformer-primitives/` to `## Трансформеры`, and `applied/` to `## Прикладные модели`. Group PDF-oriented folders such as `distillation/`, `system-design/`, and `metrics/` under `## Лекции (слайды)`. Add a sensible section for a new notes topic when necessary.
-> 6. Run `date +%Y-%m-%d` and set `Updated` to that value, adding it directly below `title` if absent.
-> 7. Write the reconciled `wiki/index.md`.
-> 8. Return a concise Added / Removed / Updated report, unchanged count, and date. Do not paste the whole file.
+> 1. Получи инвентарь командой `rg --files wiki -g '*.md' -g '*.pdf' -g '!wiki/images/**'`. Всегда исключай `wiki/index.md`, служебный backlog `wiki/Questions.md` и пустые файлы.
+> 2. Раздели остальные файлы на:
+>    - **индексируемые** — содержательные учебные заметки и PDF;
+>    - **пропускаемые** — служебные и пустые файлы;
+>    - **требующие решения** — нет надёжного названия или описания, назначение неоднозначно либо для темы нет очевидного раздела.
+> 3. Прочитай `wiki/index.md`. Сохрани frontmatter, порядок разделов, ручные названия и все актуальные формулировки.
+> 4. Markdown-запись оформляй как `- [[<target>|<Название>]] — <краткое описание>`. Для существующей записи сохраняй название, кроме доказанного случая намеренного переименования заметки. Для новой бери название из `title` или содержательного H1; технические заголовки вроде `Решение` и `Excalidraw Data` не используй. Если надёжного названия нет, ничего не придумывай и вынеси файл в «Требует решения».
+> 5. Для уникальной Markdown-заметки используй basename в target. Для любого `index.md` или basename, повторяющегося среди Markdown-файлов, используй кратчайший однозначный путь относительно `wiki/`, например `coding/index`. Совпадение stem у Markdown и PDF не делает wikilink неоднозначным.
+> 6. Существующие разделы сопоставляй с папками: `classical_ml/` → `## Классические модели`; `gen-ai/` → `## Генеративные модели`; `transformer-primitives/` → `## Трансформеры`; `applied/` → `## Прикладные модели`; `coding/` → `## Coding interview`; Markdown из `system-design/` → `## Системный дизайн`. Не создавай новый тематический раздел, если его название нельзя надёжно вывести из материалов.
+> 7. Все PDF размещай в `## Лекции (слайды)` в текущем формате: ``- **<Категория>** — `<путь относительно wiki/>`: <краткое описание>.`` Если назначение PDF неясно, прочитай первую страницу; не угадывай.
+> 8. Применяй только необходимые добавления, удаления и обновления. Пустой раздел после удаления записи удали, если в исходном индексе он не был намеренно оставлен.
+> 9. Если содержимое или структура индекса изменились, выполни `date +%Y-%m-%d` и запиши результат в `Updated`. При no-op не меняй `Updated`.
+> 10. Верни краткий отчёт: «Добавлено / Удалено / Обновлено / Требует решения», число неизменённых записей и дата проверки. Не вставляй весь индекс.
 
-## Review
+## Проверка
 
-Confirm the diff contains no equivalent rewording, dropped sections, broken wikilinks, Markdown notes represented as raw paths, or PDFs represented as wikilinks. A date-only change is expected.
+В основной сессии выполни:
 
-The change remains in the working tree. Do not discard it unless the user explicitly asks; report that it can be reverted with `git restore -- wiki/index.md`.
+```bash
+git diff -- wiki/index.md
+git diff --check -- wiki/index.md
+```
+
+Убедись, что:
+
+- изменения не затронули исходный пользовательский diff;
+- каждый wikilink разрешается ровно в один существующий Markdown-файл;
+- каждый индексируемый файл представлен ровно один раз;
+- target с повторяющимся basename содержит достаточный путь;
+- Markdown-записи оформлены wikilinks, а PDF — путями в backticks;
+- PDF-записи сохраняют формат с категорией и двоеточием;
+- точные описания не переформулированы;
+- `Updated` изменён только вместе с содержательным diff.
+
+Не откатывай изменения и не предлагай `git restore`, если до запуска уже существовал пользовательский diff.

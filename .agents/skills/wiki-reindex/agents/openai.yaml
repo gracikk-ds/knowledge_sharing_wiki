@@ -1,4 +1,4 @@
 interface:
-  display_name: "Wiki Reindex"
-  short_description: "Reconcile the wiki index with vault content"
-  default_prompt: "Use $wiki-reindex to reconcile wiki/index.md with the current vault contents."
+  display_name: "Обновление индекса Wiki"
+  short_description: "Сверить индекс с содержимым хранилища"
+  default_prompt: "Используй $wiki-reindex, чтобы сверить wiki/index.md с текущим содержимым хранилища."
