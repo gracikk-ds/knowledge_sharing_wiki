@@ -1,6 +1,6 @@
 ---
 title: ML Notes Wiki
-Updated: 2026-07-07
+Updated: 2026-07-31
 ---
 ## Классические модели
 
@@ -59,18 +59,15 @@ Updated: 2026-07-07
 - [[lesson-3_homework|Google Meet (домашка к уроку 3)]] — черновик функциональных требований видеозвонков (комнаты, аудио/видео, шаринг экрана, чат) и прикидка DAU/MAU для расчёта нагрузки; нефункциональные требования не дописаны.
 - [[amazon|Amazon (домашка, Excalidraw)]] — скетч скоупа и требований для системного дизайна интернет-магазина: функциональные требования (просмотр, поиск, корзина, оплата, заказы) и нефункциональные (latency, availability, consistency).
 
+## ML-системный дизайн
+
+- [[payments-info|Платёжный контекст для системы выявления мошенничества]] — участники карточного платежа и их роли, этапы авторизации и движения денег, чарджбэки и оспаривание, виды мошенничества из задачи PayFlow и словарь платёжных терминов.
+
 ## Лекции (слайды)
 
 - **Дистилляция** — `distillation/flow-map-models.pdf`: flow-map и few-step дистилляция генеративных моделей.
 - **Дистилляция** — `distillation/DMM.pdf`: ODE-free few-step генерация — подходы без численного решения ODE.
 - **Метрики** — `metrics/VSR_metrics_pt1.pdf`: метрики качества для задач восстановления видео (часть 1).
 - **Метрики** — `metrics/VSR_metrics_pt2.pdf`: метрики качества для задач восстановления видео (часть 2).
-- **System design** — `system-design/original_pdfs/lesson-2_system-requirements.pdf`: слайды урока про требования к системе.
-- **System design** — `system-design/original_pdfs/lesson-3_system-load.pdf`: слайды урока про расчёт нагрузки.
-- **System design** — `system-design/original_pdfs/lesson-4_high-level-design.pdf`: слайды урока про высокоуровневый дизайн.
-- **System design** — `system-design/original_pdfs/lesson-5_choosing-databases.pdf`: слайды урока про выбор баз данных.
-- **System design** — `system-design/original_pdfs/lesson-6_modular-design.pdf`: слайды урока про модульный подход к дизайну и очереди сообщений.
-- **System design** — `system-design/original_pdfs/lesson-7_scaling.pdf`: слайды урока про масштабирование системы.
-- **System design** — `system-design/original_pdfs/lesson-8_responsiveness.pdf`: слайды урока про повышение отзывчивости.
-- **System design** — `system-design/original_pdfs/lesson-9_search-subsystems.pdf`: слайды урока про подсистемы для поиска.
-- **System design** — `system-design/original_pdfs/lesson-10_additional-subsystems.pdf`: слайды урока про дополнительные подсистемы.
+- **Математика** — `math/linal.pdf`: лекции Димы Трушина по линейной алгебре (2022–2023) — от СЛАУ, матриц и определителей до векторных пространств и классификации линейных операторов.
+- **Математика** — `math/probability_dna.pdf`: «Теория вероятностей: культурный код» — сборник фольклорных задач по элементарной теории вероятностей.
