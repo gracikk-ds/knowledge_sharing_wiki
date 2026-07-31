@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Ingest"
+  short_description: "Convert PDFs into faithful Obsidian notes"
+  default_prompt: "Use $wiki-ingest to convert this PDF into a faithful Obsidian note."

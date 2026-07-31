@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Quiz"
+  short_description: "Create and grade quizzes from wiki notes"
+  default_prompt: "Use $wiki-quiz to test my understanding of a topic covered by the wiki."

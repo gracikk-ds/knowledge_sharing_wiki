@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Reindex"
+  short_description: "Reconcile the wiki index with vault content"
+  default_prompt: "Use $wiki-reindex to reconcile wiki/index.md with the current vault contents."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Query"
+  short_description: "Answer questions from this ML notes vault"
+  default_prompt: "Use $wiki-query to answer this question from the vault with wiki citations."
